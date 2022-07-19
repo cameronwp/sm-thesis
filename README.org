@@ -8,3 +8,119 @@ Start with [[main.org][main.org]]. See comments for usage.
 1. Open [[main.org][main.org]]
 2. Use [[https://orgmode.org/manual/LaTeX_002fPDF-export-commands.html][org export]] to build the PDF
    ~C-c C-e l p~ by default or ~SPC m e l p~ with [[https://github.com/doomemacs/doomemacs][Doom Emacs]] / [[https://github.com/emacs-evil/evil][evil mode]]
+
+** Dependencies / Setup
+This repo is not self-contained - utilities, packages, and configuration for LaTeX exporting and
+bibliographies are required.
+
+These snippets are from my Doom Emacs config. You may need to modify for your setup.
+
+*** External Tools
+- [[http://biblatex-biber.sourceforge.net/][biber]]
+- [[https://imagemagick.org/index.php][imagemagick]]
+- [[https://www.luatex.org/][lualatex]]
+- [[https://dvisvgm.de/][dvisvgm]]
+
+You could use other tools by modifying the compilation pipeline defined below.
+
+*** Compiling
+Setup the PDF compilation pipeline.
+
+The part about ~minted~ is only required if you want nicely formatted code blocks in your PDF
+([[https://stackoverflow.com/a/60396939][source1,]] [[https://stackoverflow.com/a/41625195][source2]]). Add ~#+latex_header: \usepackage{minted}~ to any document that needs code
+highlighting. Additionally, any code block may be framed in a border with ~#+attr_latex: :options
+frame=single~.
+
+#+begin_src emacs-lisp
+(setq org-latex-listings 'minted
+      org-latex-packages-alist '(("" "minted"))
+      org-latex-pdf-process
+      '("lualatex -shell-escape -interaction nonstopmode %f"
+        "biber %b"
+        "lualatex -shell-escape -interaction nonstopmode %f"))
+
+(setq luamagick '(luamagick :programs ("lualatex" "convert")
+                            :description "pdf > png"
+                            :message "you need to install lualatex and imagemagick."
+                            :use-xcolor t
+                            :image-input-type "pdf"
+                            :image-output-type "png"
+                            :image-size-adjust (1.0 . 1.0)
+                            :latex-compiler ("lualatex -interaction nonstopmode -output-directory %o %f")
+                            :image-converter ("convert -density %D -fuzz 10\% -trim -antialias %f -quality 100 %O")))
+
+(setq luasvg
+      '(luasvg
+        :programs ("lualatex" "dvisvgm")
+        :description "dvi > svg"
+        :message "you need to install lualatex and dvisvgm."
+        :use-xcolor t
+        :image-input-type "dvi"
+        :image-output-type "svg"
+        :image-size-adjust (1.0 . 1.0)
+        :latex-compiler ("lualatex -interaction nonstopmode -output-format dvi -output-directory %o %f")
+        :image-converter ("dvisvgm %f -n -b min -c %S -o %O")))
+
+(after! org
+ (add-to-list 'org-preview-latex-process-alist luasvg)
+ (setq org-preview-latex-default-process 'luasvg))
+#+end_src
+
+If the LaTeX preview process starts complaining about policies, see [[https://stackoverflow.com/a/54056571][this thread]].
+
+*** Document Class
+Define MIT thesis style LaTeX documents.
+
+#+begin_src emacs-lisp
+(setq mitthesis-class
+      '("mitthesis" "\\documentclass[12pt,twoside]{mitthesis}"
+        ("\\chapter{%s}" . "\\chapter*{%s}")
+        ("\\section{%s}" . "\\section*{%s}")
+        ("\\subsection{%s}" . "\\subsection*{%s}")
+        ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+        ("\\paragraph{%s}" . "\\paragraph*{%s}")
+        ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes mitthesis-class t)
+#+end_src
+
+*** References and Citation Formatting
+We'll be enabling [[https://blog.tecosaur.com/tmio/2021-07-31-citations.html][new native org-cite citations]]. First, install packages for references and
+citations.
+
+#+begin_src emacs-lisp
+(package! org-ref)
+;; probably not necessary
+(package! helm-bibtex)
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam)
+#+end_src
+
+This part of the configuration assumes some file paths. Change for your own system. Setup bibtex and
+org-cite with my default ~library.bib~ file. Also add support for [[https://citationstyles.org/][CSL]] styles managed by Zotero. For
+instance, you can use IEEE styles by adding ~#+cite_export: csl ieee.csl~ to the header. For more
+info on CSL, see [[https://docs.citationstyles.org/en/stable/specification.html][here]].
+
+#+begin_src emacs-lisp
+(defconst bibfile "~/Dropbox/org/library.bib")
+
+(use-package! oc
+  :after org
+  :config
+  (setq org-cite-global-bibliography (list bibfile))
+  (setq org-cite-csl-styles-dir "~/Zotero/styles"))
+
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config
+  (require 'org-ref)) ; optional: if using Org-ref v2 or v3 citation links
+
+;; probably not necessary
+(use-package helm-bibtex
+  :config
+  (setq bibtex-completion-bibliography '(bibfile))
+  (setq bibtex-completion-library-path '("~/Dropbox/papers"))
+  (setq bibtex-completion-notes-path "~/Dropbox/org/roam"))
+#+end_src

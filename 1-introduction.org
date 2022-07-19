@@ -16,3 +16,7 @@ This is the introduction.
 
 This is a section of text. As said in... [cite:@Bhargava2018] "Hey". So said [cite:@Miller2017] too
 that things are cool.
+
+#+begin_src lisp
+(format t "hello, world!")
+#+end_src
