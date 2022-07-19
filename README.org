@@ -1,0 +1,10 @@
+#+TITLE: SM Thesis
+
+This repo builds my SM thesis PDF from ~.org~ files.
+
+Start with [[main.org][main.org]]. See comments for usage.
+
+** Exporting
+1. Open [[main.org][main.org]]
+2. Use [[https://orgmode.org/manual/LaTeX_002fPDF-export-commands.html][org export]] to build the PDF
+   ~C-c C-e l p~ by default or ~SPC m e l p~ with [[https://github.com/doomemacs/doomemacs][Doom Emacs]] / [[https://github.com/emacs-evil/evil][evil mode]]
