@@ -1,0 +1,127 @@
+#+title: Main
+#+author: Cameron W Pittman
+#+email: cameronp@mit.edu
+#+export_file_name: Pittman-SM.pdf
+
+#+options: author:nil
+#+options: date:nil
+#+options: email:nil
+#+options: title:nil
+#+options: toc:nil
+
+# adds hanging-indent and extra line breaks to <bibliography />
+# see https://docs.citationstyles.org/en/stable/specification.html
+#+cite_export: csl ieee-modded.csl
+
+# adapted from the unofficial MIT thesis template: https://www.overleaf.com/latex/templates/mit-thesis-template/ytphktgwpktc
+# see also an example of compiling multiple org files into a thesis: https://github.com/dangom/org-thesis
+
+# IMPORTANT: The official thesis specifications are available at:
+#            http://libraries.mit.edu/archives/thesis-specs/
+#
+#            Please verify your thesis' formatting and copyright
+#            assignment before submission. If you notice any
+#            discrepancies between these templates and the
+#            MIT Libraries' specs, please let us know
+#            by e-mailing thesis@mit.edu
+
+#+begin_export tex
+%% The documentclass options along with the pagestyle can be used to generate
+%% a technical report, a draft copy, or a regular thesis. You may need to
+%% re-specify the pagestyle after you \include cover.tex. For more
+%% information, see the first few lines of mitthesis.cls.
+%%
+%\documentclass[12pt,vi,twoside]{mitthesis}
+%%
+%%  If you want your thesis copyright to you instead of MIT, use the
+%%  ``vi'' option, as above.
+%%
+%\documentclass[12pt,twoside,leftblank]{mitthesis}
+%%
+%% If you want blank pages before new chapters to be labelled ``This
+%% Page Intentionally Left Blank'', use the ``leftblank'' option, as
+%% above.
+#+end_export
+
+#+latex_class: mitthesis
+#+latex_class_options: [10pt,leftblank,twoside]
+
+#+latex_header: \usepackage{lgrind}
+
+#+begin_export tex
+%% These have been added at the request of the MIT Libraries, because
+%% some PDF conversions mess up the ligatures.  -LB, 1/22/2014
+#+end_export
+#+latex_header: \usepackage{cmap}
+#+latex_header: \usepackage[T1]{fontenc}
+#+latex_header: \pagestyle{plain}
+
+#+begin_export tex
+%% This bit allows you to either specify only the files which you wish to
+%% process, or `all' to process all files which you \include.
+%% Krishna Sethuraman (1990).
+
+%\typein [\files]{Enter file names to process, (chap1,chap2 ...), or `all' to process all files:}
+#+end_export
+#+latex_header: \def\all{all}
+#+latex_header: \ifx\files\all \typeout{Including all files.} \else
+#+begin_export tex
+%\typeout{Including only \files.} \includeonly{\files} \fi
+#+end_export
+
+# you could set (setq org-latex-with-hyperref nil) first to avoid two \hypersetup blocks in the
+# compiled .tex file...
+# ...but it's not necessary because the block below is defined second and will be the one that gets
+# picked up in the finished PDF file
+#+begin_export tex
+\hypersetup{
+  pdfauthor={Cameron W. Pittman},
+  pdftitle={Distributed Multi-Agent Decision Making Under Uncertain Communication},
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 29.0.50 (Org mode 9.6)},
+  pdflang={English}}
+#+end_export
+
+#+include: "0-cover.org"
+
+#+begin_export tex
+\pagestyle{plain}
+
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+
+\begin{document}
+#+end_export
+
+#+include: "1-introduction.org"
+#+include: "2-lit-review.org"
+
+#+begin_export tex
+\appendix
+#+end_export
+
+# insert appendices here
+
+#+begin_export tex
+%% This defines the bibliography file (main.bib) and the bibliography style.
+%% If you want to create a bibliography file by hand, change the contents of
+%% this file to a `thebibliography' environment.  For more information
+%% see section 4.3 of the LaTeX manual.
+% \bibliography{library}
+\begin{singlespace}
+\begin{thebibliography}
+#+end_export
+
+# use org-cite
+#+print_bibliography:
+
+#+begin_export tex
+\end{thebibliography}
+\end{singlespace}
+\end{document}
+#+end_export
+

@@ -1,0 +1,18 @@
+#+TITLE: 0 Introduction
+
+# this file is not meant to be exported on its own. see sm-thesis-main.org
+
+* COMMENT Plan
+1. current SotA for Kirk / high level executives
+   1. identify gaps
+2. Define the motivating scenario
+3. Prior research on
+
+* Introduction
+
+This is the introduction.
+
+** Section Header
+
+This is a section of text. As said in... [cite:@Bhargava2018] "Hey". So said [cite:@Miller2017] too
+that things are cool.

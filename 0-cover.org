@@ -1,0 +1,95 @@
+#+TITLE: SM Thesis Cover
+
+# this file is not meant to be exported on its own. see sm-thesis-main.org
+
+#+begin_export tex
+% NOTE:
+% These templates make an effort to conform to the MIT Thesis specifications,
+% however the specifications can change. We recommend that you verify the
+% layout of your title page with your thesis advisor and/or the MIT
+% Libraries before printing your final copy.
+
+% FYI, the title and thesis need to be defined in the \hypersetup section in the main org file
+\title{Distributed Multi-Agent Decision Making Under Uncertain Communication}
+\author{Cameron W. Pittman}
+
+% If you wish to list your previous degrees on the cover page, use the
+% previous degrees command:
+% You can use the \\ command to list multiple previous degrees
+\prevdegrees{M.A., Belmont University (2011) \\
+    B.A., Vanderbilt University (2009)}
+
+\department{Department of Aeronautics and Astronautics}
+
+% If the thesis is for two degrees simultaneously, list them both
+% separated by \and like this:
+% \degree{Doctor of Philosophy \and Master of Science}
+\degree{Master of Science}
+
+% As of the 2007-08 academic year, valid degree months are September,
+% February, or June.  The default is June.
+\degreemonth{June}
+\degreeyear{2023}
+\thesisdate{May 1, 2023}
+
+%% By default, the thesis will be copyrighted to MIT.  If you need to copyright
+%% the thesis to yourself, just specify the `vi' documentclass option.  If for
+%% some reason you want to exactly specify the copyright notice text, you can
+%% use the \copyrightnoticetext command.
+%\copyrightnoticetext{\copyright IBM, 1990.  Do not open till Xmas.}
+
+% If there is more than one supervisor, use the \supervisor command
+% once for each.
+\supervisor{Brian C. Williams}{Professor of Aeronautics and Astronautics, MIT}
+
+% This is the department committee chairman, not the thesis committee
+% chairman.  You should replace this with your Department's Committee
+% Chairman.
+\chairman{Jonathan How}{R.C Maclaurin Professor of Aeronautics and Astronautics, MIT \\
+    Chair, Graduate Program Committee}
+
+% Make the titlepage based on the above information.  If you need
+% something special and can't use the standard form, you can specify
+% the exact text of the titlepage yourself.  Put it in a titlepage
+% environment and leave blank lines where you want vertical space.
+% The spaces will be adjusted to fill the entire page.  The dotted
+% lines for the signatures are made with the \signature command.
+\maketitle
+
+
+% The abstractpage environment sets up everything on the page except
+% the text itself.  The title and other header material are put at the
+% top of the page, and the supervisors are listed at the bottom.  A
+% new page is begun both before and after.  Of course, an abstract may
+% be more than one page itself.  If you need more control over the
+% format of the page, you can use the abstract environment, which puts
+% the word "Abstract" at the beginning and single spaces its text.
+
+%% You can either \input (*not* \include) your abstract file, or you can put
+%% the text of the abstract directly between the \begin{abstractpage} and
+%% \end{abstractpage} commands.
+
+% First copy: start a new page, and save the page number.
+\cleardoublepage
+% Uncomment the next line if you do NOT want a page number on your
+% abstract and acknowledgments pages.
+% \pagestyle{empty}
+\setcounter{savepage}{\thepage}
+\begin{abstractpage}
+#+end_export
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam quis neque et erat laoreet finibus at
+ac leo. Curabitur pellentesque, diam quis dignissim finibus, enim dui feugiat leo, nec porttitor
+sapien mi ac felis. Nam aliquam pretium nibh, quis dapibus dolor gravida sit amet. Cras porttitor
+dui quis elementum pulvinar. Nulla id pulvinar massa. Nullam ut diam non lorem venenatis faucibus.
+Vivamus lacus ante, pellentesque vitae nisl sit amet, bibendum facilisis purus.
+
+#+begin_export tex
+\end{abstractpage}
+
+\cleardoublepage
+
+\section*{Acknowledgements}
+#+end_export
+
+So long and thanks for all the fish!

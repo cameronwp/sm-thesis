@@ -1,0 +1,5 @@
+_minted*
+*auctex-auto*
+*.bbl
+*.lot
+*.lof

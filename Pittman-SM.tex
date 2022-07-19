@@ -1,0 +1,211 @@
+% Created 2022-07-19 Tue 09:19
+% Intended LaTeX compiler: pdflatex
+\documentclass[10pt,leftblank,twoside]{mitthesis}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage{minted}
+\usepackage{lgrind}
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\pagestyle{plain}
+\def\all{all}
+\ifx\files\all \typeout{Including all files.} \else
+\date{}
+\title{Main SM Thesis Cover 0 Introduction 1 Lit Review}
+\hypersetup{
+ pdfauthor={Cameron W Pittman},
+ pdftitle={Main SM Thesis Cover 0 Introduction 1 Lit Review},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.0.50 (Org mode 9.6)}, 
+ pdflang={English}}
+\makeatletter
+\newcommand{\citeprocitem}[2]{\hyper@linkstart{cite}{citeproc_bib_item_#1}#2\hyper@linkend}
+\makeatother
+
+\usepackage[notquote]{hanging}
+\begin{document}
+
+%% The documentclass options along with the pagestyle can be used to generate
+%% a technical report, a draft copy, or a regular thesis. You may need to
+%% re-specify the pagestyle after you \include cover.tex. For more
+%% information, see the first few lines of mitthesis.cls.
+%%
+%\documentclass[12pt,vi,twoside]{mitthesis}
+%%
+%%  If you want your thesis copyright to you instead of MIT, use the
+%%  ``vi'' option, as above.
+%%
+%\documentclass[12pt,twoside,leftblank]{mitthesis}
+%%
+%% If you want blank pages before new chapters to be labelled ``This
+%% Page Intentionally Left Blank'', use the ``leftblank'' option, as
+%% above.
+
+%% These have been added at the request of the MIT Libraries, because
+%% some PDF conversions mess up the ligatures.  -LB, 1/22/2014
+%% This bit allows you to either specify only the files which you wish to
+%% process, or `all' to process all files which you \include.
+%% Krishna Sethuraman (1990).
+
+%\typein [\files]{Enter file names to process, (chap1,chap2 ...), or `all' to process all files:}
+%\typeout{Including only \files.} \includeonly{\files} \fi
+
+\hypersetup{
+  pdfauthor={Cameron W. Pittman},
+  pdftitle={Distributed Multi-Agent Decision Making Under Uncertain Communication},
+  pdfkeywords={},
+  pdfsubject={},
+  pdfcreator={Emacs 29.0.50 (Org mode 9.6)},
+  pdflang={English}}
+
+% NOTE:
+% These templates make an effort to conform to the MIT Thesis specifications,
+% however the specifications can change. We recommend that you verify the
+% layout of your title page with your thesis advisor and/or the MIT
+% Libraries before printing your final copy.
+
+% FYI, the title and thesis need to be defined in the \hypersetup section in the main org file
+\title{Distributed Multi-Agent Decision Making Under Uncertain Communication}
+\author{Cameron W. Pittman}
+
+% If you wish to list your previous degrees on the cover page, use the
+% previous degrees command:
+% You can use the \\ command to list multiple previous degrees
+\prevdegrees{M.A., Belmont University (2011) \\
+    B.A., Vanderbilt University (2009)}
+
+\department{Department of Aeronautics and Astronautics}
+
+% If the thesis is for two degrees simultaneously, list them both
+% separated by \and like this:
+% \degree{Doctor of Philosophy \and Master of Science}
+\degree{Master of Science}
+
+% As of the 2007-08 academic year, valid degree months are September,
+% February, or June.  The default is June.
+\degreemonth{June}
+\degreeyear{2023}
+\thesisdate{May 1, 2023}
+
+%% By default, the thesis will be copyrighted to MIT.  If you need to copyright
+%% the thesis to yourself, just specify the `vi' documentclass option.  If for
+%% some reason you want to exactly specify the copyright notice text, you can
+%% use the \copyrightnoticetext command.
+%\copyrightnoticetext{\copyright IBM, 1990.  Do not open till Xmas.}
+
+% If there is more than one supervisor, use the \supervisor command
+% once for each.
+\supervisor{Brian C. Williams}{Professor of Aeronautics and Astronautics, MIT}
+
+% This is the department committee chairman, not the thesis committee
+% chairman.  You should replace this with your Department's Committee
+% Chairman.
+\chairman{Jonathan How}{R.C Maclaurin Professor of Aeronautics and Astronautics, MIT \\
+    Chair, Graduate Program Committee}
+
+% Make the titlepage based on the above information.  If you need
+% something special and can't use the standard form, you can specify
+% the exact text of the titlepage yourself.  Put it in a titlepage
+% environment and leave blank lines where you want vertical space.
+% The spaces will be adjusted to fill the entire page.  The dotted
+% lines for the signatures are made with the \signature command.
+\maketitle
+
+
+% The abstractpage environment sets up everything on the page except
+% the text itself.  The title and other header material are put at the
+% top of the page, and the supervisors are listed at the bottom.  A
+% new page is begun both before and after.  Of course, an abstract may
+% be more than one page itself.  If you need more control over the
+% format of the page, you can use the abstract environment, which puts
+% the word "Abstract" at the beginning and single spaces its text.
+
+%% You can either \input (*not* \include) your abstract file, or you can put
+%% the text of the abstract directly between the \begin{abstractpage} and
+%% \end{abstractpage} commands.
+
+% First copy: start a new page, and save the page number.
+\cleardoublepage
+% Uncomment the next line if you do NOT want a page number on your
+% abstract and acknowledgments pages.
+% \pagestyle{empty}
+\setcounter{savepage}{\thepage}
+\begin{abstractpage}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam quis neque et erat laoreet finibus at
+ac leo. Curabitur pellentesque, diam quis dignissim finibus, enim dui feugiat leo, nec porttitor
+sapien mi ac felis. Nam aliquam pretium nibh, quis dapibus dolor gravida sit amet. Cras porttitor
+dui quis elementum pulvinar. Nulla id pulvinar massa. Nullam ut diam non lorem venenatis faucibus.
+Vivamus lacus ante, pellentesque vitae nisl sit amet, bibendum facilisis purus.
+
+\end{abstractpage}
+
+\cleardoublepage
+
+\section*{Acknowledgements}
+
+So long and thanks for all the fish!
+
+\pagestyle{plain}
+
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+
+\begin{document}
+
+\chapter{Introduction}
+\label{sec:orge988725}
+
+This is the introduction.
+
+\section{Section Header}
+\label{sec:orgb0e7f60}
+
+This is a section of text. As said in\ldots{} \citeprocitem{1}{[1]} ``Hey''. So said \citeprocitem{2}{[2]} too
+that things are cool.
+
+\chapter{Literature Review}
+\label{sec:org4db06a5}
+
+More!
+
+\section{Section 2}
+\label{sec:org8111d31}
+
+And more! Wow, said \citeprocitem{3}{[3]}. That's neat.
+
+\appendix
+
+%% This defines the bibliography file (main.bib) and the bibliography style.
+%% If you want to create a bibliography file by hand, change the contents of
+%% this file to a `thebibliography' environment.  For more information
+%% see section 4.3 of the LaTeX manual.
+% \bibliography{library}
+\begin{singlespace}
+\begin{thebibliography}
+
+\begin{hangparas}{1.5em}{1}
+\hypertarget{citeproc_bib_item_1}{[1] N. Bhargava, C. Muise, and B. C. Williams, “Variable-delay controllability,” \textit{Ijcai international joint conference on artificial intelligence}, vol. 2018-July, pp. 4660–4666, 2018, doi: \href{https://doi.org/10.24963/ijcai.2018/648}{10.24963/ijcai.2018/648}.\\}
+
+\hypertarget{citeproc_bib_item_2}{[2] M. J. Miller, “Decision Support System Development For Human Extravehicular Activity,” Georgia Institute of Technology, 2017.\\}
+
+\hypertarget{citeproc_bib_item_3}{[3] B. C. Williams, M. D. Ingham, S. H. Chung, and P. H. Elliott, “Model-based programming of intelligent embedded systems and robotic space explorers,” \textit{Proceedings of the ieee}, vol. 91, no. 1, pp. 212–236, 2003, doi: \href{https://doi.org/10.1109/JPROC.2002.805828}{10.1109/JPROC.2002.805828}.\\}
+\end{hangparas}
+
+\end{thebibliography}
+\end{singlespace}
+\end{document}
+\end{document}
