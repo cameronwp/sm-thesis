@@ -1,0 +1,4 @@
+#+title: Approach
+
+* Approach
+This is my approach.

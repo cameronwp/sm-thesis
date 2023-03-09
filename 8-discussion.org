@@ -1,0 +1,5 @@
+#+title: Discussion
+
+* Discussion and Future Work
+
+This is a discussion of stuff to do later.

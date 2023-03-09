@@ -1,0 +1,19 @@
+#+title: Abstract
+
+# 1. Argument for thesis
+#  1. lay out paper structure with one sentence per each below
+#    Structure
+#  2. Fulfilling important need
+#  3. looked at relevant SOTA
+#  4. identified the gap
+#  5. my key insight that will close the gap. and why it's innovative
+#     1. why is it hard or not?
+#  6. and my approach
+#  7. identify benchmarks to evaluate whether we closed the gap
+#     1. measurables
+#     2. how to compare to SOTA
+#     3. quantify the benefit
+#  8. x for y. how we fulfill the need
+
+This is an abstract.
+

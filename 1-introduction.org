@@ -1,4 +1,4 @@
-#+TITLE: 0 Introduction
+#+TITLE: Ch1 Introduction
 
 # this file is not meant to be exported on its own. see sm-thesis-main.org
 
@@ -7,6 +7,14 @@
    1. identify gaps
 2. Define the motivating scenario
 3. Prior research on
+
+4. [ ] "limited communication" means you can only communicate at specific times
+5. [ ] clock drift / clock skews could also be a source of observation delay!
+6. [ ] maybe data center scheduling?
+7. [ ] maybe CPU thread scheduling?
+
+** TODO intro to EVAs here? exploration?
+** TODO can we include a Portal 2 reference somewhere???
 
 * Introduction
 
@@ -20,3 +28,5 @@ that things are cool.
 #+begin_src lisp
 (format t "hello, world!")
 #+end_src
+
+This is something I want to cite [cite:@Wang]

@@ -1,0 +1,5 @@
+#+title: Technical VDC
+
+* Controllability Checking under Uncertain Communication
+
+This is a chapter on VDC.

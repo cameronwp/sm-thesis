@@ -1,0 +1,52 @@
+#+TITLE: CH2 Lit Review
+
+* COMMENT Lit List
+** Temporal Reasoning
+- [ ] [cite:@Allen1983] - temporal interval algebra
+- [ ] [cite:@Dechter1991] - [[id:b0ec8b5d-e9a1-46c2-9cc4-06eb83b3440a][STN]]
+- [ ] [cite:@Muscettola1998] - scheduling, d-graph, use of APSP, MDF to simplify the graph, propagation
+- [ ] [cite:@Tsamardinos1998] - (check ref - could be a diff Tsam paper from 1998) faster STN to MDF reformulation. interleaves APSP with edge trimming
+- [ ] [cite:@Vidal1999] - (or was it a 1996 paper?) [[id:41500bf9-0a7a-45a4-bf22-cddef05280ee][STNU]]
+- [ ] [cite:@Kim2001] - [[id:52eff8eb-e0ca-477a-903b-6678b9e9d579][Kirk]]
+- [ ] [cite:@Hunsberger2002] - more STN properties
+- [ ] [cite:@Williams2003] - kirk
+- [ ] [cite:@Stedl2004] - automatic vs manual decomp; distributed scenario
+- [ ] [cite:@Hunsberger2009] - real-time execution decisions
+- [ ] [cite:@Hunsberger2010] - NEW-EX scheduling and RTED incremental decisions
+- [ ] [cite:@Hunsberger2013] - FAST-EX
+- [ ] [cite:@Hunsberger2016] - grand theory of STNUs
+- [ ] [cite:@Bit-Monnot2016] - hidden vs visible ctg events. class of POSTNUs that can be DC checked
+  (no chained contingencies)
+- [ ] [cite:@Bhargava2018a] - DelayC
+- [ ] [cite:@Bhargava2020] - VDC
+- [ ] [cite:@Morris2019] - POSTNU expansion of execution space of VDC. future research direction?
+- [ ] [cite:@Casanova2016] - MaSTNUs. They assume no communication - we have communication! No need for MaSTNU formulation
+
+** Controllability
+- [ ] [cite:@Vidal2000] - SC
+- [ ] [cite:@MMV2001] - DC + execution (double check citation but I'm pretty sure this is right)
+- [ ] [cite:@Morris2005] - $O(N^{5})$ DC. [[id:d0fdc088-878a-4556-8cbf-f74c98ae11be][Labeled Distance Graph]], [[id:3301199c-b023-456f-baa7-40e29dde2ae3][Edge Propagation Rules]]
+- [ ] [cite:@Morris2006] - DC = no [[id:e21e2ef8-ca1c-498c-93a3-cc558ae7ad2a][Semi-Reducible Negative Cycles]]. $O(N^{4})$ DC. [[id:3b196379-47f1-4f05-b835-9f838c8e0624][Normal Form]], additional edge rules and compositions
+- [ ] [cite:@Morris2014] - $O(N^{3})$ DC checking. forms basis for reverse dijkstra delay-c checking
+** Modeling
+- [ ] [cite:@RMPL2002] - RMPL - may need other papers
+
+** Space Ops + Exploration Science
+*** Human
+- [ ] [cite:@MillerApollo2017] - apollo
+- [ ] [cite:@Scientia2018] - maybe?
+- [ ] [cite:@Miller2019c] - analog EVA communications (Mike Miller)
+*** Robotic
+- [ ] [cite:@Jones-Wilson2017;@Susca2017;@Weiss2005;] - robotic mission science objectives tracking (Science Traceability Matrix)
+
+* Literature Review
+
+Oh dip look other people have thought about parts of this problem before
+
+** Expands Notion of Distributed Execution from Stedl 2004
+See [cite:@Stedl2004]
+
+Not sure if this goes here, but I should give counter examples from exploration mission ops
+
+** Temporal Reasoning Definitions
+# use [cite:@Hunsberger2016] notation

@@ -98,7 +98,13 @@
 #+end_export
 
 #+include: "1-introduction.org"
-#+include: "2-lit-review.org"
+#+include: "2-problem-statement.org"
+#+include: "3-approach.org"
+#+include: "4-technical-vdc.org"
+#+include: "5-technical-scheduling.org"
+#+include: "6-technical-distributed.org"
+#+include: "7-evaluation.org"
+#+include: "8-discussion.org"
 
 #+begin_export tex
 \appendix

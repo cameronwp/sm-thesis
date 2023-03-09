@@ -1,0 +1,5 @@
+#+title: Technical Scheduling
+
+* Dynamic Scheduling with Delayed Event Monitoring
+
+This is a chapter on scheduling VDC.
