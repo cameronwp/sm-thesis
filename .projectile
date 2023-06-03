@@ -1,0 +1,6 @@
+- .git
+- .auctex-auto
+- .minted*
+- *.bbl
+- *.tex
+- *.lot

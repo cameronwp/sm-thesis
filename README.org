@@ -17,9 +17,10 @@ These snippets are from my Doom Emacs config. You may need to modify for your se
 
 *** External Tools
 - [[http://biblatex-biber.sourceforge.net/][biber]]
+- [[https://dvisvgm.de/][dvisvgm]]
 - [[https://imagemagick.org/index.php][imagemagick]]
 - [[https://www.luatex.org/][lualatex]]
-- [[https://dvisvgm.de/][dvisvgm]]
+- [[https://pygments.org/][pygments]]
 
 You could use other tools by modifying the compilation pipeline defined below.
 
@@ -124,3 +125,6 @@ info on CSL, see [[https://docs.citationstyles.org/en/stable/specification.html]
   (setq bibtex-completion-library-path '("~/Dropbox/papers"))
   (setq bibtex-completion-notes-path "~/Dropbox/org/roam"))
 #+end_src
+
+** Resources
+[[https://libraries.mit.edu/distinctive-collections/thesis-specs/#format][MIT guidelines for SM thesis format]]

@@ -1,4 +1,142 @@
 #+title: Approach
 
 * Approach
-This is my approach.
+
+# TODO clean up first sentence
+For addressing our problem statement, we envision that a high-level executive should take
+responsibility for managing task planning and execution with respect to temporal constraints. For
+this thesis, we chose to extend an existing high-level task and motion planner, /Kirk/
+[cite:@Williams2003]. Kirk is a complete, end-to-end executive in that it can take human-friendly
+problem specifications as input and send commands to hardware as output.
+
+To clarify terminology in this thesis, the term /executive/ refers to Kirk and its subsystems, while
+/agent/ refers to the combination of an executive and the system it controls that interacts with the
+outside world, e.g. robotic hardware.
+
+At a high-level, Kirk works by first taking a description of the problem domain as written by domain
+experts, which should include the constraints, agent dynamics, environment, and starting and goal
+states of the problem at hand. Kirk then generates and checks plans using an optimal satisfiability
+(OpSAT) solver [cite:@Williams2007], elaborates plans to sub-executives when it encounters
+constraints and goals it cannot plan against directly, and eventually dispatches event schedules and
+motion plans to hardware. For the purpose of this thesis, we primarily focus on Kirk's capability to
+dispatch events, though fully accounting for uncertain communication in a real agent requires that
+all of Kirk's aforementioned capabilities are updated.
+
+# TODO this would be a good place for a diagram of Kirk's overall pipeline
+
+Some aspects of Kirk were already well-suited for coordinating multiple agents under observation
+delay, others were not. Specifically, our approach required research contributions in three key
+areas, which were then implemented in Kirk:
+
+1. /Modeling and Controllability/: prior to execution, we must be able to model communication delay
+   separate from temporal constraints, as well as guarantee that all temporal constraints can be
+   satisfied
+2. /Scheduling/: during execution, executives must be able to dynamically schedule and dispatch
+   events respecting temporal constraints in spite of observation delay
+3. /Coordination/: during execution, peer executives must be able to share event assignments and
+   observations
+
+We include a fourth auxiliary area for contributions as an engineering requirement.
+
+#+latex: \begin{enumerate} \setcounter{enumi}{3} \item
+/Robustness/: Kirk must be easy to run, debug, and integrate with existing autonomous systems
+#+latex: \end{enumerate}
+
+Our approach to each research focus will be described below.
+
+# TODO do we need to say something about evaluation here? how do we want to evaluate our approach?
+
+** Modeling and Controllability
+
+We take a model-based approach to deploying autonomous systems, that is, prior to a mission, we
+envision that engineers and domain experts work together to model the system at hand, then during
+the mission (though not necessarily online), the autonomous system then takes the models as input
+and decides how to act as output. There are three core challenges with modeling - the first being
+that we need formalisms that can be ingested by our algorithms and be used to guarantee the safe
+execution. In other words, we need a data type to represent the phenomenon over which we want the
+algorithms comprising our system to reason. Next, the chosen formalism must allow us to guarantee
+the satisfiability of the system in that the autonomous system must be able to act in a safe manner
+respecting all constraints to go from the starting state to the goal state. Finally, the third
+challenge is that we need a human-friendly form of said formalisms such that human domain experts,
+who are unlikely to also be experts in autonomy, can still model their domains accurately enough
+such that the desired safe behavior is output by the autonomous system. We address both challenges
+in our approach to modeling.
+
+States and constraints can take on arbitrary forms, and how they are modeled depends entirely on the
+problem domain. Classical planning problems use boolean predicates and actions to model the world
+(e.g. STRIPS planning problems [cite:@Fikes1971]). Scheduling problems involving time constraints
+will have continuous temporal bounds between discrete timepoints (e.g. in the form of temporal
+constraint graphs [cite:@Dechter1991]). Other scenarios where motion planning is the focus will
+likely be modeled with vectors of continuous values in $\mathbb{R}$ (e.g. often representing convex
+regions as in the case of the /Magellan/ planner [cite:@FernandezGonzalez2018]). Hybrid domains
+combine states and constraints with mixed continuous and discrete values (e.g. using mixed-integer
+linear programs as demonstrated by Chen et al. [cite:@Chen2021a]).
+
+Given this thesis' emphasis on temporal scheduling, we choose to focus entirely on formalisms where
+states and constraints are temporal in nature. The starting state of the system is, by definition,
+one where time is set to 0 seconds, $t = 0$, and no events have been executed (i.e. no event
+assignments have been made). We then define controlled and uncontrolled set-bounded constraints
+between events. The goal state is one where times have been assigned to each controllable event such
+that all constraints are satisfied. To do so, we build our formalisms representing temporal
+constraints with observation delay on top of simple temporal networks with uncertainty (STNUs)
+[cite:@Vidal1999]. We will elaborate on temporal reasoning and our chosen formalisms for it in much
+more detail in Section [[sec:modeling-tn]].
+
+With a modeling formalism in hand, the second key challenge is to use the formalism to guarantee a
+property known as /controllability/, or that all controllable temporal constraints can be satisfied
+given the existing uncertainty in the STNU. There already exist a number of strategies for checking
+the controllability of STNUs. Examples of different strategies include the canonical work by Morris,
+Muscettola, and Vidal in checking for semi-reducible negative cycles (SRNCs)
+[cite:@MMV2001;@Morris2005;@Morris2006;@Morris2014], as well as more exotic approaches like
+reframing controllability as a Satisfiable Modulo Theory (SMT) problem [cite:@Cimatti2012;]. In our
+approach to controllability under observation uncertainty, we build on top of checks for SRNCs as
+will be shown in [[sec:vdc]].
+
+# TODO is there a better sentence to start this paragraph?
+For the third challenge, we choose to extend the Reactive Model-Based Programming Language (RMPL)
+[cite:@RMPL2002], which gives domain experts a means for describing the constraints and goal states
+of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
+planner is capable of building control programs describing the constraints, agents, and states of
+the problem domain in a way that is human-readable yet highly programmable, and is independent of
+the underlying algorithms used by the autonomous system. As will be discussed in Section [[sec:rmpl]]
+below, our approach was to add the ability for planners to model observation delay alongside
+temporal constraints in RMPL.
+
+*** Modeling Observation Delay in RMPL
+<<sec:rmpl>>
+
+# TODO briefly describe RMPL control programs
+
+RMPL has undergone a number of rewrites since its inception, and is currently being developed as a
+superset of the Common Lisp language through the Metaobject Protocol [cite:@Kiczales1991]. For this
+thesis, we focus on the ability for a human to write /control programs/, or composable constraints
+and goals. An example control program follows.
+
+#+caption: A sample control program composed of three constraints. =eat-breakfast= and =bike-to-lecture= designate controllable constraints, while the =main= control program enforces that the constraints are satisfied sequentially.
+#+begin_src lisp
+(define-control-program eat-breakfast ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program bike-to-lecture ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 40)
+    (sequence (:slack nil)
+              (eat-breakfast)
+              (bike-to-lecture))))
+#+end_src
+
+Looking past the parentheses...
+
+** Scheduling
+
+
+
+** Coordination
+
+Coordination between Kirk agents is a completely novel contribution of this thesis.
+
+** Robustness

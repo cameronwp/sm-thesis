@@ -1,4 +1,98 @@
 #+title: Problem Statement
 
+* COMMENT extra
+Timing is key; decision-making processes for EVAs must meet time critical deadlines
+[cite:@Patterson1999,@Miller2017]. As human spaceflight operations leave low-Earth orbit for more
+distant locations of operation, accurate timing and coordination despite increasing communication
+delay is critical. Uncertainty in communication delay is an unavoidable factor of planetary EVA
+timelines, such as those for Lunar exploration.
+
 * Problem Statement
-This is my problem statement...
+
+There is a real-world need for coordinating multiple agents that are collaborating while facing
+uncertain inter-agent communication in uncertain environments. This thesis will focus on two
+motivating scenarios drawn from collaborative space operations, though this section will include a
+third example from the domain of military operations to further motivate the need for modeling
+uncertain delay in observations. The first scenario is based on an Artemis-like extravehicular
+activity (EVA), where an astronaut and a rover on the lunar surface are required to coordinate to
+share limited downlink bandwidth. The second scenario comes from the domain of satellite swarms,
+where many homogeneous agents coordinate operations with tight temporal constraints. The third
+scenario (which will not be modeled in experiments) is one where cooperative military agents are
+moving into and out of regions where immediate communication is purposefully halted in order to
+avoid detection by an enemy.
+
+Delay temporal networks are essential to modeling space operations, where uncertainty is systemic to
+all aspects of planning, scheduling, and execution. As will be described in more detail for each
+motivating scenario below, uncertain observation delay is unavoidable due to imperfect communication
+infrastructure, uncertain timing with respect to knowledge transfer between agents, and finicky
+scientific equipment.
+
+** Extravehicular Activities as a Motivating Scenario
+
+NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program[fn::
+https://www.nasa.gov/specials/artemis/]. The Artemis astronauts will continue a longstanding
+tradition in the U.S. space program of performing EVAs [cite:@McBarron1994]. Like the Apollo
+astronauts of the 1960s and 1970s, Artemis astronauts will embark on EVAs wherein crews don
+spacesuits, egress landers, and conduct scientific expeditions on the lunar surface. There, they
+will survey surface features, collect samples, and in general perform field geology
+[cite:@Sonnett1963;@Hurtado2013;@Young2020]. A small number of astronauts are Ph.D. geologists by
+trade, and NASA is training others in the principles of field geology up to a notional masters level
+of understanding [cite:@Kanelakos2020]. NASA will support the lunar activities of these astronauts
+through a vast infrastructure of personnel on the ground, including teams of domain-relevant
+scientists. Together with flight controllers and engineers from various disciplines, a science team
+on the ground will provide real-time feedback to ensure that Artemis astronauts maximize the
+scientific return of their EVAs.
+
+The relevant actors in an EVA include extravehicular (EV) crew members, who conduct all field
+activities outside the vehicles and habitats, and a ground-based Mission Control Center (MCC).
+Typically there are two EV crew members who often, but not always, work together to complete tasks.
+Life support imposes a temporal bound on the overall length of excursions. As an EVA progresses, EV
+crews consume four non-renewable resources, comprised of oxygen, battery power, water, and CO$_2$
+scrubbers [cite:@Campbell2012]. The duration of EVAs is limited by the consumable that is on track
+to be depleted first across the life support systems of both EV crew members, referred to as the
+limiting consumable.
+
+Mission Control Center (MCC) is comprised of hundreds of flight controllers and engineers who
+monitor all aspects of EVAs. Its strict hierarchical structure ensures that all space-to-ground
+decisions pass through the Flight Director [cite:@Patterson2001]. For the purposes of this example,
+we treat MCC as a single actor.
+
+When astronauts perform field science, another actor comes into play, called the ground-based
+Science Backroom Team (SBT). The SBT is comprised of multidisciplinary scientists who help
+astronauts prioritize and select scientific sample targets online [cite:@Sonnett1963;@Payler2019b].
+The science team reports their priorities to MCC, who then passes them along to the crew. The SBT
+behaves as a separate actor with limited communication, in that their messages may only pass
+directly to MCC, not the crew.
+
+For EVAs, delay is manifested across three distinct categories: signal transmission, human
+operational delays, and instrument processing. Each category presents a source of delay that varies
+with uncertainty. For signal transmission, delay is sourced from the speed of light between
+planetary bodies and infrastructural deficiencies. Communication infrastructure outside of low-Earth
+orbit, including satellites and planetary surface signal repeaters [cite:@Coan2020], is not robust,
+and as such unpredictable delays and signal dropouts will be common [cite:@Seibert2019b]. For human
+operational delays, note that the primary goal of Mission Control is keeping the crew safe
+[cite:@Miller2019b]. As such, communications from the science team to the crew may be delayed or
+dropped because Mission Control needs to prioritize communications and actions related to crew
+health and safety at the expense of science [cite:@Miller2015;@Miller2017c]. Lastly, for instrument
+processing, there is uncertainty in the temporal relationships between the activation of complex
+scientific instruments and the return of useful information [cite:@Sehlke2019]. Scientific packages
+may generate high and low bandwidth data products, the uplink of which will be bottlenecked by
+limited bandwidth between space and ground, creating additional uncertainty between when a data
+product is ready and when it is available to the science team.
+
+** Motivating Scenario
+A human and a rover are working together to perform scientific exploration on the lunar surface. The
+human is performing exploration of targets of opportunity that were identified during descent. The
+rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
+predetermined location.
+
+
+Both are in communication with mission control and scientists on Earth. Importantly, they share
+bandwidth on the relays and satellites used to transmit data between the Moon and Earth. CONOPS says
+only one agent may be using the bandwidth at a time (including uploads from Earth)
+
+
+Both the human and the robot have their own schedules of events to perform and are aware of the
+other agent's events.
+
+

@@ -56,6 +56,13 @@
 #+latex_header: \usepackage[T1]{fontenc}
 #+latex_header: \pagestyle{plain}
 
+# my packages
+#+latex_header: \usepackage{algorithm2e}
+#+latex_header: \usepackage{amsthm}
+#+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{mathtools}
+#+latex_header: \usepackage{minted}
+
 #+begin_export tex
 %% This bit allows you to either specify only the files which you wish to
 %% process, or `all' to process all files which you \include.
@@ -79,18 +86,55 @@
   pdftitle={Distributed Multi-Agent Decision Making Under Uncertain Communication},
   pdfkeywords={},
   pdfsubject={},
-  pdfcreator={Emacs 29.0.50 (Org mode 9.6)},
+  pdfcreator={Emacs 28.2 (Org mode 9.6)},
   pdflang={English}}
+#+end_export
+
+# code styles. see https://pygments.org/styles/
+# - default :: can't go wrong here!
+# - tango :: nice, but the greens and blues are a little garish
+# - trac :: good for lisp bc parens are a different color than text
+# - vs :: helpful colors that aren't garish
+#+begin_export tex
+\usemintedstyle[lisp]{vs}
 #+end_export
 
 #+include: "0-cover.org"
 
+# custom commands and styles
+#+begin_export tex
+\newcommand{\edge}[3]{#1 \xrightarrow{#3} #2}
+\newcommand{\conedge}[3]{#1 \xRightarrow{#3} #2}
+\newcommand{\gammabar}{\bar{\gamma}}
+%\newcommand{\obs}{\texttt{obs}}
+\newcommand{\obs}{\psi}
+\newcommand{\assign}{\xi}
+
+\newcommand{\finalversion}[1]{}
+
+\newtheorem{theorem}{Theorem}[]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{transformation}{Transformation}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+#+end_export
+
+# TOC, figures, and tables
 #+begin_export tex
 \pagestyle{plain}
 
 \tableofcontents
 \newpage
 \listoffigures
+\newpage
+\renewcommand\listoflistingscaption{List of source codes}
+\listoflistings
 \newpage
 \listoftables
 
@@ -102,9 +146,10 @@
 #+include: "3-approach.org"
 #+include: "4-technical-vdc.org"
 #+include: "5-technical-scheduling.org"
-#+include: "6-technical-distributed.org"
-#+include: "7-evaluation.org"
-#+include: "8-discussion.org"
+#+include: "6-technical-coordination.org"
+#+include: "7-technical-architecture.org"
+#+include: "8-evaluation.org"
+#+include: "9-discussion.org"
 
 #+begin_export tex
 \appendix
@@ -117,7 +162,7 @@
 %% If you want to create a bibliography file by hand, change the contents of
 %% this file to a `thebibliography' environment.  For more information
 %% see section 4.3 of the LaTeX manual.
-% \bibliography{library}
+\bibliography{extra-citations}
 \begin{singlespace}
 \begin{thebibliography}
 #+end_export
