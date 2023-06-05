@@ -94,8 +94,8 @@ will be shown in [[sec:vdc]].
 
 # TODO is there a better sentence to start this paragraph?
 For the third challenge, we choose to extend the Reactive Model-Based Programming Language (RMPL)
-[cite:@RMPL2002], which gives domain experts a means for describing the constraints and goal states
-of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
+[cite:@RMPL2002], which provides to domain experts a means for describing the constraints and goal
+states of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
 planner is capable of building control programs describing the constraints, agents, and states of
 the problem domain in a way that is human-readable yet highly programmable, and is independent of
 the underlying algorithms used by the autonomous system. As will be discussed in Section [[sec:rmpl]]
@@ -105,15 +105,47 @@ temporal constraints in RMPL.
 *** Modeling Observation Delay in RMPL
 <<sec:rmpl>>
 
-# TODO briefly describe RMPL control programs
+# TODO better explanation
+RMPL is a key component of Kirk. This section steps through example RMPL control programs to
+describe their features and our modeling choices. The purpose of this section is three-fold:
+
+1. A short walkthrough of the language is required in order to explain this thesis' contributions
+   because an updated RMPL description in any form (e.g. manual, publication, or tutorial) has not
+   been publicly released since 2003 [cite:@Williams2003]
+2. We must describe the modeling choices of RMPL in sufficient detail to make concrete our approach
+   to modeling temporal constraints in human-readble form
+3. The above is used to demonstrate that modeling uncertain communication delay can be naturally
+   modeled in RMPL
+
+That this section is not meant to be a complete documentation of RMPL, rather our goal is to
+motivate the strength of RMPL as a modeling language for human planners describing autonomous
+systems with observation uncertainty.
 
 RMPL has undergone a number of rewrites since its inception, and is currently being developed as a
-superset of the Common Lisp language through the Metaobject Protocol [cite:@Kiczales1991]. For this
-thesis, we focus on the ability for a human to write /control programs/, or composable constraints
-and goals. An example control program follows.
+superset of the Common Lisp language using the Metaobject Protocol [cite:@Kiczales1991]. The goal is
+that a human should have a natural means for modeling the problem domain. With a model-based
+approach to autonomy, a human should not write an explicit program for solving the problem domain.
+Instead, the executive should take full responsibility for taking a model from a human and producing
+safe actions according to the constraints provided.
 
-#+caption: A sample control program composed of three constraints. =eat-breakfast= and =bike-to-lecture= designate controllable constraints, while the =main= control program enforces that the constraints are satisfied sequentially.
+RMPL and Kirk can be used to achieve a number of different goals. These include but are not limited
+to temporal scheduling, classical planning, hybrid planning. For this thesis, we focus on temporal
+scheduling and the ability for a human to write /control programs/, or composable constraints and
+goals.
+
+For this thesis, we take the assumption that each Kirk executive is responsible for a single agent.
+We also ignore vehicle dynamics given this thesis' focus on contributions to temporal scheduling.
+However, RMPL is more flexible and allows multi-agent planning and motion planning using vehicle
+dynamics, which will be briefly described in Section [[sec:rmpl-agents]].
+
+An example of an RMPL control program for a single-agent without agent dynamics follows in Listing
+[[code:example-control-program]].
+
+#+name: code:example-control-program
+#+caption: A sample control program composed of three constraints. =eat-breakfast= and =bike-to-lecture= designate controllable constraints, while the =main= control program enforces that the constraints are satisfied in series.
 #+begin_src lisp
+;; NOTE: we omitted Lisp package definitions here for simplicity's sake
+
 (define-control-program eat-breakfast ()
   (declare (primitive)
            (duration (simple :lower-bound 15 :upper-bound 20))))
@@ -129,7 +161,198 @@ and goals. An example control program follows.
               (bike-to-lecture))))
 #+end_src
 
-Looking past the parentheses...
+Looking past the parentheses, we can see different options for defining temporal constraints. For
+example, the =(duration (simple ...))= form is used to define a controllable temporal constraint
+between a =:lower-bound= and an =:upper-bound=. The =main= control program uses a different form,
+=(with-temporal-constraint ...)= to place an =:upper-bound= on the overall deadline for scheduling
+all events in the control program.
+
+The example control programs in Listing [[code:example-control-program]] are defined without agents in
+that there is an assumption that the Kirk instance that executes this control program must know what
+the semantics of =eat-breakfast= and =bike-to-lecture= mean and how to execute them.
+
+It could also be the case that Kirk is simply being used to produce a schedule of events offline
+that will be handed to an agent that knows how to execute them. As an example, perhaps a student
+wants some help planning their morning, so they write an RMPL control program with constraints
+representing everything they need to do between waking up and going to lecture, as seen in the more
+complex control program in Listing [[code:morning-lecture]]. The student could ask Kirk to produce a
+schedule of events that satisfies all the temporal constraints in this RMPL control program, which
+they would then use to plan their morning routine. See the resulting schedule produced by Kirk in
+Table [[tab:morning-lecture-schedule]]. (Note that while normally times in RMPL are represented in
+seconds, we use minutes in Listing [[code:morning-lecture]] and Table [[tab:morning-lecture-schedule]] for
+simplicity's sake.)
+
+#+name: code:morning-lecture
+#+caption: A student's morning routine preparing for lecture as modeled in RMPL. This is a complete RMPL program that includes the required Lisp package definitions to run in Kirk.
+#+begin_src lisp -n -r
+;; This file lives in the thesis code repo at:
+;;      kirk-v2/examples/morning-lecture/script.rmpl
+;;
+;; To execute this RMPL control program as-is and generate a schedule, go to the root
+;; of the thesis code repo and run the following command:
+;;
+;; kirk run kirk-v2/examples/morning-lecture/script.rmpl \
+;;      -P morning-lecture \
+;;      --simulate
+
+(rmpl/lang:defpackage #:morning-lecture)
+
+(in-package #:morning-lecture)
+
+(define-control-program shower ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 10))))
+
+(define-control-program eat-breakfast ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program review-scheduling-notes ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 15))))
+
+(define-control-program review-planning-notes ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 15))))
+
+(define-control-program pack-bag ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 6))))
+
+(define-control-program bike-to-lecture ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program review-notes ()
+  (sequence (:slack t)
+    (review-scheduling-notes)
+    (review-planning-notes)))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 60)
+    (sequence (:slack t)
+      (shower)
+      (parallel (:slack t) (ref:parallel)
+        (eat-breakfast)
+        (review-notes))
+      (pack-bag)
+      (bike-to-lecture))))
+#+end_src
+
+#+name: tab:morning-lecture-schedule
+#+caption: The schedule produced by Kirk's scheduler for the student's routine before lecture as modeled in Listing [[code:morning-lecture]]. Note: Kirk's output has been cleaned for readability purposes.
+#+ATTR_LATEX: :align left
+| *Event*                         | *Time (min)* |
+|---------------------------------+--------------|
+| =START=                         |            0 |
+| Start =shower=                  |            1 |
+| End =shower=                    |            6 |
+| Start =review-scheduling-notes= |            6 |
+| Start =eat-breakfast=           |            6 |
+| End =review-scheduling-notes=   |           16 |
+| Start =review-planning-notes=   |           16 |
+| End =eat-breakfast=             |           21 |
+| End =review-planning-notes=     |           26 |
+| Start =pack-bag=                |           26 |
+| End =pack-bag=                  |           31 |
+| Start =bike-to-lecture=         |           32 |
+| End =bike-to-lecture=           |           46 |
+| =END=                           |           46 |
+
+Listing [[code:morning-lecture]] introduces the notion of control programs that are allowed to be
+executed simultaneously, as modeled with the =(parallel ...)= form found in the =main= control
+program on line [[(parallel)]].
+
+Kirk is able to simulate the RMPL script in Listing [[code:morning-lecture]] and produce a schedule
+because there were no uncontrollable constraints, that is, all control programs are under the
+agent's control. Say we replaced =bike-to-lecture= with =drive-to-lecture=. Due to traffic
+conditions, driving presents in an uncontrollable constraint. RMPL allows us to model uncontrollable
+constraints as in Listing [[code:drive-to-lecture]].
+
+#+name: code:drive-to-lecture
+#+caption: An uncontrollable, or contingent, temporal constraint in a control program.
+#+begin_src lisp
+(define-control-program drive-to-lecture ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20)
+                     :contingent t)))
+#+end_src
+
+The addition of =:contingent t= to the =(duration ...)= form tells Kirk that it does not have
+control over when the end of =drive-to-lecture= is scheduled, rather, Nature (i.e. traffic
+conditions) chooses a time. Despite the lack of control over =drive-to-lecture=, we do know the
+drive should take between 15 and 20 minutes, hence our model includes =:lower-bound 15= and
+=:upper-bound 20=.
+
+**** Explicitly Modeling Agents in RMPL
+<<sec:rmpl-agents>>
+
+If we wanted to specify agents in a multi-agent control program, or if we wanted to take vehicle
+dynamics into account, RMPL gives us a means for using the Common Lisp Object System (CLOS) for
+defining agents, agent dynamics, and the control programs agents may execute.
+
+An example RMPL control program with an agent is provided in Listing [[code:glider-simple]] for
+completeness sake from the domain of underwater robotics.
+
+#+name: code:glider-simple
+#+caption: A snippet of an RMPL script that defines an agent and classical planning predicates and effects of a control program.
+#+begin_src lisp
+;; This code is a snippet from a file in the thesis code repo found at:
+;;      kirk-v2/examples/glider/script.rmpl
+
+(defclass glider ()
+  ((id
+    :initarg :id
+    :finalp t
+    :type integer
+    :reader id
+    :documentation
+    "The ID of this glider.")
+   (deployed-p
+    :initform nil
+    :type boolean
+    :accessor deployed-p
+    :documentaiton
+    "A boolean stating if the glider is dpeloyed at any point in time.")
+   (destination
+    :initform nil
+    :type (member nil "start" "end" "science-1" "science-2")
+    :accessor destination
+    :documentation
+    "The location to which the glider is currently heading, or NIL if it is not
+    in transit.")
+   (location
+    :initarg :location
+    :initform "start"
+    :type (member nil "start" "end" "science-1" "science-2")
+    :accessor location
+    :documentation
+    "The location where the glider is currently located, or NIL if it is not at
+    a location (in transit).")))
+
+(define-control-program move (glider to)
+  (declare (primitive)
+           (requires (and
+                      (over :all (= (destination glider) to))))
+           (effect (and
+                    (at :start (= (destination glider) to))
+                    (at :start (= (location glider) nil))
+                    (at :end (= (destination glider) nil))
+                    (at :end (= (location glider) to))))
+           (duration (simple :lower-bound 10 :upper-bound 20))))
+#+end_src
+
+In Listing [[code:glider-simple]], =glider= refers to a low-powered autonomous underwater vehicle that
+prefers to traverse by following ocean currents using a buoyancy engine.[fn:: The Slocum Glider is
+an example: [[https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/][https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/.]]] We see
+that we model a =glider= agent and its properties using standard CLOS. The =move= control program
+then takes a =glider= and a =location= as arguments. The =(requires ...)= form is equivalent to the
+preconditions of a durative action in a PDDL 2.1 [cite:@Fox2003] domain. Likewise, the =(effect
+...)= form is equivalent to PDDL effects. Finally, as we saw before, the durative action also
+includes a temporal constraint in its =(duration ...)= form.
+
+Kirk is able to take RMPL as input to perform classical planning, though further discussion of it
+falls outside the scope of this thesis.
 
 ** Scheduling
 
