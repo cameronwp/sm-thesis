@@ -1,4 +1,4 @@
-% Created 2023-06-03 Sat 18:24
+% Created 2023-06-06 Tue 20:52
 % Intended LaTeX compiler: pdflatex
 \documentclass[10pt,leftblank,twoside]{mitthesis}
 \usepackage[utf8]{inputenc}
@@ -194,12 +194,12 @@ So long and thanks for all the fish!
 \begin{document}
 
 \chapter{Introduction}
-\label{sec:orge9c35cd}
+\label{sec:orge23168f}
 
 This is the introduction.
 
 \section{Section Header}
-\label{sec:org87f51a3}
+\label{sec:orgc9debfa}
 
 This is a section of text. As said in\ldots{} \citeprocitem{1}{[1]} ``Hey''. So said \citeprocitem{2}{[2]} too
 that things are cool.
@@ -214,7 +214,7 @@ that things are cool.
 This is something I want to cite \citeprocitem{3}{[3]}
 
 \chapter{Problem Statement}
-\label{sec:orge9cb3c3}
+\label{sec:org500d9d1}
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
 uncertain inter-agent communication in uncertain environments. This thesis will focus on two
@@ -235,7 +235,7 @@ infrastructure, uncertain timing with respect to knowledge transfer between agen
 scientific equipment.
 
 \section{Extravehicular Activities as a Motivating Scenario}
-\label{sec:org6b07f6c}
+\label{sec:org7ce3673}
 
 NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program\footnote{\url{https://www.nasa.gov/specials/artemis/}}. The Artemis astronauts will continue a longstanding
 tradition in the U.S. space program of performing EVAs \citeprocitem{4}{[4]}. Like the Apollo
@@ -288,7 +288,7 @@ limited bandwidth between space and ground, creating additional uncertainty betw
 product is ready and when it is available to the science team.
 
 \section{Motivating Scenario}
-\label{sec:org4eafd5a}
+\label{sec:org388d422}
 A human and a rover are working together to perform scientific exploration on the lunar surface. The
 human is performing exploration of targets of opportunity that were identified during descent. The
 rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
@@ -304,7 +304,8 @@ Both the human and the robot have their own schedules of events to perform and a
 other agent's events.
 
 \chapter{Approach}
-\label{sec:org2f97025}
+\label{sec:org450b51a}
+\label{ch:approach}
 
 For addressing our problem statement, we envision that a high-level executive should take
 responsibility for managing task planning and execution with respect to temporal constraints. For
@@ -339,7 +340,7 @@ events respecting temporal constraints in spite of observation delay
 observations
 \end{enumerate}
 
-We include a fourth auxiliary area for contributions as an engineering requirement.
+We include an auxiliary fourth area for contributions as an engineering requirement.
 
 \begin{enumerate} \setcounter{enumi}{3} \item
 \emph{Robustness}: Kirk must be easy to run, debug, and integrate with existing autonomous systems
@@ -348,7 +349,7 @@ We include a fourth auxiliary area for contributions as an engineering requireme
 Our approach to each research focus will be described below.
 
 \section{Modeling and Controllability}
-\label{sec:org16aa544}
+\label{sec:org177effc}
 
 We take a model-based approach to deploying autonomous systems, that is, prior to a mission, we
 envision that engineers and domain experts work together to model the system at hand, then during
@@ -380,9 +381,10 @@ one where time is set to 0 seconds, \(t = 0\), and no events have been executed 
 assignments have been made). We then define controlled and uncontrolled set-bounded constraints
 between events. The goal state is one where times have been assigned to each controllable event such
 that all constraints are satisfied. To do so, we build our formalisms representing temporal
-constraints with observation delay on top of simple temporal networks with uncertainty (STNUs)
-\citeprocitem{24}{[24]}. We will elaborate on temporal reasoning and our chosen formalisms for it in much
-more detail in Section \ref{sec:modeling-tn}.
+constraints with set-bounded observation delay on top of simple temporal networks with uncertainty
+(STNUs) \citeprocitem{24}{[24]}. A brief explanation of our modeling strategy for temporal constraints
+with observation delay follows in Section \ref{sec:obs-delay-in-stnus}, though we will elaborate on
+temporal reasoning and our chosen formalisms for it in much more detail in Chapter \ref{ch:modeling-tn}.
 
 With a modeling formalism in hand, the second key challenge is to use the formalism to guarantee a
 property known as \emph{controllability}, or that all controllable temporal constraints can be satisfied
@@ -395,25 +397,101 @@ approach to controllability under observation uncertainty, we build on top of ch
 will be shown in \ref{sec:vdc}.
 
 For the third challenge, we choose to extend the Reactive Model-Based Programming Language (RMPL)
-\citeprocitem{30}{[30]}, which gives domain experts a means for describing the constraints and goal states
-of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
+\citeprocitem{30}{[30]}, which provides to domain experts a means for describing the constraints and goal
+states of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
 planner is capable of building control programs describing the constraints, agents, and states of
 the problem domain in a way that is human-readable yet highly programmable, and is independent of
-the underlying algorithms used by the autonomous system. As will be discussed in Section \ref{sec:rmpl}
+the underlying algorithms used by the autonomous system. As will be explained in Section \ref{sec:rmpl}
 below, our approach was to add the ability for planners to model observation delay alongside
 temporal constraints in RMPL.
 
+\subsection{Modeling Uncertain Observation Delay in STNUs}
+\label{sec:org76e6e30}
+\label{sec:obs-delay-in-stnus}
+
+In the case of observation delay, our model dictates that we reason over two time intervals. The
+first time interval represents the true length of time between two events, while the second interval
+represents the length of time between when an event occurs and when an executive observes the event.
+For ensuring that an executive takes safe actions in an uncertain environment, we assume worst-case
+scenario with respect to information gain. Our approach to modeling uncertain observation delay in
+STNUs is as follows.
+
+\begin{enumerate}
+\item The duration of time between two events is represented as a set-bounded interval
+\item The duration of time between an event and its observation (observation delay) is represented as a
+set-bounded interval
+\item Timestamps in event observations are ignored
+\item The true duration of observation delay is not guaranteed to be learned
+\end{enumerate}
+
+The first point comes directly from the STNU formalism (see Section \ref{sec:tn}). The second point allows
+for uncertainty in the amount of observation delay, e.g. in an uncertain environment, we could model
+observation delay for a given event as, say, \([1, \infty]\), meaning an observation of an event could
+arrive one second after it occurs, or never arrive, or arrive at some arbitrary time, \(t\), \(1 < t <
+\infty\) later. The third point comes from assuming worst-case scenario and prevents us from
+``cheating'' in our scheduling algorithm. For instance, imagine two agents coordinating. If agents
+passed timestamp information along with events to one another, the agents must also be able to
+synchronize their clocks, potentially to an arbitrary degree of precision. Synchronizing clocks
+between agents is outside the scope of this thesis and may not always be possible. As such, agents
+only trust their own clocks. Rather than backfill potentially erroneous times for event assignments
+as reported by exogenous sources, the executive we envision in this thesis records times that are
+internally consistent with its own clock. Doing so guarantees that the actions the executive takes
+as a result of temporal reasoning are consistent with its model.
+
+The fourth point, that we are not guaranteed to learn event assignments, is a result of the first
+three. It stands to reason that an event observation is a function of the true assignment of an
+event and its observation delay. If there is uncertainty in both the event assignment and delay,
+then we have one equation with two unknowns. Thus, the term ``uncertain'' in uncertain observation
+delay means that we are forced to reason with deciding when to act even when we are not guaranteed
+to learn the true times of events outside our control.
+
+We formalize event observations and observation delay in Section \ref{sec:vdc}.
+
 \subsection{Modeling Observation Delay in RMPL}
-\label{sec:orgf7ae704}
+\label{sec:org639b96b}
 \label{sec:rmpl}
 
+RMPL is a key component of Kirk. This section steps through example RMPL control programs to
+describe their features and our modeling choices. The purpose of this section is three-fold:
+
+\begin{enumerate}
+\item A short walkthrough of the language is required in order to explain this thesis' contributions
+because an updated RMPL description in any form (e.g. manual, publication, or tutorial) has not
+been publicly released since 2003 \citeprocitem{18}{[18]}
+\item We must describe the modeling choices of RMPL in sufficient detail to make concrete our approach
+to modeling temporal constraints in human-readble form
+\item The above is used to demonstrate that modeling uncertain communication delay can be naturally
+modeled in RMPL
+\end{enumerate}
+
+That this section is not meant to be a complete documentation of RMPL, rather our goal is to
+motivate the strength of RMPL as a modeling language for human planners describing autonomous
+systems with observation uncertainty.
+
 RMPL has undergone a number of rewrites since its inception, and is currently being developed as a
-superset of the Common Lisp language through the Metaobject Protocol \citeprocitem{31}{[31]}. For this
-thesis, we focus on the ability for a human to write \emph{control programs}, or composable constraints
-and goals. An example control program follows.
+superset of the Common Lisp language using the Metaobject Protocol \citeprocitem{31}{[31]}. The goal is
+that a human should have a natural means for modeling the problem domain. With a model-based
+approach to autonomy, a human should not write an explicit program for solving the problem domain.
+Instead, the executive should take full responsibility for taking a model from a human and producing
+safe actions according to the constraints provided.
+
+RMPL and Kirk can be used to achieve a number of different goals. These include but are not limited
+to temporal scheduling, classical planning, hybrid planning. For this thesis, we focus on temporal
+scheduling and the ability for a human to write \emph{control programs}, or composable constraints and
+goals.
+
+For this thesis, we take the assumption that each Kirk executive is responsible for a single agent.
+We also ignore vehicle dynamics given this thesis' focus on contributions to temporal scheduling.
+However, RMPL is more flexible and allows multi-agent planning and motion planning using vehicle
+dynamics, which will be briefly described in Section \ref{sec:rmpl-agents}.
+
+An example of an RMPL control program for a single-agent without agent dynamics follows in Listing
+\ref{code:example-control-program}.
 
 \begin{listing}[htbp]
 \begin{minted}[]{lisp}
+;; NOTE: we omitted Lisp package definitions here for simplicity's sake
+
 (define-control-program eat-breakfast ()
   (declare (primitive)
            (duration (simple :lower-bound 15 :upper-bound 20))))
@@ -428,27 +506,281 @@ and goals. An example control program follows.
               (eat-breakfast)
               (bike-to-lecture))))
 \end{minted}
-\caption{A sample control program composed of three constraints. \texttt{eat-breakfast} and \texttt{bike-to-lecture} designate controllable constraints, while the \texttt{main} control program enforces that the constraints are satisfied sequentially.}
+\caption{\label{code:example-control-program}A sample control program composed of three constraints. \texttt{eat-breakfast} and \texttt{bike-to-lecture} designate controllable constraints, while the \texttt{main} control program enforces that the constraints are satisfied in series.}
 \end{listing}
 
-Looking past the parentheses\ldots{}
+Looking past the parentheses, we can see different options for defining temporal constraints. For
+example, the \texttt{(duration (simple ...))} form is used to define a set-bounded temporal constraint
+between a \texttt{:lower-bound} and an \texttt{:upper-bound}. The \texttt{main} control program uses a different form,
+\texttt{(with-temporal-constraint ...)} to place an \texttt{:upper-bound} on the overall deadline for scheduling
+all events in the control program.
 
-\section{Scheduling}
-\label{sec:org7677e3e}
+The example control programs in Listing \ref{code:example-control-program} are defined without agents in
+that there is an assumption that the Kirk instance that executes this control program must know what
+the semantics of \texttt{eat-breakfast} and \texttt{bike-to-lecture} mean and how to execute them.
 
+It could also be the case that Kirk is simply being used to produce a schedule of events offline
+that will be handed to an agent that knows how to execute them. As an example, perhaps a student
+wants some help planning their morning, so they write an RMPL control program with constraints
+representing everything they need to do between waking up and going to lecture, as seen in the more
+complex control program in Listing \ref{code:morning-lecture}. The student could ask Kirk to produce a
+schedule of events that satisfies all the temporal constraints in this RMPL control program, which
+they would then use to plan their morning routine. See the resulting schedule produced by Kirk in
+Table \ref{tab:morning-lecture-schedule}. (Note that while normally times in RMPL are represented in
+seconds, we use minutes in Listing \ref{code:morning-lecture} and Table \ref{tab:morning-lecture-schedule} for
+simplicity's sake.)
 
+\begin{listing}[htbp]
+\begin{minted}[linenos,firstnumber=1]{lisp}
+;; This file lives in the thesis code repo at:
+;;      kirk-v2/examples/morning-lecture/script.rmpl
+;;
+;; To execute this RMPL control program as-is and generate a schedule, go to the root
+;; of the thesis code repo and run the following command:
+;;
+;; kirk run kirk-v2/examples/morning-lecture/script.rmpl \
+;;      -P morning-lecture \
+;;      --simulate
+
+(rmpl/lang:defpackage #:morning-lecture)
+
+(in-package #:morning-lecture)
+
+(define-control-program shower ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 10))))
+
+(define-control-program eat-breakfast ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program review-scheduling-notes ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 15))))
+
+(define-control-program review-planning-notes ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 15))))
+
+(define-control-program pack-bag ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 6))))
+
+(define-control-program bike-to-lecture ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20))))
+
+(define-control-program review-notes ()
+  (sequence (:slack t)
+    (review-scheduling-notes)
+    (review-planning-notes)))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 60)
+    (sequence (:slack t)
+      (shower)
+      (parallel (:slack t)
+        (eat-breakfast)
+        (review-notes))
+      (pack-bag)
+      (bike-to-lecture))))
+\end{minted}
+\caption{\label{code:morning-lecture}A student's morning routine preparing for lecture as modeled in RMPL. This is a complete RMPL program that includes the required Lisp package definitions to run in Kirk.}
+\end{listing}
+
+\begin{table}[htbp]
+\caption{\label{tab:morning-lecture-schedule}The schedule produced by Kirk's scheduler for the student's routine before lecture as modeled in Listing \ref{code:morning-lecture}. Note: Kirk's output has been cleaned for readability purposes.}
+\centering
+\begin{tabular}{left}
+\textbf{Event} & \textbf{Time (min)}\\\empty
+\hline
+\texttt{START} & 0\\\empty
+Start \texttt{shower} & 1\\\empty
+End \texttt{shower} & 6\\\empty
+Start \texttt{review-scheduling-notes} & 6\\\empty
+Start \texttt{eat-breakfast} & 6\\\empty
+End \texttt{review-scheduling-notes} & 16\\\empty
+Start \texttt{review-planning-notes} & 16\\\empty
+End \texttt{eat-breakfast} & 21\\\empty
+End \texttt{review-planning-notes} & 26\\\empty
+Start \texttt{pack-bag} & 26\\\empty
+End \texttt{pack-bag} & 31\\\empty
+Start \texttt{bike-to-lecture} & 32\\\empty
+End \texttt{bike-to-lecture} & 46\\\empty
+\texttt{END} & 46\\\empty
+\end{tabular}
+\end{table}
+
+Listing \ref{code:morning-lecture} introduces the notion of control programs that are allowed to be
+executed simultaneously, as modeled with the \texttt{(parallel ...)} form found in the \texttt{main} control
+program on line 48.
+
+Kirk is able to simulate the RMPL script in Listing \ref{code:morning-lecture} and produce a schedule
+because there were no uncontrollable constraints, that is, all control programs are under the
+agent's control. Say we replaced \texttt{bike-to-lecture} with \texttt{drive-to-lecture}. Due to traffic
+conditions, driving presents in an uncontrollable constraint. RMPL allows us to model uncontrollable
+constraints as in Listing \ref{code:drive-to-lecture}.
+
+\begin{listing}[htbp]
+\begin{minted}[]{lisp}
+(define-control-program drive-to-lecture ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 20)
+                     :contingent t)))
+\end{minted}
+\caption{\label{code:drive-to-lecture}An uncontrollable, or contingent, temporal constraint in a control program.}
+\end{listing}
+
+The addition of \texttt{:contingent t} to the \texttt{(duration ...)} form tells Kirk that it does not have
+control over when the end of \texttt{drive-to-lecture} is scheduled, rather, Nature (i.e. traffic
+conditions) chooses a time. Despite the lack of control over \texttt{drive-to-lecture}, we do know the
+drive should take between 15 and 20 minutes, hence our model includes \texttt{:lower-bound 15} and
+\texttt{:upper-bound 20}.
+
+With uncontrollable constraints in a control program, we are no longer guaranteed to be able to
+produce a schedule offline as we show in Table \ref{tab:morning-lecture-schedule}. Instead, as time
+passes, we may only choose to schedule controllable events based on the \emph{partial history} of
+contingent event assignments so far, or, in other words, perform \emph{dynamic scheduling}. Thus, we can
+no longer simulate a schedule with Kirk. We must connect Kirk to a source for receiving contingent
+event assignments in order to make valid controllable event assignments. Our approach to dynamic
+scheduling will be discussed in Section \ref{sec:approach-scheduling}.
+
+Our existing approach to specifying durations in RMPL was expanded to model observation delay. An
+example follows in Listing \ref{code:rmpl-obs-delay}.
+
+\begin{listing}[htbp]
+\begin{minted}[]{lisp}
+(define-control-program collect-science-sample ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30
+                             :min-observation-delay 5
+                             :max-observation-delay 15)
+                     :contingent t)))
+\end{minted}
+\caption{\label{code:rmpl-obs-delay}An RMPL control program describing a science data collection task with observation delay.}
+\end{listing}
+
+We can see in Listing \ref{code:rmpl-obs-delay} that representing set-bounded observation delay is a
+simple as adding \texttt{:min-} and \texttt{:max-observation-delay} to the \texttt{(duration (simple ...) :contingent t)}
+form. In full, this control program represents an uncontrollable constraint with a contingent event
+that Nature will schedule in \([15, 30]\) time units. The executive will then wait an addition \([5,
+15]\) time units before learning that \texttt{collect-science-sample} has been scheduled. As will be
+described in much greater detail in Section \ref{sec:vdc}, the executive will only learn \emph{that} the
+contingent event occurred - is not guaranteed to learn where in \([15, 30]\) the contingent event was
+assigned.
+
+\begin{enumerate}
+\item Explicitly Modeling Agents in RMPL
+\label{sec:org1d20aaa}
+\label{sec:rmpl-agents}
+
+This section is included to expand on the features of RMPL, though note that none of these features
+are required for controlling distributed agents, and were not a part of the experiments for this
+research.
+
+If we wanted to specify agents in a multi-agent control program, or if we wanted to take vehicle
+dynamics into account, RMPL gives us a means for using the Common Lisp Object System (CLOS) for
+defining agents, agent dynamics, and the control programs agents may execute.
+
+An example RMPL control program with an agent is provided in Listing \ref{code:glider-simple} for
+completeness sake from the domain of underwater robotics.
+
+\begin{listing}[htbp]
+\begin{minted}[]{lisp}
+;; This code is a snippet from a file in the thesis code repo found at:
+;;      kirk-v2/examples/glider/script.rmpl
+
+(defclass glider ()
+  ((id
+    :initarg :id
+    :finalp t
+    :type integer
+    :reader id
+    :documentation
+    "The ID of this glider.")
+   (deployed-p
+    :initform nil
+    :type boolean
+    :accessor deployed-p
+    :documentaiton
+    "A boolean stating if the glider is dpeloyed at any point in time.")
+   (destination
+    :initform nil
+    :type (member nil "start" "end" "science-1" "science-2")
+    :accessor destination
+    :documentation
+    "The location to which the glider is currently heading, or NIL if it is not
+    in transit.")
+   (location
+    :initarg :location
+    :initform "start"
+    :type (member nil "start" "end" "science-1" "science-2")
+    :accessor location
+    :documentation
+    "The location where the glider is currently located, or NIL if it is not at
+    a location (in transit).")))
+
+(define-control-program move (glider to)
+  (declare (primitive)
+           (requires (and
+                      (over :all (= (destination glider) to))))
+           (effect (and
+                    (at :start (= (destination glider) to))
+                    (at :start (= (location glider) nil))
+                    (at :end (= (destination glider) nil))
+                    (at :end (= (location glider) to))))
+           (duration (simple :lower-bound 10 :upper-bound 20))))
+\end{minted}
+\caption{\label{code:glider-simple}A snippet of an RMPL script that defines an agent and classical planning predicates and effects of a control program.}
+\end{listing}
+
+In Listing \ref{code:glider-simple}, \texttt{glider} refers to a low-powered autonomous underwater vehicle that
+prefers to traverse by following ocean currents using a buoyancy engine.\footnote{The Slocum Glider is
+an example: \href{https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/}{https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/.}} We see
+that we model a \texttt{glider} agent and its properties using standard CLOS. The \texttt{move} control program
+then takes a \texttt{glider} and a \texttt{location} as arguments. The \texttt{(requires ...)} form is equivalent to the
+preconditions of a durative action in a PDDL 2.1 \citeprocitem{32}{[32]} domain. Likewise, the \texttt{(effect
+...)} form is equivalent to PDDL effects. Finally, as we saw before, the durative action also
+includes a temporal constraint in its \texttt{(duration ...)} form.
+
+Kirk is able to take RMPL as input to perform classical planning, though further discussion of it
+falls outside the scope of this thesis.
+\end{enumerate}
+
+\section{Scheduling Temporal Events}
+\label{sec:orgeb5a89f}
+\label{sec:approach-scheduling}
+
+The bulk of the technical chapters of this thesis, namely Chapters \ref{ch:modeling-tn} and
+\ref{ch:delay-scheduling}, describe the algorithmic insights behind the \emph{delay scheduler}. The delay
+scheduler dispatches controllable events online for dynamically controllable STNUs while reasoning
+over observation delay in uncontrollable events. Doing so required innovations in both our ability
+to reason over the controllability of STNUs with variable observation delay, as well as dynamic
+scheduling.
+
+The primary contribution of this thesis is the design and implementation of a \emph{delay scheduler},
+which expands on previous work on dynamic scheduling by Hunsberger \citeprocitem{33}{[33]} and
+variable-delay controllability by Bhargava \citeprocitem{1}{[1]}. Specifically, Hunsberger introduced
+FAST-EX, an \(O(N^{3})\) online scheduler for dynamically controllable STNUs.
+
+\subsection{Checking the Controllability of STNUs with Variable Observation Delay}
+\label{sec:orgaeea8d1}
+
+We
 
 \section{Coordination}
-\label{sec:org76acb8c}
+\label{sec:org7e73cd7}
 
 Coordination between Kirk agents is a completely novel contribution of this thesis.
 
 \section{Robustness}
-\label{sec:org7111ca8}
+\label{sec:orge59a977}
+
+Gotta be reliable.
 
 \chapter{Modeling Temporal Networks}
-\label{sec:org4cdc2ae}
-\label{sec:modeling-tn}
+\label{sec:orga38f6bc}
+\label{ch:modeling-tn}
 
 Our aim is to architect a pipeline that takes a temporal network as input and produces temporally
 consistent actions as output. This Section lays the groundwork for the delay scheduler by first
@@ -459,7 +791,7 @@ for modeling observation delay.
 TODO \ldots{}take the approach of defining temporal networks, and updating our defns as we work towards STNUs
 
 \section{Temporal Networks}
-\label{sec:orgff01da0}
+\label{sec:org85b377d}
 \label{sec:tn}
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
@@ -622,10 +954,10 @@ network exhibits dynamic controllability if an execution strategy, \(\mathcal{S}
 partial schedule, \(\xi\).
 
 \section{Fixed-Delay Controllability}
-\label{sec:orgf90e202}
+\label{sec:orga7abb70}
 \label{sec:fdc}
 
-Under fixed-delay controllability \citeprocitem{32}{[32]}, we consider the problem of scheduling
+Under fixed-delay controllability \citeprocitem{34}{[34]}, we consider the problem of scheduling
 execution decisions when the assignment of values to contingent events is learned (if at all) after
 some time has passed from the initial assignment. We prefer this model because it is flexible enough
 to model most forms of event observation we would expect to see in a real-time execution context.
@@ -634,7 +966,7 @@ occurs and when it is observed by a scheduling agent. We sometimes refer to an S
 associated fixed-delay function as a \emph{fixed-delay STNU}.
 
 \begin{defn}
-\textbf{Fixed-Delay Function} \citeprocitem{32}{[32]}
+\textbf{Fixed-Delay Function} \citeprocitem{34}{[34]}
 
 A \emph{fixed-delay function}, \(\gamma: X_c \rightarrow \mathbb{R}^+ \cup \{\infty\}\), maps a contingent
 event to the amount of time that passes between when the event occurs and when its value is
@@ -684,7 +1016,7 @@ With the semantics of delayed observations in hand, we can define what it means 
 STNU to be controllable.
 
 \begin{defn}
-\textbf{Fixed-Delay Controllability} \citeprocitem{32}{[32]}
+\textbf{Fixed-Delay Controllability} \citeprocitem{34}{[34]}
 
 An STNU \(S\) is \emph{fixed-delay controllable} with respect to a delay function, \(\gamma\), if and only if
 for the space of situations, \(\Omega_{f}\), there exists an \(\mathcal{S}\) that will construct a
@@ -731,7 +1063,7 @@ STNU is not controllable.
 Note that with fixed-delay controllability, the lower-case and cross-case rules are modified from the
 Morris and Muscettola \citeprocitem{26}{[26]}, accounting for \(\gamma\). More specifically, we address the
 case where observation delay makes it impossible to receive information about a contingent event
-before its immediate successor. More detail can be found in \citeprocitem{33}{[33]}.
+before its immediate successor. More detail can be found in \citeprocitem{35}{[35]}.
 
 \begin{table}[htb]
 \centering
@@ -755,13 +1087,13 @@ before its immediate successor. More detail can be found in \citeprocitem{33}{[3
 \end{tabular}
 
 \caption{Edge generation rules for a labeled distance graph from
-\citeprocitem{33}{[33]}.
+\citeprocitem{35}{[35]}.
 }
 \label{table:delay-reductions}
 \end{table}
 
 \section{Variable-Delay Controllability}
-\label{sec:org2babb41}
+\label{sec:orgd60a5bc}
 \label{sec:vdc}
 
 While fixed-delay controllability is quite expressive, its fundamental limitation is that it cannot
@@ -1256,23 +1588,23 @@ must be executed in \([16, 24]\). The execution semantics for both cases match t
 from \ref{fig:combined-figure}a described above.
 
 \section{Dynamic Scheduling through Real-Time Execution Decisions}
-\label{sec:org344addd}
+\label{sec:org6cb4cb2}
 \label{sec:dynamic-scheduling}
 
 An STNU, \(S\), that exhibits dynamic controllability can be \emph{scheduled} dynamically (or \emph{online}). At
 a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
 execution time of future free events. We follow the scheduling work by Hunsberger
-\citeprocitem{34}{[34]}, \citeprocitem{35}{[35]}, which describes an \(O(N^{3})\) procedure, FAST-EX, for
+\citeprocitem{33}{[33]}, \citeprocitem{36}{[36]}, which describes an \(O(N^{3})\) procedure, FAST-EX, for
 dynamic scheduling of STNUs. At its core is the notion of \emph{Real-Time Execution Decisions} (RTEDs),
 which map a timepoint to a set of requirement events to be executed and are generated based on
 \emph{partial schedules} of STNUs being executed. \texttt{WAIT} decisions may also be produced, reflecting the
 need to wait for the assignment of a contingent event before continuing. RTED-based scheduling
 applies a dynamic programming paradigm by first creating a dispatchable form of temporal constraints
 offline, updating the dispatchable form as the partial schedule is updated online, and querying the
-dispatchable form online to quickly find the next free event to schedule \citeprocitem{36}{[36]}.
+dispatchable form online to quickly find the next free event to schedule \citeprocitem{37}{[37]}.
 
 \begin{defn}
-\textbf{Real-Time Execution Decisions} \citeprocitem{36}{[36]}
+\textbf{Real-Time Execution Decisions} \citeprocitem{37}{[37]}
 
 A \emph{Real-Time Execution Decision} is a two-tuple \(\langle t, \chi \rangle\), where:
 \begin{itemize}
@@ -1364,9 +1696,8 @@ t &= \cfrac{\texttt{now} + t_{U}}{2}
 So long as \(t_{U} > \texttt{now}\), we know that the reassignment of \(t\) ensures \(t > \texttt{now}\).
 
 \chapter{Dynamic Scheduling with Delayed Event Monitoring}
-\label{sec:orgb78f1c1}
-
-\label{sec:delay-scheduling}
+\label{sec:orgb4ad010}
+\label{ch:delay-scheduling}
 
 \begin{figure}[htbp]
 \centering
@@ -1406,7 +1737,7 @@ contingent links in the fixed-delay STNU, which we must reconcile with the dispa
 Figure \ref{fig:flow-chart} for an overview of the information flow in scheduling a variable-delay STNU.
 
 \section{Scheduling with Variable-Observation Delay}
-\label{sec:org51479f0}
+\label{sec:org8d8d029}
 
 To solidify the process of scheduling a variable-delay STNU, consider the following analogy.
 
@@ -1440,7 +1771,7 @@ Our key challenge for scheduling an STNU with variable observation delay is reco
 from \(S\) with the dispatchable form from \(S'\).
 
 \section{Recording Contingent Event Assignments}
-\label{sec:orge6d2104}
+\label{sec:org6af39b9}
 
 During execution, we observe the outcome of contingent events \(\obs(x_{c})\) in \(S\), but we make
 assignments in the dispatchable form of \(\assign(x'_{c})\) in \(S'\). Despite being equivalent with
@@ -1635,7 +1966,7 @@ We have addressed the key issue of reconciling observations from \(S\) with the 
 robustness for variable observation delay.
 
 \section{Modified FAST-EX for Variable Observation Delay}
-\label{sec:orgebede31}
+\label{sec:orgc6c7fbe}
 
 We present an overview of the scheduling and dispatching algorithms below with explanations following.
 
@@ -1693,7 +2024,7 @@ Let \(x\) be a temporal event, \(x \forall x \in X_{c} \cup X_{e}\).
 \end{algorithm}
 
 \subsection{Real vs No-op Events}
-\label{sec:org660240b}
+\label{sec:orgfd4c71f}
 \label{sec:real-vs-noop-events}
 
 The introduction of buffering and imagining events creates a new distinction between temporal
@@ -1745,7 +2076,7 @@ For convenience and simplicity, and given the similarities between RTED and RTED
 Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
 
 \section{Dynamic Dispatching}
-\label{sec:orgf577881}
+\label{sec:orgc4da0b7}
 \label{sec:dynamic-dispatching}
 
 A \emph{dynamic dispatcher} (or just ``dispatcher'') is an interface layer with a two-fold responsibility:
@@ -1753,7 +2084,7 @@ it triggers the execution of RTEDs in the outside world, and it relays observati
 world about the execution of events to the scheduler.
 
 \section{Rescheduling}
-\label{sec:orgebe7793}
+\label{sec:org74b519b}
 
 The goal of this method is to dispatch future events as soon as possible. Contingent events may
 arrive earlier than expected due to the information lost during the variable-delay to fixed-delay
@@ -1773,22 +2104,22 @@ perform rescheduling
 It's a generate-and-test approach
 
 \chapter{Coordinating Multiple Agents in Extreme Environments}
-\label{sec:org9d69016}
+\label{sec:org335554a}
 
 This is a chapter on distributed communication.
 
 \chapter{Coordinating Multiple Agents in Extreme Environments}
-\label{sec:orgc010685}
+\label{sec:org4ac7a57}
 
 This is a chapter on distributed communication.
 
 \chapter{Evaluation}
-\label{sec:org11cd71d}
+\label{sec:orgfd9a036}
 
 This is a chapter on evaluating all this stuff.
 
 \chapter{Discussion and Future Work}
-\label{sec:orgfdf599c}
+\label{sec:org73ee633}
 
 This is a discussion of stuff to do later.
 
@@ -1865,15 +2196,17 @@ NO\_ITEM\_DATA:Sehlke2019
 
 \hypertarget{citeproc_bib_item_31}{[31] G. Kiczales, J. Des Rivières, and D. G. Bobrow, \textit{The art of the metaobject protocol}. Cambridge, Mass: MIT Press, 1991.\\}
 
-\hypertarget{citeproc_bib_item_32}{[32] N. Bhargava, C. Muise, T. Vaquero, and B. Williams, “Delay Controllability : Multi-Agent Coordination under Communication Delay,” Massachusetts Institute of Technology, Cambridge, MA, 2018.\\}
+\hypertarget{citeproc_bib_item_32}{[32] M. Fox and D. Long, “PDDL2.1: An extension to PDDL for expressing temporal planning domains,” \textit{Journal of artificial intelligence research}, vol. 20, pp. 61–124, 2003, doi: \href{https://doi.org/10.1613/jair.1129}{10.1613/jair.1129}.\\}
 
-\hypertarget{citeproc_bib_item_33}{[33] N. Bhargava, C. Muise, T. Vaquero, and B. Williams, “Managing communication costs under temporal uncertainty,” in \textit{IJCAI International Joint Conference on Artificial Intelligence}, 2018, vol. 2018-July, pp. 84–90. doi: \href{https://doi.org/10.24963/ijcai.2018/12}{10.24963/ijcai.2018/12}.\\}
+\hypertarget{citeproc_bib_item_33}{[33] L. Hunsberger, “Efficient execution of dynamically controllable simple temporal networks with uncertainty,” \textit{Acta informatica}, vol. 53, no. 2, pp. 89–147, 2016, doi: \href{https://doi.org/10.1007/s00236-015-0227-0}{10.1007/s00236-015-0227-0}.\\}
 
-\hypertarget{citeproc_bib_item_34}{[34] L. Hunsberger, “A faster execution algorithm for dynamically controllable STNUs,” \textit{Proceedings of the 20th international symposium on temporal representation and reasoning}, pp. 26–33, 2013, doi: \href{https://doi.org/10.1109/TIME.2013.13}{10.1109/TIME.2013.13}.\\}
+\hypertarget{citeproc_bib_item_34}{[34] N. Bhargava, C. Muise, T. Vaquero, and B. Williams, “Delay Controllability : Multi-Agent Coordination under Communication Delay,” Massachusetts Institute of Technology, Cambridge, MA, 2018.\\}
 
-\hypertarget{citeproc_bib_item_35}{[35] L. Hunsberger, “Efficient execution of dynamically controllable simple temporal networks with uncertainty,” \textit{Acta informatica}, vol. 53, no. 2, pp. 89–147, 2016, doi: \href{https://doi.org/10.1007/s00236-015-0227-0}{10.1007/s00236-015-0227-0}.\\}
+\hypertarget{citeproc_bib_item_35}{[35] N. Bhargava, C. Muise, T. Vaquero, and B. Williams, “Managing communication costs under temporal uncertainty,” in \textit{IJCAI International Joint Conference on Artificial Intelligence}, 2018, vol. 2018-July, pp. 84–90. doi: \href{https://doi.org/10.24963/ijcai.2018/12}{10.24963/ijcai.2018/12}.\\}
 
-\hypertarget{citeproc_bib_item_36}{[36] L. Hunsberger, “Fixing the semantics for dynamic controllability and providing a more practical characterization of dynamic execution strategies,” \textit{Time 2009 - 16th international symposium on temporal representation and reasoning}, pp. 155–162, 2009, doi: \href{https://doi.org/10.1109/TIME.2009.25}{10.1109/TIME.2009.25}.\\}\bigskip
+\hypertarget{citeproc_bib_item_36}{[36] L. Hunsberger, “A faster execution algorithm for dynamically controllable STNUs,” \textit{Proceedings of the 20th international symposium on temporal representation and reasoning}, pp. 26–33, 2013, doi: \href{https://doi.org/10.1109/TIME.2013.13}{10.1109/TIME.2013.13}.\\}
+
+\hypertarget{citeproc_bib_item_37}{[37] L. Hunsberger, “Fixing the semantics for dynamic controllability and providing a more practical characterization of dynamic execution strategies,” \textit{Time 2009 - 16th international symposium on temporal representation and reasoning}, pp. 155–162, 2009, doi: \href{https://doi.org/10.1109/TIME.2009.25}{10.1109/TIME.2009.25}.\\}\bigskip
 \end{hangparas}
 
 \end{thebibliography}

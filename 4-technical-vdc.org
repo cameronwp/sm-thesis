@@ -1,7 +1,7 @@
 #+title: Technical VDC
 
 * Modeling Temporal Networks
-<<sec:modeling-tn>>
+<<ch:modeling-tn>>
 
 Our aim is to architect a pipeline that takes a temporal network as input and produces temporally
 consistent actions as output. This Section lays the groundwork for the delay scheduler by first

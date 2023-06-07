@@ -1,8 +1,7 @@
 #+title: Technical Scheduling
 
 * Dynamic Scheduling with Delayed Event Monitoring
-
-<<sec:delay-scheduling>>
+<<ch:delay-scheduling>>
 
 # TODO probably need to make this figure full page width to make it legible
 # TODO use same notation established earlier

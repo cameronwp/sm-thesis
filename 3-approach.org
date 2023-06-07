@@ -1,8 +1,14 @@
 #+title: Approach
 
+* COMMENT
+- for inter-agent communication as well as the observations agents make of the environment.
+- where do we differentiate between existing work and the novel work of the thesis?
+
 * Approach
+<<ch:approach>>
 
 # TODO clean up first sentence
+# TODO mention VDC or delay scheduling here?
 For addressing our problem statement, we envision that a high-level executive should take
 responsibility for managing task planning and execution with respect to temporal constraints. For
 this thesis, we chose to extend an existing high-level task and motion planner, /Kirk/
@@ -36,7 +42,7 @@ areas, which were then implemented in Kirk:
 3. /Coordination/: during execution, peer executives must be able to share event assignments and
    observations
 
-We include a fourth auxiliary area for contributions as an engineering requirement.
+We include an auxiliary fourth area for contributions as an engineering requirement.
 
 #+latex: \begin{enumerate} \setcounter{enumi}{3} \item
 /Robustness/: Kirk must be easy to run, debug, and integrate with existing autonomous systems
@@ -78,9 +84,10 @@ one where time is set to 0 seconds, $t = 0$, and no events have been executed (i
 assignments have been made). We then define controlled and uncontrolled set-bounded constraints
 between events. The goal state is one where times have been assigned to each controllable event such
 that all constraints are satisfied. To do so, we build our formalisms representing temporal
-constraints with observation delay on top of simple temporal networks with uncertainty (STNUs)
-[cite:@Vidal1999]. We will elaborate on temporal reasoning and our chosen formalisms for it in much
-more detail in Section [[sec:modeling-tn]].
+constraints with set-bounded observation delay on top of simple temporal networks with uncertainty
+(STNUs) [cite:@Vidal1999]. A brief explanation of our modeling strategy for temporal constraints
+with observation delay follows in Section [[sec:obs-delay-in-stnus]], though we will elaborate on
+temporal reasoning and our chosen formalisms for it in much more detail in Chapter [[ch:modeling-tn]].
 
 With a modeling formalism in hand, the second key challenge is to use the formalism to guarantee a
 property known as /controllability/, or that all controllable temporal constraints can be satisfied
@@ -98,9 +105,48 @@ For the third challenge, we choose to extend the Reactive Model-Based Programmin
 states of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
 planner is capable of building control programs describing the constraints, agents, and states of
 the problem domain in a way that is human-readable yet highly programmable, and is independent of
-the underlying algorithms used by the autonomous system. As will be discussed in Section [[sec:rmpl]]
+the underlying algorithms used by the autonomous system. As will be explained in Section [[sec:rmpl]]
 below, our approach was to add the ability for planners to model observation delay alongside
 temporal constraints in RMPL.
+
+*** Modeling Uncertain Observation Delay in STNUs
+<<sec:obs-delay-in-stnus>>
+
+In the case of observation delay, our model dictates that we reason over two time intervals. The
+first time interval represents the true length of time between two events, while the second interval
+represents the length of time between when an event occurs and when an executive observes the event.
+For ensuring that an executive takes safe actions in an uncertain environment, we assume worst-case
+scenario with respect to information gain. Our approach to modeling uncertain observation delay in
+STNUs is as follows.
+
+1. The duration of time between two events is represented as a set-bounded interval
+2. The duration of time between an event and its observation (observation delay) is represented as a
+   set-bounded interval
+3. Timestamps in event observations are ignored
+4. The true duration of observation delay is not guaranteed to be learned
+
+The first point comes directly from the STNU formalism (see Section [[sec:tn]]). The second point allows
+for uncertainty in the amount of observation delay, e.g. in an uncertain environment, we could model
+observation delay for a given event as, say, $[1, \infty]$, meaning an observation of an event could
+arrive one second after it occurs, or never arrive, or arrive at some arbitrary time, $t$, $1 < t <
+\infty$ later. The third point comes from assuming worst-case scenario and prevents us from
+"cheating" in our scheduling algorithm. For instance, imagine two agents coordinating. If agents
+passed timestamp information along with events to one another, they must also be able to synchronize
+their clocks, potentially to an arbitrary degree of precision. The challenge of synchronizing clocks
+between agents is outside the scope of this thesis and may not always be possible. As such,
+executives only trust their own clocks. Rather than backfill potentially erroneous times for event
+assignments as reported by exogenous sources, the executive we envision in this thesis records times
+that are internally consistent with its own clock. Doing so guarantees that the actions the
+executive takes as a result of temporal reasoning are consistent with its model.
+
+The fourth point, that we are not guaranteed to learn event assignments, is a result of the first
+three. It stands to reason that an event observation is a function of the true assignment of an
+event and its observation delay. If there is uncertainty in both the event assignment and delay,
+then we have one equation with two unknowns. Thus, the term "uncertain" in uncertain observation
+delay means that we are forced to reason with deciding when to act even when we are not guaranteed
+to learn the true times assigned to events.
+
+We formalize event observations and observation delay in Section [[sec:vdc]].
 
 *** Modeling Observation Delay in RMPL
 <<sec:rmpl>>
@@ -162,7 +208,7 @@ An example of an RMPL control program for a single-agent without agent dynamics 
 #+end_src
 
 Looking past the parentheses, we can see different options for defining temporal constraints. For
-example, the =(duration (simple ...))= form is used to define a controllable temporal constraint
+example, the =(duration (simple ...))= form is used to define a set-bounded temporal constraint
 between a =:lower-bound= and an =:upper-bound=. The =main= control program uses a different form,
 =(with-temporal-constraint ...)= to place an =:upper-bound= on the overall deadline for scheduling
 all events in the control program.
@@ -284,8 +330,43 @@ conditions) chooses a time. Despite the lack of control over =drive-to-lecture=,
 drive should take between 15 and 20 minutes, hence our model includes =:lower-bound 15= and
 =:upper-bound 20=.
 
+With uncontrollable constraints in a control program, we are no longer guaranteed to be able to
+produce a schedule offline as we show in Table [[tab:morning-lecture-schedule]]. Instead, as time
+passes, we may only choose to schedule controllable events based on the /partial history/ of
+contingent event assignments so far, or, in other words, perform /dynamic scheduling/. Thus, we can
+no longer simulate a schedule with Kirk. We must connect Kirk to a source for receiving contingent
+event assignments in order to make valid controllable event assignments. Our approach to dynamic
+scheduling will be discussed in Section [[sec:approach-scheduling]].
+
+Our existing approach to specifying durations in RMPL was expanded to model observation delay. An
+example follows in Listing [[code:rmpl-obs-delay]].
+
+#+name: code:rmpl-obs-delay
+#+caption: An RMPL control program describing a science data collection task with observation delay.
+#+begin_src lisp
+(define-control-program collect-science-sample ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30
+                             :min-observation-delay 5
+                             :max-observation-delay 15)
+                     :contingent t)))
+#+end_src
+
+We can see in Listing [[code:rmpl-obs-delay]] that representing set-bounded observation delay is a
+simple as adding =:min-= and =:max-observation-delay= to the =(duration (simple ...) :contingent t)=
+form. In full, this control program represents an uncontrollable constraint with a contingent event
+that Nature will schedule in $[15, 30]$ time units. The executive will then wait an addition $[5,
+15]$ time units before learning that =collect-science-sample= has been scheduled. As will be
+described in much greater detail in Section [[sec:vdc]], the executive will only learn /that/ the
+contingent event occurred - is not guaranteed to learn where in $[15, 30]$ the contingent event was
+assigned.
+
 **** Explicitly Modeling Agents in RMPL
 <<sec:rmpl-agents>>
+
+This section is included to expand on the features of RMPL, though note that none of these features
+are required for controlling distributed agents, and were not a part of the experiments for this
+research.
 
 If we wanted to specify agents in a multi-agent control program, or if we wanted to take vehicle
 dynamics into account, RMPL gives us a means for using the Common Lisp Object System (CLOS) for
@@ -354,12 +435,30 @@ includes a temporal constraint in its =(duration ...)= form.
 Kirk is able to take RMPL as input to perform classical planning, though further discussion of it
 falls outside the scope of this thesis.
 
-** Scheduling
+** Scheduling Temporal Events
+<<sec:approach-scheduling>>
 
+The bulk of the technical chapters of this thesis, namely Chapters [[ch:modeling-tn]] and
+[[ch:delay-scheduling]], describe the algorithmic insights behind the /delay scheduler/. The delay
+scheduler dispatches controllable events online for dynamically controllable STNUs while reasoning
+over observation delay in uncontrollable events. Doing so required innovations in both our ability
+to reason over the controllability of STNUs with variable observation delay, as well as dynamic
+scheduling.
 
+# TODO I don't think this paragraph is necessary
+The primary contribution of this thesis is the design and implementation of a /delay scheduler/,
+which expands on previous work on dynamic scheduling by Hunsberger [cite:@Hunsberger2016] and
+variable-delay controllability by Bhargava [cite:@Bhargava2018]. Specifically, Hunsberger introduced
+FAST-EX, an $O(N^{3})$ online scheduler for dynamically controllable STNUs.
+
+*** Checking the Controllability of STNUs with Variable Observation Delay
+
+We
 
 ** Coordination
 
 Coordination between Kirk agents is a completely novel contribution of this thesis.
 
 ** Robustness
+
+Gotta be reliable.

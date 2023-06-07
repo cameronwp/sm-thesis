@@ -3,3 +3,7 @@
 * TODO "communication uncertainty" vs "observation uncertainty" vs "observation delay"
 We should be consistent. At the very least, include a note somewhere towards the beginning that the
 terms are largely interchangeable
+* TODO need more flexibility in referring to control programs in RMPL
+comment on this in discussion
+* TODO controllable vs free vs requirement; contingent vs uncontrollable
+Need to be more consistent / or just explain the (lack of) diff somewhere
