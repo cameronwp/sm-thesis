@@ -3,6 +3,9 @@
 * COMMENT
 - for inter-agent communication as well as the observations agents make of the environment.
 - where do we differentiate between existing work and the novel work of the thesis?
+- With a model-based approach to autonomy, a human should not write an explicit program for solving
+  the problem domain. Instead, the executive should take full responsibility for taking a model from
+  a human and producing safe actions according to the constraints provided.
 
 * Approach
 <<ch:approach>>
@@ -163,16 +166,17 @@ describe their features and our modeling choices. The purpose of this section is
 3. The above is used to demonstrate that modeling uncertain communication delay can be naturally
    modeled in RMPL
 
-That this section is not meant to be a complete documentation of RMPL, rather our goal is to
-motivate the strength of RMPL as a modeling language for human planners describing autonomous
-systems with observation uncertainty.
+This section is not meant to be a complete documentation of RMPL, rather our goal is to motivate the
+strength of RMPL as a modeling language for human planners describing autonomous systems with
+observation uncertainty.
 
 RMPL has undergone a number of rewrites since its inception, and is currently being developed as a
 superset of the Common Lisp language using the Metaobject Protocol [cite:@Kiczales1991]. The goal is
-that a human should have a natural means for modeling the problem domain. With a model-based
-approach to autonomy, a human should not write an explicit program for solving the problem domain.
-Instead, the executive should take full responsibility for taking a model from a human and producing
-safe actions according to the constraints provided.
+that a human should have a comfortable means for accurately modeling sufficient detail about the
+problem domain such that an executive can perform model-based reasoning to decide how to act.
+
+# TODO does this sentence go with the paragraph above?
+# RMPL should /never/ include explicit programming instructions for the executive.
 
 RMPL and Kirk can be used to achieve a number of different goals. These include but are not limited
 to temporal scheduling, classical planning, hybrid planning. For this thesis, we focus on temporal
@@ -361,7 +365,7 @@ described in much greater detail in Section [[sec:vdc]], the executive will only
 contingent event occurred - is not guaranteed to learn where in $[15, 30]$ the contingent event was
 assigned.
 
-**** Explicitly Modeling Agents in RMPL
+*** Explicitly Modeling Agents in RMPL
 <<sec:rmpl-agents>>
 
 This section is included to expand on the features of RMPL, though note that none of these features
@@ -394,7 +398,7 @@ completeness sake from the domain of underwater robotics.
     :type boolean
     :accessor deployed-p
     :documentaiton
-    "A boolean stating if the glider is dpeloyed at any point in time.")
+    "A boolean stating if the glider is deployed at any point in time.")
    (destination
     :initform nil
     :type (member nil "start" "end" "science-1" "science-2")
@@ -453,7 +457,9 @@ FAST-EX, an $O(N^{3})$ online scheduler for dynamically controllable STNUs.
 
 *** Checking the Controllability of STNUs with Variable Observation Delay
 
-We
+# TODO continue
+Our approach is the same that Bhargava [cite:@Bhargava2018] describes for Variable-Delay
+Controllability (VDC). In short, ...
 
 ** Coordination
 
