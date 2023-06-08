@@ -5,17 +5,19 @@ This repo builds my SM thesis PDF from ~.org~ files.
 Start with [[main.org][main.org]]. See comments for usage.
 
 ** Exporting
-1. Open [[main.org][main.org]]
-2. Use [[https://orgmode.org/manual/LaTeX_002fPDF-export-commands.html][org export]] to build the PDF
+1. Write thesis in =.org= files
+2. Open [[main.org][main.org]]
+3. Use [[https://orgmode.org/manual/LaTeX_002fPDF-export-commands.html][org export]] to build the PDF
    ~C-c C-e l p~ by default or ~SPC m e l p~ with [[https://github.com/doomemacs/doomemacs][Doom Emacs]] / [[https://github.com/emacs-evil/evil][evil mode]]
 
 ** Dependencies / Setup
 This repo is not self-contained - utilities, packages, and configuration for LaTeX exporting and
 bibliographies are required.
 
-These snippets are from my Doom Emacs config. You may need to modify for your setup.
+These snippets are from my Doom Emacs config. You may need to modify them for your setup.
 
 *** External Tools
+This may not be a complete list of required binaries for exporting LaTeX.
 - [[http://biblatex-biber.sourceforge.net/][biber]]
 - [[https://dvisvgm.de/][dvisvgm]]
 - [[https://imagemagick.org/index.php][imagemagick]]
