@@ -340,10 +340,11 @@ passes, we may only choose to schedule controllable events based on the /partial
 contingent event assignments so far, or, in other words, perform /dynamic scheduling/. Thus, we can
 no longer simulate a schedule with Kirk. We must connect Kirk to a source for receiving contingent
 event assignments in order to make valid controllable event assignments. Our approach to dynamic
-scheduling will be discussed in Section [[sec:approach-scheduling]].
+scheduling is the focus of Section [[sec:approach-scheduling]].
 
-Our existing approach to specifying durations in RMPL was expanded to model observation delay. An
-example follows in Listing [[code:rmpl-obs-delay]].
+As a contribution of this thesis, our existing approach to specifying durations in RMPL was expanded
+to model observation delay. An example follows in Listing [[code:rmpl-obs-delay]] modeling a sample
+collection control program with observation delay.
 
 #+name: code:rmpl-obs-delay
 #+caption: An RMPL control program describing a science data collection task with observation delay.
@@ -359,11 +360,11 @@ example follows in Listing [[code:rmpl-obs-delay]].
 We can see in Listing [[code:rmpl-obs-delay]] that representing set-bounded observation delay is a
 simple as adding =:min-= and =:max-observation-delay= to the =(duration (simple ...) :contingent t)=
 form. In full, this control program represents an uncontrollable constraint with a contingent event
-that Nature will schedule in $[15, 30]$ time units. The executive will then wait an addition $[5,
-15]$ time units before learning that =collect-science-sample= has been scheduled. As will be
-described in much greater detail in Section [[sec:vdc]], the executive will only learn /that/ the
-contingent event occurred - is not guaranteed to learn where in $[15, 30]$ the contingent event was
-assigned.
+that Nature will schedule $[15, 30]$ time units after sample collection begins. The executive will
+then wait an additional $[5, 15]$ time units before learning that =collect-science-sample= has been
+scheduled. As will be described in much greater detail in Section [[sec:vdc]], the executive will only
+learn /that/ the contingent event occurred - is not guaranteed to learn where in $[15, 30]$ the
+contingent event was assigned, nor will it know how much observation delay was incurred.
 
 *** Explicitly Modeling Agents in RMPL
 <<sec:rmpl-agents>>
@@ -445,21 +446,73 @@ falls outside the scope of this thesis.
 The bulk of the technical chapters of this thesis, namely Chapters [[ch:modeling-tn]] and
 [[ch:delay-scheduling]], describe the algorithmic insights behind the /delay scheduler/. The delay
 scheduler dispatches controllable events online for dynamically controllable STNUs while reasoning
-over observation delay in uncontrollable events. Doing so required innovations in both our ability
-to reason over the controllability of STNUs with variable observation delay, as well as dynamic
-scheduling.
+over observation delay in the uncontrollable events it receives. There were two key contributions
+that enabled the delay scheduler.
 
-# TODO I don't think this paragraph is necessary
-The primary contribution of this thesis is the design and implementation of a /delay scheduler/,
-which expands on previous work on dynamic scheduling by Hunsberger [cite:@Hunsberger2016] and
-variable-delay controllability by Bhargava [cite:@Bhargava2018]. Specifically, Hunsberger introduced
-FAST-EX, an $O(N^{3})$ online scheduler for dynamically controllable STNUs.
+Reasoning over the controllability of STNUs with with variable-observation delay had been
+demonstrated to be possible in prior work [cite:@Bhargava2018a], though a valid execution strategy
+was never defined. For our first contribution, we define an execution strategy for variable-delay
+controllable STNUs and prove its validity.
 
-*** Checking the Controllability of STNUs with Variable Observation Delay
+Likewise, dynamic schedulers have been established for dispatching events from STNUs, e.g. FAST-EX
+[cite:@Hunsberger2016]. For our second contribution, we defined a novel delay scheduler built on
+FAST-EX capable of applying the execution strategy defined in our first contribution.
 
-# TODO continue
-Our approach is the same that Bhargava [cite:@Bhargava2018] describes for Variable-Delay
-Controllability (VDC). In short, ...
+We elaborate further on our approach to each contribution below.
+
+*** Defining a Valid Execution Strategy for STNUs with Variable Observation Delay
+
+We cannot execute an STNU without first demonstrating that it is controllable. Our approach to
+checking the controllability of STNUs with observation delay is to apply Bhargava's Variable-Delay
+Controllability checker (VDC) [cite:@Bhargava2018]. VDC is a procedure that takes place in two
+stages and is $O(N^{5})$ in the number of events. In the first stage, we transform the STNU with
+variable observation delay to one with fixed observation delay in $O(N^{2})$. In the second stage,
+we check the controllability of the fixed-delay STNU using Bhargava's fixed-delay controllability
+checker (FDC) [cite:@Bhargava2018a;@Bhargava2020;], which is modified from Morris' $O(N^{3})$
+dynamic controllability check [cite:@Morris2014] such that it accounts for fixed observation delay
+in contingent links.
+
+In short, the first stage process is built around the idea of modeling a worst-case scenario with
+respect to receiving observations. The resulting fixed-delay STNU reflects a situation where the
+executive learns as little as possible about the contingent events. If the fixed-delay STNU with
+minimal information is controllable, then so too must any situation be controllable when we learn
+more information.
+
+Our first contribution is that we define an execution strategy for variable-delay STNUs, wherein we
+dispatch events according to the /dispatchable form/ of the /fixed-delay/ STNU, while respecting the
+constraints modeled in the /variable-delay/ STNU. Existing controllability checks, like FDC, and
+execution strategies, like FAST-EX, depend on a dispatchable form, i.e. a /distance graph/
+representation of the STNU. The key challenge in defining an execution strategy for a variable-delay
+STNU is that unlike vanilla STNUs and fixed-delay STNUs, there is no dispatchable form for
+variable-delay STNUs. Hence why the VDC check first transforms the variable-delay STNU to a
+fixed-delay form. In Chapter [[ch:delay-scheduling]], we formally define the execution strategy for
+variable-delay STNUs and prove its validity.
+
+*** Online Dispatching for STNUs with Variable Observation Delay
+
+We chose to build the delay scheduler as a modified variant of Hunsberger's FAST-EX
+[cite:@Hunsberger2016] because, to the best of our knowledge, FAST-EX is the fastest dynamic
+scheduler published to date.
+
+FAST-EX maps partial histories, or schedules of events up to the current time, to Real-Time
+Execution Decisions (RTEDs). RTEDs contain a list of events to be executed and a time (that could be
+from now to point in the future) to execute them. When contingent events are observed or
+controllable events are scheduled, it updates the distance graph to capture the information gained.
+To improve the online performance of dynamic scheduling, Hunsberger's insight was to reduce the
+space of the dispatchable form by removing edges as events are executed. It can do so by first
+iteratively updating the distances to and from the remaining events by performing Dijkstra's Single
+Sink and Single Source Shortest Paths algorithms to and from the zero point (start event) of the
+distance graph.
+
+The delay scheduler differs from FAST-EX in the way it (1) records partial histories and (2) how it
+generates RTEDs. Key to (1) is that we remove the assumption that contingent events are
+instantaneously observed. Essentially, we use the known fixed observation delay to decide where in
+the past an observed contingent event was assigned. Key to (2) is that we account for two special
+cases, both related to a change in the /execution space/ that results from the variable-delay to
+fixed-delay STNU transformation. In one case, we are allowed to imagine that contingent events were
+assigned despite never observing them (see Section [[sec:recording-vdc-ctg]]). In the other, we use the
+observation to optimistically rewrite the variable-delay STNU in an attempt to shorten the overall
+makespan (see Section [[sec:optimistic]]).
 
 ** Coordination
 
@@ -467,4 +520,6 @@ Coordination between Kirk agents is a completely novel contribution of this thes
 
 ** Robustness
 
-Gotta be reliable.
+We improve the delay scheduler by differentiating real and =noop= controllable events...
+
+We remove the assumption that controllable events are instantaneously executed...

@@ -7,3 +7,8 @@ terms are largely interchangeable
 comment on this in discussion
 * TODO controllable vs free vs requirement; contingent vs uncontrollable
 Need to be more consistent / or just explain the (lack of) diff somewhere
+* TODO can we do optimistic rewriting when we receive an event with infinite obs delay too?
+might only be useful in the case of a gammabar with a finite lower bound and infinite upper bound
+(Lemma 2). not useful for Lemma 3
+
+does the rewriting math actually work though with the infinity?

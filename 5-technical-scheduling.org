@@ -84,7 +84,7 @@ Our key challenge for scheduling an STNU with variable observation delay is reco
 from $S$ with the dispatchable form from $S'$.
 
 ** Recording Contingent Event Assignments
-
+<<sec:recording-vdc-ctg>>
 # TODO smooth out, make sure nothing repeated from above
 
 During execution, we observe the outcome of contingent events $\obs(x_{c})$ in $S$, but we make
@@ -143,7 +143,7 @@ except $t$.
 #+begin_export tex
 \begin{lemma}
 \label{lemma:ignore-inf-delay}
-For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) = \infty$, we do not assign \assign(x'_{c})$ in the dispatchable form of $S'$.
+For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) = \infty$, we mark the event executed but do not assign \assign(x'_{c})$ in the dispatchable form of $S'$.
 \end{lemma}
 #+end_export
 
@@ -154,6 +154,9 @@ If we are scheduling a fixed-delay STNU, $S'$, that is already known to be fixed
 an execution strategy must exist that is independent of the assignment of $\assign(x'_{c})$ when
 $\gamma(x'_{c}) = 0$. We are not required to record $\assign(x'_{c})$ when $\gamma(x'_{c}) = \infty$
 to guarantee controllability and may safely ignore it.
+
+We mark the event executed to prevent it from appearing in future RTEDs.
+
 #+begin_export tex
 \end{proof}
 #+end_export
@@ -485,7 +488,8 @@ A /dynamic dispatcher/ (or just "dispatcher") is an interface layer with a two-f
 it triggers the execution of RTEDs in the outside world, and it relays observations from the outside
 world about the execution of events to the scheduler.
 
-** Rescheduling
+** Optimistic Rescheduling
+<<sec:optimistic>>
 
 The goal of this method is to dispatch future events as soon as possible. Contingent events may
 arrive earlier than expected due to the information lost during the variable-delay to fixed-delay
