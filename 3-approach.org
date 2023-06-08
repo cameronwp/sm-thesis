@@ -505,14 +505,16 @@ Sink and Single Source Shortest Paths algorithms to and from the zero point (sta
 distance graph.
 
 The delay scheduler differs from FAST-EX in the way it (1) records partial histories and (2) how it
-generates RTEDs. Key to (1) is that we remove the assumption that contingent events are
-instantaneously observed. Essentially, we use the known fixed observation delay to decide where in
-the past an observed contingent event was assigned. Key to (2) is that we account for two special
-cases, both related to a change in the /execution space/ that results from the variable-delay to
-fixed-delay STNU transformation. In one case, we are allowed to imagine that contingent events were
-assigned despite never observing them (see Section [[sec:recording-vdc-ctg]]). In the other, we use the
-observation to optimistically rewrite the variable-delay STNU in an attempt to shorten the overall
-makespan (see Section [[sec:optimistic]]).
+generates RTEDs. For both changes, we must address special cases related to a change in the
+/execution space/ - the time ranges of possible event assignments - that result from the
+variable-delay to fixed-delay STNU transformation. We make two changes for (1). First, we remove the
+assumption that contingent events are instantaneously observed. Essentially, we use the known fixed
+observation delay to decide where in the past an observed contingent event was assigned. Second, to
+account for one special case due to the transformation, we use observations to optimistically
+rewrite the variable-delay STNU in an attempt to shorten the overall makespan (see Section
+[[sec:optimistic]]). Key to (2) is that we are allowed to /imagine/ that contingent events were assigned
+despite never observing them. Imagining contingent events is a result of the other special case from
+the variable-delay to fixed-delay transformation (see Section [[sec:recording-vdc-ctg]]).
 
 ** Coordination
 
