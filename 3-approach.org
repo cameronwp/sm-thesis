@@ -518,7 +518,53 @@ the variable-delay to fixed-delay transformation (see Section [[sec:recording-vd
 
 ** Coordination
 
-Coordination between Kirk agents is a completely novel contribution of this thesis.
+# TODO wc. framework?
+This thesis contributes the first framework for and demonstration of online coordination between
+Kirk executives with inter-agent temporal constraints. To be clear, coordination is limited to
+scheduling and dispatching - it does not include motion planning.
+
+This is of course a multi-agent (MA) scheduling problem. The first approach one might consider with
+a MA scheduling problem is to model the system as a Multi-Agent STNU (MASTNU) [cite:@Casanova2016].
+After doing so, the next step would then be to perform temporal decoupling, resulting in individual
+dynamically controllable STNUs for each agent that can be dynamically scheduled per usual. While
+superficially promising, there is a considerable drawback to this approach, namely that temporal
+decoupling is sound but not complete. This limits the utility of MASTNUs as a planning tool. In
+combination with our focus on online scheduling, we decided to forgo extending the MASTNU formalism
+to account for observation delay. Instead our planning process simply consists of writing
+variable-delay STNUs with implicit inter-agent constraints for each agent by hand.
+
+Our approach to online coordination is as follows:
+
+1. Each instance of Kirk receives a unique control program
+2. All control programs begin execution at the same time
+3. Kirk executives broadcast scheduled events to a known set of peers
+4. In their own schedules, Kirk executives record event observations from their peers as they are
+   received
+
+# TODO clean up end of paragraph?
+The first point is in lieu of a MASTNU-like planning process that distributes control programs
+automatically. The challenge of manually writing control programs that enable MA execution is
+non-trivial. A modeler must consider both intra- and inter-agent constraints that, compounded by
+uncertain communication, frequently contain difficult to spot conflicts. (It is no surprise that
+temporal decoupling is incomplete!) Furthermore, there is the challenge of translating events
+between executives. When writing MA control programs, it is possible that the same event has
+different identifiers in different STNUs. Care must be taken to ensure different executives
+understand the event observations they receive from their peers. In our experiments, our strategy
+was to carefully write MA control programs to guarantee events shared names between executives.
+
+MA control programs under uncertain communication will be discussed in detail in Section
+[[sec:ma-control-programs]].
+
+The second point ensures that control programs share a temporal frame of reference. However,
+uncertain communication was able to partially mitigate executives with clocks that did not agree. In
+effect, communication delay can be used to account for differences in executive clocks.
+
+For the third and fourth points, we imagined inter-agent communications as a directional graph
+between executives. In this structure, all event nodes are publishers. Outgoing edges represent
+subscribers that receive all scheduled events, including both controllable events and uncontrollable
+event observations that the publishing agent receives. Event observations are then naturally
+propagated through the graph. Event propagation will be formally defined in Section
+[[sec:event-propagation]].
 
 ** Robustness
 
