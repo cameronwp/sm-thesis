@@ -410,9 +410,9 @@ We sometimes use interval bounded schedules for requirement events as well, wher
 We once again revise our definition of situations, $\Omega_{v}$, to reflect the impact of the
 variable-delay function on the space of observations.
 
-#+label: defn:omega-v
+#+label: def:omega-v
 #+latex: \begin{defn}
-#+latex: \label{defn:omega-v}
+#+latex: \label{def:omega-v}
 *Variable-Delay Situations*
 
 For an STNU $S$ with $k$ contingent constraints $\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
@@ -431,6 +431,7 @@ Like the fixed-delay function for fixed-delay controllability, the variable-dela
 an observation delay to a contingent event, independent of other events. We take a similar approach
 to defining variable-delay controllability, relative to fixed-delay controllability.
 
+#+name: def:vdc
 #+latex: \begin{defn}
 #+latex: \label{def:vdc}
 *Variable-Delay Controllability*

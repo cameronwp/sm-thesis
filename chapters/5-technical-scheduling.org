@@ -102,6 +102,7 @@ transformations outlined in Section [[sec:vdc]].
 #+label: lemma:information-fixes-bounds
 #+begin_export tex
 \begin{lemma}
+\label{lemma:information-fixes-bounds}
 For any contingent event, $x_{c} \in S$ or $x'_{c} \in S'$, observing $x_{c}$ at time $t \in [l^-(x_{c}), u^+(x_{c})]$ fixes the observation to $\obs(x_{c}) = [t, t] = t$.
 \end{lemma}
 #+end_export

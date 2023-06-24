@@ -60,6 +60,7 @@
 #+latex_header: \usepackage{algorithm2e}
 #+latex_header: \usepackage{amsthm}
 #+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{graphicx}
 #+latex_header: \usepackage{mathtools}
 #+latex_header: \usepackage{minted}
 
@@ -99,7 +100,7 @@
 \usemintedstyle[lisp]{vs}
 #+end_export
 
-#+include: "0-cover.org"
+#+latex: \graphicspath{{images/}}
 
 # custom commands and styles
 #+begin_export tex
@@ -125,6 +126,8 @@
 \newtheorem{example}{Example}
 #+end_export
 
+#+include: "chapters/0-cover.org"
+
 # TOC, figures, and tables
 #+begin_export tex
 \pagestyle{plain}
@@ -141,19 +144,21 @@
 \begin{document}
 #+end_export
 
-#+include: "1-introduction.org"
-#+include: "2-problem-statement.org"
-#+include: "3-approach.org"
-#+include: "4-technical-vdc.org"
-#+include: "5-technical-scheduling.org"
-#+include: "6-technical-coordination.org"
-#+include: "7-technical-architecture.org"
-#+include: "8-evaluation.org"
-#+include: "9-discussion.org"
+#+include: "chapters/1-introduction.org"
+#+include: "chapters/2-problem-statement.org"
+#+include: "chapters/3-approach.org"
+#+include: "chapters/4-technical-vdc.org"
+#+include: "chapters/5-technical-scheduling.org"
+#+include: "chapters/6-technical-coordination.org"
+#+include: "chapters/7-technical-robustness.org"
+#+include: "chapters/8-evaluation.org"
+#+include: "chapters/9-discussion.org"
 
 #+begin_export tex
 \appendix
 #+end_export
+
+#+include: "chapters/10-appendix-postnu.org"
 
 # insert appendices here
 

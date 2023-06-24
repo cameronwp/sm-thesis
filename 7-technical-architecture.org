@@ -1,5 +1,0 @@
-#+title: Technical Distributed
-
-* Coordinating Multiple Agents in Extreme Environments
-
-This is a chapter on distributed communication.

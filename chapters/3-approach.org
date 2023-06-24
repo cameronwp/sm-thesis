@@ -6,6 +6,14 @@
 - With a model-based approach to autonomy, a human should not write an explicit program for solving
   the problem domain. Instead, the executive should take full responsibility for taking a model from
   a human and producing safe actions according to the constraints provided.
+- Furthermore, extending either approach [MASTNUs and HR] likely would have been non-trivial and
+  would have expanded the scope of this thesis significantly.
+
+** TODO do we need to describe how each component is tested?
+** TODO check ref for where VDC experiments live
+I say they're at the end of the vdc chapter, but they currently aren't there.
+** TODO we may not need to delineate between agent and executive. "multi-agent" is kind of a problem if we do
+** IDEA does the discussion of what we could have done belong in the discussion section instead?
 
 * Approach
 <<ch:approach>>
@@ -29,7 +37,7 @@ states of the problem at hand. Kirk then generates and checks plans using an opt
 constraints and goals it cannot plan against directly, and eventually dispatches event schedules and
 motion plans to hardware. For the purpose of this thesis, we primarily focus on Kirk's capability to
 dispatch events, though fully accounting for uncertain communication in a real agent requires that
-all of Kirk's aforementioned capabilities are updated.
+all of Kirk's aforementioned capabilities are addressed.
 
 # TODO this would be a good place for a diagram of Kirk's overall pipeline
 
@@ -48,7 +56,8 @@ areas, which were then implemented in Kirk:
 We include an auxiliary fourth area for contributions as an engineering requirement.
 
 #+latex: \begin{enumerate} \setcounter{enumi}{3} \item
-/Robustness/: Kirk must be easy to run, debug, and integrate with existing autonomous systems
+/Robustness/: Kirk's algorithms must be based in realistic computing constraints, and Kirk must be
+easy to run, debug, integrate with existing autonomous systems
 #+latex: \end{enumerate}
 
 Our approach to each research focus will be described below.
@@ -131,7 +140,7 @@ STNUs is as follows.
 The first point comes directly from the STNU formalism (see Section [[sec:tn]]). The second point allows
 for uncertainty in the amount of observation delay, e.g. in an uncertain environment, we could model
 observation delay for a given event as, say, $[1, \infty]$, meaning an observation of an event could
-arrive one second after it occurs, or never arrive, or arrive at some arbitrary time, $t$, $1 < t <
+arrive one second after it occurs, or never arrive, or arrive at some arbitrary time, $t$, $1 < t \leq
 \infty$ later. The third point comes from assuming worst-case scenario and prevents us from
 "cheating" in our scheduling algorithm. For instance, imagine two agents coordinating. If agents
 passed timestamp information along with events to one another, they must also be able to synchronize
@@ -148,6 +157,21 @@ event and its observation delay. If there is uncertainty in both the event assig
 then we have one equation with two unknowns. Thus, the term "uncertain" in uncertain observation
 delay means that we are forced to reason with deciding when to act even when we are not guaranteed
 to learn the true times assigned to events.
+
+# TODO where do the VDC experiments live? is this the end of ch:modeling-tn the right reference?
+
+We call STNUs with variable observation delay /variable-delay STNUs/, which Bhargava first proposed
+as the underlying data structure for checking Variable-Delay Controllability (VDC)
+[cite:@Bhargava2018;@Bhargava2020;]. We (Pittman) co-authored a journal article with Bhargava that
+was submitted to the Journal of AI Research presenting VDC and its chance constrained variant. We
+include VDC as a contribution of this thesis, given that we (Pittman) wrote or rewrote a significant
+portion of the VDC article, notably including a rewrite of key proofs with novel explanations. The
+new proofs will will be presented in Section [[sec:vdc]]. Additionally, we rewrote the comparison of VDC
+to Partially Observable STNUs (POSTNUs) [cite:@Moffitt2007], including identifying and correcting a
+mistake in the same comparison as originally put forth by Bhargava in [cite:@Bhargava2020]. See
+Appendix [[appendix:postnus]] for an in-depth comparison to POSTNUs. We designed and ran the
+quantitative evaluation of VDC in the article. The same experiments will be included at the end of
+Chapter <<ch:modeling-tn>>.
 
 We formalize event observations and observation delay in Section [[sec:vdc]].
 
@@ -449,10 +473,11 @@ scheduler dispatches controllable events online for dynamically controllable STN
 over observation delay in the uncontrollable events it receives. There were two key contributions
 that enabled the delay scheduler.
 
-Reasoning over the controllability of STNUs with with variable-observation delay had been
-demonstrated to be possible in prior work [cite:@Bhargava2018a], though a valid execution strategy
-was never defined. For our first contribution, we define an execution strategy for variable-delay
-controllable STNUs and prove its validity.
+Reasoning over the controllability of STNUs with variable-observation delay had been demonstrated to
+be possible in prior work [cite:@Bhargava2018a], though an explicit, online execution strategy, let
+alone a valid execution strategy, was never defined for variable-delay STNUs. For our first
+contribution, we define an execution strategy for variable-delay controllable STNUs and prove its
+validity.
 
 Likewise, dynamic schedulers have been established for dispatching events from STNUs, e.g. FAST-EX
 [cite:@Hunsberger2016]. For our second contribution, we defined a novel delay scheduler built on
@@ -478,8 +503,8 @@ executive learns as little as possible about the contingent events. If the fixed
 minimal information is controllable, then so too must any situation be controllable when we learn
 more information.
 
-Our first contribution is that we define an execution strategy for variable-delay STNUs, wherein we
-dispatch events according to the /dispatchable form/ of the /fixed-delay/ STNU, while respecting the
+We contribute the definition for an execution strategy for variable-delay STNUs, wherein we dispatch
+events according to the /dispatchable form/ of the /fixed-delay/ STNU, while respecting the
 constraints modeled in the /variable-delay/ STNU. Existing controllability checks, like FDC, and
 execution strategies, like FAST-EX, depend on a dispatchable form, i.e. a /distance graph/
 representation of the STNU. The key challenge in defining an execution strategy for a variable-delay
@@ -517,56 +542,83 @@ despite never observing them. Imagining contingent events is a result of the oth
 the variable-delay to fixed-delay transformation (see Section [[sec:recording-vdc-ctg]]).
 
 ** Coordination
+<<sec:approach-coordination>>
 
 # TODO wc. framework?
-This thesis contributes the first framework for and demonstration of online coordination between
-Kirk executives with inter-agent temporal constraints. To be clear, coordination is limited to
-scheduling and dispatching - it does not include motion planning.
+To the best of our knowledge, this thesis contributes the first framework for, and demonstration of,
+online coordination between dynamic schedulers with inter-agent temporal constraints.
 
-This is of course a multi-agent (MA) scheduling problem. The first approach one might consider with
-a MA scheduling problem is to model the system as a Multi-Agent STNU (MASTNU) [cite:@Casanova2016].
-After doing so, the next step would then be to perform temporal decoupling, resulting in individual
-dynamically controllable STNUs for each agent that can be dynamically scheduled per usual. While
-superficially promising, there is a considerable drawback to this approach, namely that temporal
-decoupling is sound but not complete. This limits the utility of MASTNUs as a planning tool. In
-combination with our focus on online scheduling, we decided to forgo extending the MASTNU formalism
-to account for observation delay. Instead our planning process simply consists of writing
-variable-delay STNUs with implicit inter-agent constraints for each agent by hand.
+# TODO wc. "vehicle control". actually moving the vehicle
+# To be clear, coordination is limited to scheduling and dispatching - it does not include task
+# planning, motion planning, or vehicle control.
+
+Our challenge is to allow multiple Kirk instances to dynamically schedule simultaneously while
+sharing events. At a high level, our approach is that inter-agent communications take the form of
+event observations. Each agent's ego controllable events are sent to peers, who receive them as
+exogenous, uncontrollable event observations. We allow (and expect) that communications have
+uncertain delay, thus we apply the modeling formalisms of variable-delay STNUs to inter-agent
+temporal constraints.
 
 Our approach to online coordination is as follows:
 
-1. Each instance of Kirk receives a unique control program
+1. Each instance of Kirk receives a unique, manually written control program
 2. All control programs begin execution at the same time
 3. Kirk executives broadcast scheduled events to a known set of peers
 4. In their own schedules, Kirk executives record event observations from their peers as they are
    received
 
+# TODO is the first sentence true?
 # TODO clean up end of paragraph?
-The first point is in lieu of a MASTNU-like planning process that distributes control programs
-automatically. The challenge of manually writing control programs that enable MA execution is
-non-trivial. A modeler must consider both intra- and inter-agent constraints that, compounded by
-uncertain communication, frequently contain difficult to spot conflicts. (It is no surprise that
-temporal decoupling is incomplete!) Furthermore, there is the challenge of translating events
-between executives. When writing MA control programs, it is possible that the same event has
-different identifiers in different STNUs. Care must be taken to ensure different executives
-understand the event observations they receive from their peers. In our experiments, our strategy
-was to carefully write MA control programs to guarantee events shared names between executives.
+The challenge of manually writing control programs that enable MA execution is non-trivial. A
+modeler must consider both intra-agent and inter-agent constraints that, compounded by uncertain
+communication, frequently contain difficult to spot conflicts. (It is no surprise that temporal
+decoupling is incomplete!) Furthermore, we found that translating events between executives is
+challenging. When writing MA control programs, it is possible that the same event has different
+identifiers in different STNUs. Care must be taken to ensure different executives understand the
+event observations they receive from their peers. In our experiments, our strategy was to carefully
+write MA control programs to guarantee events shared names between executives. MA control programs
+under uncertain communication will be discussed in detail in Section [[sec:ma-control-programs]].
 
-MA control programs under uncertain communication will be discussed in detail in Section
-[[sec:ma-control-programs]].
-
+# TODO is there more to say about second point?
 The second point ensures that control programs share a temporal frame of reference. However,
 uncertain communication was able to partially mitigate executives with clocks that did not agree. In
-effect, communication delay can be used to account for differences in executive clocks.
+effect, communication delay can be used to mitigate the differences in executive clock times.
 
-For the third and fourth points, we imagined inter-agent communications as a directional graph
-between executives. In this structure, all event nodes are publishers. Outgoing edges represent
-subscribers that receive all scheduled events, including both controllable events and uncontrollable
-event observations that the publishing agent receives. Event observations are then naturally
-propagated through the graph. Event propagation will be formally defined in Section
-[[sec:event-propagation]].
+The third and fourth points encapsulate our contribution to the challenge of MA communication with
+respect to inter-agent temporal constraints. We imagined inter-agent communications as a simple
+directional graph between executives. In this structure, all event nodes are publishers. Outgoing
+edges represent subscribers that receive all scheduled events, including both controllable events
+and uncontrollable event observations that the publishing agent itself receives. Event observations
+are then naturally propagated through the graph. We assume that communication delay in the modeled
+system incorporates the time events spend propagating through the graph. Event propagation will be
+formally defined in Section [[sec:event-propagation]].
 
 ** Robustness
+
+Autonomy research tends to focus on ideal, generic executives that behave perfectly. For instance,
+temporal reasoning research assumes that controllable events are executed instantaneously at the
+exact correct time without fail. Reality cannot conform to ideal conditions. At minimum, CPU cycles
+will tick by before a scheduled event is dispatched, causing the hands of precise clocks to move
+when our algorithms expect them to remain static. To run on hardware, executives and agents must
+communicate, which adds additional time that is unaccounted for in scheduling algorithms. And
+finally, we need to explicitly decide how to translate temporal events to messages that hardware can
+execute. Given our need to deploy Kirk on real hardware, we contribute a seemingly disparate set of
+algorithms removing expectations of idealized performance, that, when taken together, enable
+deployment of temporal reasoning algorithms in real agents.
+
+We include four contributions to dynamic scheduling and dispatching for enabling robust executives.
+
+1. A well defined architecture for event execution with distinct scheduler, dispatcher, and driver
+   responsibilities
+2. Tolerance in event scheduling
+3. Controllable event preemption
+4. The separation of real and =noop= controllable events in execution decisions
+
+# There lacks research into the design of interfaces between executives and agents.
+
+TODO given the hardware experiments of this thesis...
+
+This thesis identifies addresses three core issues...
 
 We improve the delay scheduler by differentiating real and =noop= controllable events...
 

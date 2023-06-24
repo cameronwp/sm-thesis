@@ -1,6 +1,12 @@
-- .git
-- .auctex-auto
-- .minted*
-- *.bbl
-- *.tex
-- *.lot
+-/.git
+-/.auctex-auto
+-/.minted*
+-/images
+-/*.bbl
+-/*.cls
+-/*.csl
+-/*.docx
+-/*.lot
+-/*.pdf
+-/*.sty
+-/*.tex

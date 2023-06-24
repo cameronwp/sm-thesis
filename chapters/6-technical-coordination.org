@@ -1,0 +1,177 @@
+#+title: Technical Distributed
+
+* COMMENT notes
+- we could have introduced a translation layer in comms such that events with different names were translated between executives
+  - oh wait we tried it and it sucked
+
+* Coordinating Multiple Agents under Uncertain Communication
+<<ch:technical-coordination>>
+
+In this chapter, we present a novel MA framework for dynamic event scheduling with inter-agent
+temporal constraints. Our framework adheres to the variable observation delay modeling framework
+presented in Chapter [[ch:modeling-tn]], making it robust to uncertain communication.
+
+Online MA coordination of event dispatching allows executives to dynamically decide when to act
+given the resolution of inter- and intra-agent temporal constraints. In our formulation, each
+executive has its own STNU with contingent events it expects to observe and free events it is
+responsible for monitoring. We do not distinguish between contingent events that are the free events
+scheduled by peer agents and contingent events from any other source in Nature. There are no
+restrictions on inter-agent constraints, though they must avoid chained contingencies the same way
+that vanilla, single-agent STNUs do [cite:@MMV2001].
+
+We set forth the following requirements for the framework we contribute in this thesis.
+
+- Executives are /not/ required to have perfect knowledge of the complete state of the world, nor
+  are they required to even /agree/ on the state of the world. Rather, their knowledge should be
+  consistent with the temporal constraints and observation delay modeled in their individual STNUs.
+- Executives are allowed to ignore observations.
+- /All/ inter-agent communications must be explicitly modeled.
+
+To our knowledge, no such online scheduler for MA coordination has been proposed. In this chapter,
+we first describe the techniques and high-level language used to model MA constraints. Next, we
+define an event propagation algorithm used to guarantee that event observations match individual
+agent STNUs. We finish by presenting experimental analysis of our event propagation algorithms.
+
+** Multi-Agent Control Programs
+<<sec:ma-control-programs>>
+
+# It's hard to write MA RMPL by hand
+
+The challenge of MA
+
+** Event Propagation
+<<sec:event-propagation>>
+
+# TODO something about no retries here?
+
+# Algos for graph structure of event comms
+
+At a high level, scheduled events propagate through a simple directed graph of connected executives.
+We put checks in place to ensure that cycles do not cause infinitely recursed event observations.
+
+# #+label: def:communication-responsibility
+# #+latex: \begin{defn}
+# #+latex: \label{defc:communication-responsibility}
+# *Communication Responsibilities*
+
+# For a MA scheduling problem, the /communication responsibilities/ is a set of tuples $\langle p, s
+# \rangle$, where:
+# - $p$ is a publishing executive,
+# - $s$ is a subscribing executive.
+# #+latex: \end{defn}
+
+#+label: def:communication-graph
+#+latex: \begin{defn}
+#+latex: \label{def:communication-graph}
+*Communication Graph*
+
+A /communication graph/ $C$ is a tuple $\langle V, E \rangle$, where:
+- $V$ is a set of vertices representing peer executives,
+- $E$ is a set of directed edges between $v \in V$ representing the path of event observation
+  propagation,
+- Each edge $e_{i} \in E$ is a pair $(o, t)$, where $o, t \in V$ represent the origin and
+  termination of the edge respectively.
+
+Loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, no edge $e_{i} \in E$ may
+originate and terminate at $v_{i}$.
+#+latex: \end{defn}
+
+# TODO insert sample graph here
+
+For some executive $v_{i} \in V$ with outgoing edges in $E$, $(v_{i}, v_{j})$, $\cdots$, $( v_{i},
+v_{k})$, any scheduled events that $v_{i}$ assigns, whether free or contingent, are propagated to
+all executives $v_{j}$, $\cdots$, $v_{k}$.
+
+# Note that $C$ is wholly distinct from individual STNUs and inter-agent temporal constraints.
+
+#+label: def:event-propagations
+#+latex: \begin{defn}
+#+latex: \label{def:event-propagations}
+*Event Propagation Messages*
+
+An /event propagation message/ $m$ is a tuple $\langle x, P \rangle$, where:
+- $x$ is a set of events,
+- $P \subseteq V$ is a set of executives who have already received the message.
+#+latex: \end{defn}
+
+Recognize that Definition [[def:event-propagations]] is vague in defining $x$. Event propagation
+messages are passed between agents, and each agent has its own STNU. Because we have not defined a
+temporal decoupling-like algorithm wherein an STNU for multiple-agents is programmatically separated
+into individual STNUs (see the discussion of multi-agent STNUs [cite:@Casanova2016] in Section
+[[sec:mastnus]]), we are reliant on human planners to write STNUs for each agent by hand. As a result,
+there is no guarantee that $x$ is meaningful to a given agent. To be more specific, there is no
+guarantee that any event $x_{i} \in x$ in the event propagation message has an equivalent event in
+$X_{c}$ of the STNU being executed by any receiving agent $v_{j} \in V$. If agent $v_{j}$ cannot
+find $x_{i}$ in their $X_{c}$, then $x_{i}$ can be ignored. As will be discussed in Algorithm
+[[alg:event-propagation]], we represent $x$ using a type that can be compared for equivalence with the
+events in an agent's STNUs, e.g. a list of strings.
+
+We use $P$ to avoid cycles in event propagation. As will be shown in Algorithm
+[[alg:event-propagation]], agent $v_{i}$ will avoid propagating $x$ to any agents in $P$. Agent $v_{i}$
+will also grow $P$ when it relays $m$ to other agents by appending to $P$ itself and all outgoing
+agents $v_{j}, \cdots, v_{k}$.
+
+Timing information, e.g. timestamps, is explicitly excluded from $m$. Dynamic scheduling and the
+variable-delay STNU and event observation, $\obs$, formalisms do not account for timestamps.
+Instead, we expect that passing messages for event propagation between executives takes an amount of
+time in the domain $\mathbb{R^{+}}$. Thus, when $v_{j}$ expects to receives an event, $x_{i} \in x$,
+from $v_{i}$, the time delay can be naturally modeled in the variable-delay function,
+$\gammabar({x_{i}})$, in the STNU that $v_{j}$ will execute.
+
+If event propagation messages were to include accurate timestamps, we would need to modify the way
+events are recorded during scheduling, impacting scheduling Lemmas [[lemma:information-fixes-bounds]],
+[[lemma:ignore-inf-delay]], and [[lemma:subtract-gamma]]. Scheduling events in the past could also impact
+controllability. For these reasons, we avoid the inclusion of timestamps in event propagation
+messages.
+
+By Definition [[def:event-propagations]], events received from other agents are no different than events
+received from Nature, and no special considerations are required for scheduling.
+
+We now walk through the process of passing messages between agents as shown in Algorithm
+[[alg:event-propagation]].
+
+#+label: alg:event-propagation
+#+begin_export tex
+\begin{algorithm}
+\label{alg:event-propagation}
+\SetAlgoLined
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Event Propagation}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{Events $x$; $\texttt{self} \in V$, Set of receivers $R \subset V$; Set of outgoing peers $P \subset V$}
+
+\Indp
+\Algorithm{}
+\Indp
+
+When \texttt{self} schedules $x$\;
+
+
+
+\For{each event $E \in \texttt{Exec}$} {
+    Add lower-bound edge $\edge{E}{Z}{-t}$\;
+}
+
+For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
+
+\For{each event $E \in \texttt{Exec}$} {
+    Add upper-bound edge $\edge{Z}{E}{t}$\;
+}
+For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
+\caption{An event propagation algorithm that avoids recursive message passing.}
+\label{alg:fast-ex-update}
+\end{algorithm}
+#+end_export
+
+
+** Experimental Analysis
+<<sec:ma-experimental>>
+
+*** Hardware Demonstrations
+
+*** Massively Multi-Agent Simulation

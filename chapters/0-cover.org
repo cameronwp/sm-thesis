@@ -78,7 +78,7 @@
 \begin{abstractpage}
 #+end_export
 
-#+include: "abstract.org"
+#+include: "0-abstract.org"
 
 #+begin_export tex
 \end{abstractpage}

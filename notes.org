@@ -12,3 +12,13 @@ might only be useful in the case of a gammabar with a finite lower bound and inf
 (Lemma 2). not useful for Lemma 3
 
 does the rewriting math actually work though with the infinity?
+* TODO did I use periods with bullet points correctly?
+* TODO Something about the fact that we have a "least commitment" dispatcher
+[cite:@Stedl2004] references it on pg 49
+* TODO when do we reference VDC first? make sure there aren't a bunch of (VDC) introduction of acronyms
+* TODO mitmproxy links
+- https://hub.docker.com/r/mitmproxy/mitmproxy/
+- https://mitmproxy.org/
+- https://github.com/KevCui/mitm-scripts#mitm-delay-request
+- https://stackoverflow.com/questions/47827496/how-to-configure-docker-container-proxy
+- https://docs.docker.com/network/proxy/

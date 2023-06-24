@@ -1,0 +1,63 @@
+#+title: Discussion
+
+* COMMENT
+** more work on sync constraints
+** you would probably include timestamps in event propagations in the real world
+and an NTP server?
+
+* Discussion and Future Work
+
+** Coordination
+<<sec:mastnus>>
+
+We were focused on addressing the multi-agent (MA) online scheduling problem. Before scheduling, we
+must contend with planning, e.g. building variable-delay STNUs for each agent. We considered
+extending the two existing planning approaches described below to model variable observation delay
+between agents. We ultimately decided neither were fit for the motivating scenarios of this thesis.
+Instead, we used a manual planning approach more akin to the ISS EVA planning process.
+
+The first planning approach we considered was to model the system as a Multi-Agent STNU (MASTNU)
+[cite:@Casanova2016]. MASTNUs allow modelers to describe temporal constraints between multiple
+agents, then check the overall dynamic controllability of the system. To check the controllability
+of a MASTNU, the first step is to perform temporal decoupling with the goal of producing individual
+dynamically controllable STNUs for each agent that can be dynamically scheduled per usual. While
+superficially promising, there is a considerable drawback to this approach, namely that temporal
+decoupling is sound but not complete, i.e. temporal decoupling may report failure even when the
+MASTNU is dynamically controllable. This limits the utility of MASTNUs as a planning tool.
+
+The other approach to this problem we are aware of is Stedl's Hierarchical Reformulation (HR)
+algorithm [cite:@Stedl2004]. HR begins with a MA temporal plan network (TPN), which is similar to a
+MASTNU (though HR pre-dates MASTNUs). Stedl's key insight is to avoid inter-agent communication
+altogether by reformulating constraints between groups of agents such that they are strongly
+controllable. As such, no communication between agents is required. A centralized dispatcher is then
+responsible for then handing events to agents. We also assume that there is no central authority,
+making HR a poor fit for our problem domain.
+
+# TODO make more formal? does this paragraph even make sense? prob need something more specific at
+# the end
+Both MASTNUs and HR assume communications between agents are either instantaneous or impossible,
+i.e. with an infinite delay. As we will see in Section [[sec:vdc]], our formalism for variable
+observation delay allows a /spectrum/ of communication delay. While we felt it was possible to
+shoehorn uncertain observation delay into MASTNUs or HR, we felt both were a poor choice because of
+their pre-existing expectations with respect to communication. In combination with our focus on
+online scheduling, we decided to forgo extending either formalism to account for observation delay.
+Instead our planning process simply consists of manually writing variable-delay STNUs with
+intra-agent and inter-agent temporal constraints by hand.
+
+We believe it may be possible for MASTNUs or HR to be expanded to include variable observation
+delay, though we leave that problem for future research.
+
+# TODO some kind of lead in here reminding people about the comm challenge
+
+We considered framing our approach to inter-agent communication as a distributed consensus problem
+because we believed we needed a means for disparate agents to agree on the state of the world.
+Existing distributed consensus algorithms like Paxos [cite:@Lamport1998] or Raft [cite:@Ongaro2014]
+would then be integrated into the communication layer of Kirk and take responsibility for ensuring
+that agents agree on which events have been scheduled.
+
+Ultimately the drawbacks of a distributed consensus approach outweighed the benefits. Chiefly, both
+Paxos and Raft assume that communications are either instantaneous and freely available or that
+agents have gone dark (i.e. can no longer communicate). This communication model is incongruous with
+the explicitly modeled communications of the VDC formalism. Furthermore, the VDC formalism allows us
+to model that agents never receive communications, negating the requirement for distributed
+consensus.

@@ -1,0 +1,170 @@
+#+title: POSTNU to VDC Comparison
+
+* COMMENT
+** TODO fix notation (can we bring it in line with the rest of the thesis?)
+* Comparison of Variable-Delay STNUs to Partially Observable STNUs
+<<appendix:postnus>>
+
+The delay scheduler is flexible in that so long as it receives a variable-delay STNU, it is capable
+of scheduling. Human modelers have flexibility in how they represent temporal constraints in that
+there are many flavors of STNUs, each with their own advantages and disadvantages. Earlier, we
+presented RMPL as a modeling language that is compiled to variable-delay STNUs. There are other
+choices for modeling frameworks. Here, we present a comparison of variable-delay STNUs to POSTNUs
+[cite:@Moffitt2007], a flavor that is similar in many respects. This section presents a comparison
+of variable-delay STNUs and POSTNUs, including transformations that allow some classes of POSTNUs to
+be represented as variable-delay STNUs.
+
+One of the strengths of the variable-delay controllability model is its ability to generalize the
+concepts of strong and dynamic controllability. This technique was first seen in greater depth in
+the context of POSTNUs. In an STNU, all contingent events are either
+instantaneously observable under a dynamic controllability model or entirely unobservable under a
+strong controllability model. In POSTNUs, contingent events can be marked observable and
+unobservable. To say that a POSTNU is dynamically controllable equates to asserting that it is
+possible to construct a schedule during execution that respects all constraints if the scheduler
+only receives information about observable contingent events.
+
+While, superficially, POSTNUs and delay STNUs appear to model distinct problems in temporal
+reasoning, all delay STNUs can be accurately represented as POSTNUs. While the converse is not true,
+there is a subset of POSTNUs that delay STNUs are able to model. It is advantageous to translate
+POSTNUs to delay STNUs when possible because we are guaranteed to finish controllability checks for
+delay STNUs in polynomial time, while evaluating the controllability of POSTNUs in general is harder
+[cite:@Moffitt2007]. Furthermore, the sub-class of POSTNUs that can be checked efficiently and
+accurately, those without chained contingent links [cite:@Bit-Monnot2016], are members of the
+subset of POSTNUs that can be expressed directly as STNUs with fixed-delay, and likewise
+variable-delay, functions [cite:@Bhargava2020, p. 59]. The converse is also true - we may emulate
+STNUs with variable-delay functions as POSTNUs without chained contingent links. Below, we elaborate
+on translations from delay STNUs to POSTNUs, before describing how we can express POSTNUs without
+chained contingent links as STNUs with fixed-delay functions. Note that this is not a comprehensive
+list of transformations between delay STNUs and POSTNUs - our aim is to describe the minimum set of
+transformations required to model POSTNUs without chained contingent links as delay STNUs. For the
+following discussion, let $S$ be a delay STNU and $P$ be an equivalent POSTNU.
+
+We present these transformations to demonstrate that the delay scheduler is capable of scheduling
+POSTNUs without chained contingencies. So long as it receives a variable-delay STNU, the fact that
+POSTNUs can be scheduled allows modelers additional flexibility in their means of representing the
+problem domain.
+
+We start with an $S$ that consists of the links $\conedge{A}{B}{}$ and $\edge{B}{D}{}$ with delay
+function $\gammabar(B)$. See Figure [[fig:postnu]] for an example translation between a fixed-delay STNU
+and a POSTNU.
+
+#+name: lemma:delay-stnu-to-postnu
+#+latex: \begin{lemma}
+#+latex: \label{lemma:delay-stnu-to-postnu}
+For contingent link $\conedge{A}{B}{}$ in $S$ with observation delay $\gammabar(B) = [l, u]$, where
+$0 \leq l \leq u < \infty$, and outgoing requirement link $\edge{B}{D}{}$, we may emulate
+observation delay in $P$ by copying $\conedge{A}{B}{}$ and $\edge{B}{D}{}$ to $P$, enforcing that
+$B$ is unobservable, and adding a new observable contingent event, $B'$ with $\conedge{B}{B'}{[l,
+u]}$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+In both $S$ and $P$, we do not observe $B$ directly, yet we define an outgoing requirement link,
+$\edge{B}{D}{}$, that depends entirely on the resolution of $B$. The only information available to
+reason about the assignment of $B$ comes in the form of an indirect observation, $B'$ or
+$\gammabar(B)$, received after a delay in $\mathbb{R}^{\geq 0}$. If $P$ was not equivalent to $S$,
+we would be able to learn the assignment of $B$ without waiting $\gammabar(B)$ time units after its
+true assignment. Thus, because we must wait $B' - B \in [l, u]$ time units to learn the assignment
+of $B$, and $\edge{B}{D}{}$ has equivalent constraints between $S$ and $P$, $P$ must model the same
+semantics as $S$.
+#+latex: \end{proof}
+
+#+name: lemma:postnu-observable
+#+latex: \begin{lemma}
+#+latex: \label{lemma:postnu-observable}
+For a contingent event $B$ with variable-delay function $\gammabar(B) = [0, 0]$ in $S$, we may
+emulate the same constraints with an observable contingent event, $B$ in $P$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+The variable-delay function enforces instantaneous observation. By the definition of observable
+contingent events in the POSTNU model, we will observe $B$ instantaneously.
+#+latex: \end{proof}
+
+A POSTNU with a chained contingency is defined as follows. Consider a chain of contingent events,
+$\conedge{A}{B}{}$ and $\conedge{B}{C}{}$. If $B$ has one or more outgoing links to free or
+contingent events other than $C$, it is a chained contingency. Lemma [[lemma:delay-stnu-to-postnu]]
+results in a POSTNU without chained contingencies, hence variable-delay STNUs fall into the subclass
+of POSTNUs that can be checked efficiently [cite:@Bit-Monnot2016].
+
+In the other direction, to transform a POSTNU without chained contingencies into an STNU with
+variable-delay functions, we need to address three cases of contingent constraints: (1) unobservable
+contingent events not immediately followed by other contingent constraints, (2) unobservable
+contingent events immediately followed by other contingent constraints, and (3) observable
+contingent constraints.
+
+#+name: lemma:postnu-unobservable
+#+latex: \begin{lemma}
+#+latex: \label{lemma:postnu-unobservable}
+For an unobservable event $B$ in $P$, with no outgoing contingent links, we can emulate it in $S$
+with a contingent event $B$ and upper bound of its variable-delay function set to $\gammabar^+(B) =
+\infty$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+We will not observe $B$ nor will outgoing contingent links provide information about $B$. As such we
+define $\gammabar^+(B) = \infty$ in $S$.[fn::Note: [cite:@Bhargava2020,p. 60] erroneously claims
+that we should define $\gamma(B) = 0$ for unobservable events.] From a controllability standpoint
+for both $S$ and $P$, we know the /a priori/ bounds of $B$ but will not learn its true assignment.
+#+latex: \end{proof}
+
+#+name: lemma:combine-postnu-ctg
+#+latex: \begin{lemma}
+#+latex: \label{lemma:combine-postnu-ctg}
+For an unobservable contingent link $\conedge{A}{B}{[m, n]}$ in $P$, with a single outgoing link,
+$\conedge{B}{C}{[w, z]}$, we replace the two constraints from $P$ in $S$ with a concatenated
+constraint, $\conedge{A}{C}{[m+w, n+z]}$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+The only information we may receive is the observation of $C$. Given there are no other outgoing
+links from $B$, folding $B$ into the successive contingent constraint can not affect the semantics
+of the network. The bounds of the new link, $\conedge{A}{C}{[m + w, n + z]}$ is the result of
+summing the intervals of $\conedge{A}{B}{[m, n]}$ and $\conedge{B}{C}{[w, z]}$: $[m, n] + [w, z] =
+[m + w, n + z]$.
+#+latex: \end{proof}
+
+Note that we did not specify whether $C$ is observable in $P$. After applying Lemma
+[[lemma:combine-postnu-ctg]], we then apply either Lemma [[lemma:postnu-observable]] or
+[[lemma:postnu-unobservable]] to $C$.
+
+#+latex: \begin{lemma}
+For an observable contingent event $\conedge{A}{B}{[m, n]}$ in $P$, with a single outgoing link to
+an observable contingent event, $C$, $\conedge{B}{C}{[w, z]}$, we create three constraints in $S$:
+$\conedge{A}{B}{[m, n]}$, $\edge{B}{B'}{[0, 0]}$, and $\conedge{B'}{C}{[w, z]}$ where $\gammabar(B)
+= [0, 0]$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+Given $C$ is observable in $P$, a simulated free event, $B'$ in $S$, can be scheduled simultaneously
+with $B$. Any contingent constraints following $B$ now start at an executable event and are thus
+valid constraints in $S$. $B$ is observable, so we need no observation delay according to Lemma
+[[lemma:postnu-observable]].
+#+latex: \end{proof}
+
+Thus, delay STNUs are sufficiently capable of expressing all POSTNUs that can efficiently be checked
+for controllability using today's tractable POSTNU algorithms.
+
+#+name: fig:postnu
+#+latex: \begin{figure}[!htb]
+#+latex: \label{fig:postnu}
+#+latex: \caption{(a) An STNU with a contingent constraint that has a certain delay. (b) One possible way of rewriting the STNU as an equivalent POSTNU. This particular POSTNU exhibits a chained contingency, as $B$ is a contingent event that starts a contingent constraint and is connected to $B'$ via a contingent constraint.}
+#+latex: \centering
+#+latex: \includegraphics[width=0.75\textwidth]{POSTNU.pdf}
+#+latex: \end{figure}
+
+It is not clear if controllability can be checked more efficiently across a greater subset of
+POSTNUs beyond those without chained contingencies. However, it is worth highlighting that
+variable-delay controllability can be leveraged to construct improved algorithms with respect to
+scheduling and controllability of POSTNUs. The model for observation delay proposed by
+variable-delay controllability can be expressed exactly as a POSTNU with a "single-headed" chained
+contingency[fn:: To borrow the term "single-headed" from [cite:@Morris2019].] as shown
+in Figure [[fig:postnu]]b; the main difference is that we represent the contingent link between $B$ and
+$B'$ with our variable-delay function $\gammabar(B)$. Hence, the algorithm we present for
+variable-delay controllability can be used to both solve POSTNUs without chained contingencies, as
+described above, as well as those POSTNUs with single-headed chained contingencies. Approaches
+inspired by variable-delay controllability have been used to further expand POSTNU dynamic
+controllability checking in more expressive chained instances [cite:@Morris2019]. We
+hope that insights from variable-delay controllability will continue to expand the subset of POSTNUs
+that can be controllability checked, and as such we advocate for continued development of the theory
+of variable-delay controllability as a relevant framework for modelers.

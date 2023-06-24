@@ -1,0 +1,9 @@
+#+title: Technical Robustness
+
+* Coordinating Multiple Agents in Extreme Environments
+
+This is a chapter on distributed communication.
+
+** Single-Responsibility Principle
+
+Not an exact law but something we followed with scheduler > dispatcher > driver layers
