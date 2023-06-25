@@ -5,3 +5,5 @@ _minted*
 *.lof
 *.lol
 *archive
+chapters/*.pdf
+chapters/*.tex
