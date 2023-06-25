@@ -126,7 +126,7 @@
 \newtheorem{example}{Example}
 #+end_export
 
-#+include: "chapters/0-cover.org"
+#+include: "chapters/00-cover.org"
 
 # TOC, figures, and tables
 #+begin_export tex
@@ -144,15 +144,15 @@
 \begin{document}
 #+end_export
 
-#+include: "chapters/1-introduction.org"
-#+include: "chapters/2-problem-statement.org"
-#+include: "chapters/3-approach.org"
-#+include: "chapters/4-technical-vdc.org"
-#+include: "chapters/5-technical-scheduling.org"
-#+include: "chapters/6-technical-coordination.org"
-#+include: "chapters/7-technical-robustness.org"
-#+include: "chapters/8-evaluation.org"
-#+include: "chapters/9-discussion.org"
+#+include: "chapters/01-introduction.org"
+#+include: "chapters/02-problem-statement.org"
+#+include: "chapters/03-approach.org"
+#+include: "chapters/04-technical-vdc.org"
+#+include: "chapters/05-technical-scheduling.org"
+#+include: "chapters/06-technical-coordination.org"
+#+include: "chapters/07-technical-robustness.org"
+#+include: "chapters/08-evaluation.org"
+#+include: "chapters/09-discussion.org"
 
 #+begin_export tex
 \appendix

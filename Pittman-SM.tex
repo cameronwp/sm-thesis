@@ -1,4 +1,4 @@
-% Created 2023-06-24 Sat 18:37
+% Created 2023-06-25 Sun 13:59
 % Intended LaTeX compiler: pdflatex
 \documentclass[10pt,leftblank,twoside]{mitthesis}
 \usepackage[utf8]{inputenc}
@@ -197,12 +197,12 @@ So long and thanks for all the fish!
 \begin{document}
 
 \chapter{Introduction}
-\label{sec:org842a25a}
+\label{sec:org3d00f66}
 
 This is the introduction.
 
 \section{Section Header}
-\label{sec:orgd7b7fff}
+\label{sec:orgad878ca}
 
 This is a section of text. As said in\ldots{} \citeprocitem{1}{[1]} ``Hey''. So said \citeprocitem{2}{[2]} too
 that things are cool.
@@ -217,7 +217,7 @@ that things are cool.
 This is something I want to cite \citeprocitem{3}{[3]}
 
 \chapter{Problem Statement}
-\label{sec:orga4ab4e0}
+\label{sec:org8428bf8}
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
 uncertain inter-agent communication in uncertain environments. This thesis will focus on two
@@ -238,7 +238,7 @@ infrastructure, uncertain timing with respect to knowledge transfer between agen
 scientific equipment.
 
 \section{Extravehicular Activities as a Motivating Scenario}
-\label{sec:org6996ad6}
+\label{sec:orgcca1af5}
 
 NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program\footnote{\url{https://www.nasa.gov/specials/artemis/}}. The Artemis astronauts will continue a longstanding
 tradition in the U.S. space program of performing EVAs \citeprocitem{4}{[4]}. Like the Apollo
@@ -291,7 +291,7 @@ limited bandwidth between space and ground, creating additional uncertainty betw
 product is ready and when it is available to the science team.
 
 \section{Motivating Scenario}
-\label{sec:orgf4bb409}
+\label{sec:org9de2604}
 A human and a rover are working together to perform scientific exploration on the lunar surface. The
 human is performing exploration of targets of opportunity that were identified during descent. The
 rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
@@ -307,7 +307,7 @@ Both the human and the robot have their own schedules of events to perform and a
 other agent's events.
 
 \chapter{Approach}
-\label{sec:org962896e}
+\label{sec:org3adf869}
 \label{ch:approach}
 
 For addressing our problem statement, we envision that a high-level executive should take
@@ -353,7 +353,7 @@ easy to run, debug, integrate with existing autonomous systems
 Our approach to each research focus will be described below.
 
 \section{Modeling and Controllability}
-\label{sec:orgda56acc}
+\label{sec:orgabb2a34}
 
 We take a model-based approach to deploying autonomous systems, that is, prior to a mission, we
 envision that engineers and domain experts work together to model the system at hand, then during
@@ -410,7 +410,7 @@ below, our approach was to add the ability for planners to model observation del
 temporal constraints in RMPL.
 
 \subsection{Modeling Uncertain Observation Delay in STNUs}
-\label{sec:org4db1940}
+\label{sec:org45ca9f4}
 \label{sec:obs-delay-in-stnus}
 
 In the case of observation delay, our model dictates that we reason over two time intervals. The
@@ -465,7 +465,7 @@ Chapter \label{ch:modeling-tn}.
 We formalize event observations and observation delay in Section \ref{sec:vdc}.
 
 \subsection{Modeling Observation Delay in RMPL}
-\label{sec:orgedc4469}
+\label{sec:orgceae7c3}
 \label{sec:rmpl}
 
 RMPL is a key component of Kirk. This section steps through example RMPL control programs to
@@ -686,7 +686,7 @@ learn \emph{that} the contingent event occurred - is not guaranteed to learn whe
 contingent event was assigned, nor will it know how much observation delay was incurred.
 
 \subsection{Explicitly Modeling Agents in RMPL}
-\label{sec:org14e8abe}
+\label{sec:org5b67d04}
 \label{sec:rmpl-agents}
 
 This section is included to expand on the features of RMPL, though note that none of these features
@@ -762,7 +762,7 @@ Kirk is able to take RMPL as input to perform classical planning, though further
 falls outside the scope of this thesis.
 
 \section{Scheduling Temporal Events}
-\label{sec:org8fe0621}
+\label{sec:orgc017521}
 \label{sec:approach-scheduling}
 
 The bulk of the technical chapters of this thesis, namely Chapters \ref{ch:modeling-tn} and
@@ -784,7 +784,7 @@ FAST-EX capable of applying the execution strategy defined in our first contribu
 We elaborate further on our approach to each contribution below.
 
 \subsection{Defining a Valid Execution Strategy for STNUs with Variable Observation Delay}
-\label{sec:org790bf10}
+\label{sec:org064b069}
 
 We cannot execute an STNU without first demonstrating that it is controllable. Our approach to
 checking the controllability of STNUs with observation delay is to apply Bhargava's Variable-Delay
@@ -813,7 +813,7 @@ fixed-delay form. In Chapter \ref{ch:delay-scheduling}, we formally define the e
 variable-delay STNUs and prove its validity.
 
 \subsection{Online Dispatching for STNUs with Variable Observation Delay}
-\label{sec:org64c4c0f}
+\label{sec:orgb895e89}
 
 We chose to build the delay scheduler as a modified variant of Hunsberger's FAST-EX
 \citeprocitem{36}{[36]} because, to the best of our knowledge, FAST-EX is the fastest dynamic
@@ -842,7 +842,7 @@ despite never observing them. Imagining contingent events is a result of the oth
 the variable-delay to fixed-delay transformation (see Section \ref{sec:recording-vdc-ctg}).
 
 \section{Coordination}
-\label{sec:orge7fecff}
+\label{sec:orgd44bb0b}
 \label{sec:approach-coordination}
 
 To the best of our knowledge, this thesis contributes the first framework for, and demonstration of,
@@ -889,7 +889,7 @@ system incorporates the time events spend propagating through the graph. Event p
 formally defined in Section \ref{sec:event-propagation}.
 
 \section{Robustness}
-\label{sec:org98bc398}
+\label{sec:orga22eae2}
 
 Autonomy research tends to focus on ideal, generic executives that behave perfectly. For instance,
 temporal reasoning research assumes that controllable events are executed instantaneously at the
@@ -921,7 +921,7 @@ We improve the delay scheduler by differentiating real and \texttt{noop} control
 We remove the assumption that controllable events are instantaneously executed\ldots{}
 
 \chapter{Modeling Temporal Networks}
-\label{sec:org12628a2}
+\label{sec:org6fc614c}
 \label{ch:modeling-tn}
 
 Our aim is to architect a pipeline that takes a temporal network as input and produces temporally
@@ -933,7 +933,7 @@ for modeling observation delay.
 TODO \ldots{}take the approach of defining temporal networks, and updating our defns as we work towards STNUs
 
 \section{Temporal Networks}
-\label{sec:org7821064}
+\label{sec:orged30cea}
 \label{sec:tn}
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
@@ -1096,7 +1096,7 @@ network exhibits dynamic controllability if an execution strategy, \(\mathcal{S}
 partial schedule, \(\xi\).
 
 \section{Fixed-Delay Controllability}
-\label{sec:org4bdc9a6}
+\label{sec:org802924a}
 \label{sec:fdc}
 
 Under fixed-delay controllability \citeprocitem{35}{[35]}, we consider the problem of scheduling
@@ -1235,7 +1235,7 @@ before its immediate successor. More detail can be found in \citeprocitem{37}{[3
 \end{table}
 
 \section{Variable-Delay Controllability}
-\label{sec:org5695c9e}
+\label{sec:orgb55af8e}
 \label{sec:vdc}
 
 While fixed-delay controllability is quite expressive, its fundamental limitation is that it cannot
@@ -1730,7 +1730,7 @@ must be executed in \([16, 24]\). The execution semantics for both cases match t
 from \ref{fig:combined-figure}a described above.
 
 \section{Dynamic Scheduling through Real-Time Execution Decisions}
-\label{sec:org978a146}
+\label{sec:org9104d1f}
 \label{sec:dynamic-scheduling}
 
 An STNU, \(S\), that exhibits dynamic controllability can be \emph{scheduled} dynamically (or \emph{online}). At
@@ -1838,7 +1838,7 @@ t &= \cfrac{\texttt{now} + t_{U}}{2}
 So long as \(t_{U} > \texttt{now}\), we know that the reassignment of \(t\) ensures \(t > \texttt{now}\).
 
 \chapter{Dynamic Scheduling with Delayed Event Monitoring}
-\label{sec:org50bc965}
+\label{sec:org5e3536d}
 \label{ch:delay-scheduling}
 
 \begin{figure}[htbp]
@@ -1879,7 +1879,7 @@ contingent links in the fixed-delay STNU, which we must reconcile with the dispa
 Figure \ref{fig:flow-chart} for an overview of the information flow in scheduling a variable-delay STNU.
 
 \section{Scheduling with Variable-Observation Delay}
-\label{sec:orgafc35ca}
+\label{sec:org2fe8521}
 
 To solidify the process of scheduling a variable-delay STNU, consider the following analogy.
 
@@ -1913,7 +1913,7 @@ Our key challenge for scheduling an STNU with variable observation delay is reco
 from \(S\) with the dispatchable form from \(S'\).
 
 \section{Recording Contingent Event Assignments}
-\label{sec:orge3f6713}
+\label{sec:org57a19a9}
 \label{sec:recording-vdc-ctg}
 
 During execution, we observe the outcome of contingent events \(\obs(x_{c})\) in \(S\), but we make
@@ -2113,7 +2113,7 @@ We have addressed the key issue of reconciling observations from \(S\) with the 
 robustness for variable observation delay.
 
 \section{Modified FAST-EX for Variable Observation Delay}
-\label{sec:orgc1c38eb}
+\label{sec:org038c603}
 
 We present an overview of the scheduling and dispatching algorithms below with explanations following.
 
@@ -2171,7 +2171,7 @@ Let \(x\) be a temporal event, \(x \forall x \in X_{c} \cup X_{e}\).
 \end{algorithm}
 
 \subsection{Real vs No-op Events}
-\label{sec:org459cf47}
+\label{sec:org0b85303}
 \label{sec:real-vs-noop-events}
 
 The introduction of buffering and imagining events creates a new distinction between temporal
@@ -2223,7 +2223,7 @@ For convenience and simplicity, and given the similarities between RTED and RTED
 Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
 
 \section{Dynamic Dispatching}
-\label{sec:org81c3c11}
+\label{sec:org8d0c5ec}
 \label{sec:dynamic-dispatching}
 
 A \emph{dynamic dispatcher} (or just ``dispatcher'') is an interface layer with a two-fold responsibility:
@@ -2231,7 +2231,7 @@ it triggers the execution of RTEDs in the outside world, and it relays observati
 world about the execution of events to the scheduler.
 
 \section{Optimistic Rescheduling}
-\label{sec:orgc53132b}
+\label{sec:orgefab593}
 \label{sec:optimistic}
 
 The goal of this method is to dispatch future events as soon as possible. Contingent events may
@@ -2252,7 +2252,7 @@ perform rescheduling
 It's a generate-and-test approach
 
 \chapter{Coordinating Multiple Agents under Uncertain Communication}
-\label{sec:org7c15544}
+\label{sec:org248db90}
 \label{ch:technical-coordination}
 
 In this chapter, we present a novel MA framework for dynamic event scheduling with inter-agent
@@ -2283,13 +2283,13 @@ define an event propagation algorithm used to guarantee that event observations 
 agent STNUs. We finish by presenting experimental analysis of our event propagation algorithms.
 
 \section{Multi-Agent Control Programs}
-\label{sec:orgf06a4c7}
+\label{sec:org57b82cd}
 \label{sec:ma-control-programs}
 
 The challenge of MA
 
 \section{Event Propagation}
-\label{sec:org207df03}
+\label{sec:org7e79dba}
 \label{sec:event-propagation}
 
 At a high level, scheduled events propagate through a simple directed graph of connected executives.
@@ -2312,9 +2312,9 @@ Loops, or self-edges, are not allowed, i.e. for any vertex \(v_{i} \in V\), no e
 originate and terminate at \(v_{i}\).
 \end{defn}
 
-For some executive \(v_{i} \in V\) with outgoing edges in \(E\), \((v_{i}, v_{j})\), \(\cdots\), \(( v_{i},
+For some executive \(v_{i} \in V\) with outgoing edges in \(E\), \((v_{i}, v_{j})\), \(\cdots\), \((v_{i},
 v_{k})\), any scheduled events that \(v_{i}\) assigns, whether free or contingent, are propagated to
-all executives \(v_{j}\), \(\cdots\), \(v_{k}\).
+all peer executives \(v_{j}\), \(\cdots\), \(v_{k}\).
 
 \begin{defn}
 \label{def:event-propagations}
@@ -2322,22 +2322,32 @@ all executives \(v_{j}\), \(\cdots\), \(v_{k}\).
 
 An \emph{event propagation message} \(m\) is a tuple \(\langle x, P \rangle\), where:
 \begin{itemize}
-\item \(x\) is a set of events,
+\item \(x\) is a set of one or more events scheduled simultaneously,
 \item \(P \subseteq V\) is a set of executives who have already received the message.
 \end{itemize}
 \end{defn}
 
 Recognize that Definition \ref{def:event-propagations} is vague in defining \(x\). Event propagation
-messages are passed between agents, and each agent has its own STNU. Because we have not defined a
-temporal decoupling-like algorithm wherein an STNU for multiple-agents is programmatically separated
-into individual STNUs (see the discussion of multi-agent STNUs \citeprocitem{40}{[40]} in Section
-\ref{sec:mastnus}), we are reliant on human planners to write STNUs for each agent by hand. As a result,
-there is no guarantee that \(x\) is meaningful to a given agent. To be more specific, there is no
-guarantee that any event \(x_{i} \in x\) in the event propagation message has an equivalent event in
-\(X_{c}\) of the STNU being executed by any receiving agent \(v_{j} \in V\). If agent \(v_{j}\) cannot
-find \(x_{i}\) in their \(X_{c}\), then \(x_{i}\) can be ignored. As will be discussed in Algorithm
-\ref{alg:event-propagation}, we represent \(x\) using a type that can be compared for equivalence with the
-events in an agent's STNUs, e.g. a list of strings.
+messages are passed between agents, and each agent has its own STNU. In some cases, \(x\) will be free
+events, in others \(x\) will be contingent events. The type of event makes no difference to the
+algorithm so we do not distinguish between them here.
+
+Events that are received in \(m\) are treated the same as observations of contingent events during
+scheduling.
+
+For an edge \((v_{i}, v_{j}) \in E\), it is possible that \(v_{j}\) receives events that are not present
+in its STNU.
+
+Because we have not defined a temporal decoupling-like algorithm wherein an STNU for multiple-agents
+is programmatically separated into individual STNUs (see the discussion of multi-agent STNUs
+\citeprocitem{40}{[40]} in Section \ref{sec:mastnus}), we are reliant on human planners to write STNUs for
+each agent by hand. As a result, there is no guarantee that \(x\) is meaningful to a given agent.
+
+To be more specific, there is no guarantee that any event \(x_{i} \in x\) in the event propagation
+message has an equivalent event in \(X_{c}\) of the STNU being executed by any receiving agent \(v_{j}
+\in V\). If agent \(v_{j}\) cannot find \(x_{i}\) in their \(X_{c}\), then \(x_{i}\) can be ignored. As will
+be discussed in Algorithm \ref{alg:event-propagation}, we represent \(x\) using a type that can be compared
+for equivalence with the events in an agent's STNUs, e.g. a list of strings.
 
 We use \(P\) to avoid cycles in event propagation. As will be shown in Algorithm
 \ref{alg:event-propagation}, agent \(v_{i}\) will avoid propagating \(x\) to any agents in \(P\). Agent \(v_{i}\)
@@ -2361,7 +2371,33 @@ By Definition \ref{def:event-propagations}, events received from other agents ar
 received from Nature, and no special considerations are required for scheduling.
 
 We now walk through the process of passing messages between agents as shown in Algorithm
-\ref{alg:event-propagation}.
+\ref{alg:event-propagation}. We use the same \emph{Event Propagation} algorithm in three cases:
+
+\begin{enumerate}
+\item When an agent \(v_{i}\) schedules free events \(x\),
+\item When \(v_{i}\) receives an observation from Nature of contingent events \(x\),
+\item When \(v_{i}\) receives an incoming message \(m_{i}\) with contingent events \(m_{i}[x]\) from another
+agent in \(V\).
+\end{enumerate}
+
+Let \texttt{peers} be the terminal vertices for all \(e \in E\) originating at \(v_{i}\).
+
+In the first case, agent \(v_{i}\) fulfills its responsibilities as defined in \(C\) by broadcasting \(x\)
+to its \texttt{peers}, who will receive \(x\) as exogenous contingent events. The outgoing message \(m_{o}\)
+that will be passed to \texttt{peers} will include enough information such that no agent should receive a
+given \(x\) more than once. We let \(P\) be a list of \(v_{i}\) and all \texttt{peers}. We finalize \(m_{o} =
+\langle x, P \rangle\), which we simultaneously transmit to each \(p\) in \texttt{peers}. Transmission is a
+``fire and forget'' operation, where \(v_{i}\) does not wait for acknowledgment from any \(p\) that
+\(m_{o}\) was received.
+
+The second case plays out the same as the first, the only difference being that \(x\) is itself
+observed from Nature. Once again, we let \(P\) be a list of \(v_{i}\) and all \texttt{peers}, and then transmit
+\(m_{o}\) simultaneously to all \texttt{peers}.
+
+The third case is a relay operation. Agent \(v_{i}\) is responsible for propagating events \(m_{i}[x]\)
+that it has just observed, but we want to avoid
+
+It is possible that \(v_{i}\) is a \texttt{peer} of one or more of its \texttt{peers}, so it includes
 
 \begin{algorithm}
 \label{alg:event-propagation}
@@ -2374,17 +2410,19 @@ We now walk through the process of passing messages between agents as shown in A
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{Events $x$; $\texttt{self} \in V$, Set of receivers $R \subset V$; Set of outgoing peers $P \subset V$}
+\Input{Event propagation message $m$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
 
 \Indp
 \Algorithm{}
 \Indp
 
-When \texttt{self} schedules $x$\;
+$x \gets x$ or $m[x]$\;
 
+$P \gets x[P] \cup v_{i} \cup \texttt{peers}$\;
 
+$m \gets \langle x, P \rangle$\;
 
-\For{each event $E \in \texttt{Exec}$} {
+\For{each $p \in \texttt{peers}$} {
     Add lower-bound edge $\edge{E}{Z}{-t}$\;
 }
 
@@ -2398,37 +2436,36 @@ For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths
 \label{alg:fast-ex-update}
 \end{algorithm}
 
-
 \section{Experimental Analysis}
-\label{sec:org630e441}
+\label{sec:org587428b}
 \label{sec:ma-experimental}
 
 \subsection{Hardware Demonstrations}
-\label{sec:org7d1f274}
+\label{sec:orgc85bc61}
 
 \subsection{Massively Multi-Agent Simulation}
-\label{sec:org4165d31}
+\label{sec:orga2c7bf8}
 
 \chapter{Coordinating Multiple Agents in Extreme Environments}
-\label{sec:org80a6ed0}
+\label{sec:org2b37eba}
 
 This is a chapter on distributed communication.
 
 \section{Single-Responsibility Principle}
-\label{sec:org5e54e1e}
+\label{sec:orga267b65}
 
 Not an exact law but something we followed with scheduler > dispatcher > driver layers
 
 \chapter{Evaluation}
-\label{sec:org0d5fe7e}
+\label{sec:org100bed9}
 
 This is a chapter on evaluating all this stuff.
 
 \chapter{Discussion and Future Work}
-\label{sec:org2dcef0a}
+\label{sec:orgecbf7ad}
 
 \section{Coordination}
-\label{sec:org43603dc}
+\label{sec:org7e8544e}
 \label{sec:mastnus}
 
 We were focused on addressing the multi-agent (MA) online scheduling problem. Before scheduling, we
@@ -2482,7 +2519,7 @@ consensus.
 \appendix
 
 \chapter{Comparison of Variable-Delay STNUs to Partially Observable STNUs}
-\label{sec:org7d2b57b}
+\label{sec:org0d7dbb2}
 \label{appendix:postnus}
 
 The delay scheduler is flexible in that so long as it receives a variable-delay STNU, it is capable

@@ -78,9 +78,9 @@ originate and terminate at $v_{i}$.
 
 # TODO insert sample graph here
 
-For some executive $v_{i} \in V$ with outgoing edges in $E$, $(v_{i}, v_{j})$, $\cdots$, $( v_{i},
+For some executive $v_{i} \in V$ with outgoing edges in $E$, $(v_{i}, v_{j})$, $\cdots$, $(v_{i},
 v_{k})$, any scheduled events that $v_{i}$ assigns, whether free or contingent, are propagated to
-all executives $v_{j}$, $\cdots$, $v_{k}$.
+all peer executives $v_{j}$, $\cdots$, $v_{k}$.
 
 # Note that $C$ is wholly distinct from individual STNUs and inter-agent temporal constraints.
 
@@ -90,21 +90,32 @@ all executives $v_{j}$, $\cdots$, $v_{k}$.
 *Event Propagation Messages*
 
 An /event propagation message/ $m$ is a tuple $\langle x, P \rangle$, where:
-- $x$ is a set of events,
+- $x$ is a set of one or more events scheduled simultaneously,
 - $P \subseteq V$ is a set of executives who have already received the message.
 #+latex: \end{defn}
 
 Recognize that Definition [[def:event-propagations]] is vague in defining $x$. Event propagation
-messages are passed between agents, and each agent has its own STNU. Because we have not defined a
-temporal decoupling-like algorithm wherein an STNU for multiple-agents is programmatically separated
-into individual STNUs (see the discussion of multi-agent STNUs [cite:@Casanova2016] in Section
-[[sec:mastnus]]), we are reliant on human planners to write STNUs for each agent by hand. As a result,
-there is no guarantee that $x$ is meaningful to a given agent. To be more specific, there is no
-guarantee that any event $x_{i} \in x$ in the event propagation message has an equivalent event in
-$X_{c}$ of the STNU being executed by any receiving agent $v_{j} \in V$. If agent $v_{j}$ cannot
-find $x_{i}$ in their $X_{c}$, then $x_{i}$ can be ignored. As will be discussed in Algorithm
-[[alg:event-propagation]], we represent $x$ using a type that can be compared for equivalence with the
-events in an agent's STNUs, e.g. a list of strings.
+messages are passed between agents, and each agent has its own STNU. In some cases, $x$ will be free
+events, in others $x$ will be contingent events. The type of event makes no difference to the
+algorithm so we do not distinguish between them here.
+
+# TODO should this be said earlier? more clearly? more emphasis? give relation to scheduling lemmas?
+Events that are received in $m$ are treated the same as observations of contingent events during
+scheduling.
+
+For an edge $(v_{i}, v_{j}) \in E$, it is possible that $v_{j}$ receives events that are not present
+in its STNU.
+
+Because we have not defined a temporal decoupling-like algorithm wherein an STNU for multiple-agents
+is programmatically separated into individual STNUs (see the discussion of multi-agent STNUs
+[cite:@Casanova2016] in Section [[sec:mastnus]]), we are reliant on human planners to write STNUs for
+each agent by hand. As a result, there is no guarantee that $x$ is meaningful to a given agent.
+
+To be more specific, there is no guarantee that any event $x_{i} \in x$ in the event propagation
+message has an equivalent event in $X_{c}$ of the STNU being executed by any receiving agent $v_{j}
+\in V$. If agent $v_{j}$ cannot find $x_{i}$ in their $X_{c}$, then $x_{i}$ can be ignored. As will
+be discussed in Algorithm [[alg:event-propagation]], we represent $x$ using a type that can be compared
+for equivalence with the events in an agent's STNUs, e.g. a list of strings.
 
 We use $P$ to avoid cycles in event propagation. As will be shown in Algorithm
 [[alg:event-propagation]], agent $v_{i}$ will avoid propagating $x$ to any agents in $P$. Agent $v_{i}$
@@ -128,7 +139,33 @@ By Definition [[def:event-propagations]], events received from other agents are 
 received from Nature, and no special considerations are required for scheduling.
 
 We now walk through the process of passing messages between agents as shown in Algorithm
-[[alg:event-propagation]].
+[[alg:event-propagation]]. We use the same /Event Propagation/ algorithm in three cases:
+
+1. When an agent $v_{i}$ schedules free events $x$,
+2. When $v_{i}$ receives an observation from Nature of contingent events $x$,
+3. When $v_{i}$ receives an incoming message $m_{i}$ with contingent events $m_{i}[x]$ from another
+   agent in $V$.
+
+Let =peers= be the terminal vertices for all $e \in E$ originating at $v_{i}$.
+
+In the first case, agent $v_{i}$ fulfills its responsibilities as defined in $C$ by broadcasting $x$
+to its =peers=, who will receive $x$ as exogenous contingent events. The outgoing message $m_{o}$
+that will be passed to =peers= will include enough information such that no agent should receive a
+given $x$ more than once. We let $P$ be a list of $v_{i}$ and all =peers=. We finalize $m_{o} =
+\langle x, P \rangle$, which we simultaneously transmit to each $p$ in =peers=. Transmission is a
+"fire and forget" operation, where $v_{i}$ does not wait for acknowledgment from any $p$ that
+$m_{o}$ was received.
+
+The second case plays out the same as the first, the only difference being that $x$ is itself
+observed from Nature. Once again, we let $P$ be a list of $v_{i}$ and all =peers=, and then transmit
+$m_{o}$ simultaneously to all =peers=.
+
+The third case is a relay operation. Agent $v_{i}$ is responsible for propagating events $m_{i}[x]$
+that it has just observed, but we want to avoid
+
+It is possible that $v_{i}$ is a =peer= of one or more of its =peers=, so it includes
+
+# TODO $m$ or $x$?
 
 #+label: alg:event-propagation
 #+begin_export tex
@@ -143,17 +180,19 @@ We now walk through the process of passing messages between agents as shown in A
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{Events $x$; $\texttt{self} \in V$, Set of receivers $R \subset V$; Set of outgoing peers $P \subset V$}
+\Input{Event propagation message $m$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
 
 \Indp
 \Algorithm{}
 \Indp
 
-When \texttt{self} schedules $x$\;
+$x \gets x$ or $m[x]$\;
 
+$P \gets x[P] \cup v_{i} \cup \texttt{peers}$\;
 
+$m \gets \langle x, P \rangle$\;
 
-\For{each event $E \in \texttt{Exec}$} {
+\For{each $p \in \texttt{peers}$} {
     Add lower-bound edge $\edge{E}{Z}{-t}$\;
 }
 
@@ -168,6 +207,8 @@ For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths
 \end{algorithm}
 #+end_export
 
+
+# TODO HTTP technically has more than one message passed. discuss other protocols and when you would want to use them here?
 
 ** Experimental Analysis
 <<sec:ma-experimental>>
