@@ -72,15 +72,17 @@ A /communication graph/ $C$ is a tuple $\langle V, E \rangle$, where:
 - Each edge $e_{i} \in E$ is a pair $(o, t)$, where $o, t \in V$ represent the origin and
   termination of the edge respectively.
 
-Loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, no edge $e_{i} \in E$ may
-originate and terminate at $v_{i}$.
+Loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, no single edge $e_{i} \in
+E$ may both originate and terminate at $v_{i}$.
 #+latex: \end{defn}
 
 # TODO insert sample graph here
 
 For some executive $v_{i} \in V$ with outgoing edges in $E$, $(v_{i}, v_{j})$, $\cdots$, $(v_{i},
 v_{k})$, any scheduled events that $v_{i}$ assigns, whether free or contingent, are propagated to
-all peer executives $v_{j}$, $\cdots$, $v_{k}$.
+all peer executives $v_{j}$, $\cdots$, $v_{k}$. Likewise, all contingent events received from Nature
+are propagated to peers. Finally, any events $v_{i}$ receives from other agents are also relayed to
+peers.
 
 # Note that $C$ is wholly distinct from individual STNUs and inter-agent temporal constraints.
 
@@ -99,9 +101,14 @@ messages are passed between agents, and each agent has its own STNU. In some cas
 events, in others $x$ will be contingent events. The type of event makes no difference to the
 algorithm so we do not distinguish between them here.
 
-# TODO should this be said earlier? more clearly? more emphasis? give relation to scheduling lemmas?
-Events that are received in $m$ are treated the same as observations of contingent events during
-scheduling.
+Events that are received in $m$, $m[x]$, are handled the same as observations of contingent events
+during scheduling. Lemmas [[lemma:information-fixes-bounds]], [[lemma:ignore-inf-delay]], and
+[[lemma:subtract-gamma]] are applied as appropriate when the observation of $m[x]$ arrives.
+
+# TODO clean up
+
+# we can always ignore events
+# agents are likely to receive more events than they care about
 
 For an edge $(v_{i}, v_{j}) \in E$, it is possible that $v_{j}$ receives events that are not present
 in its STNU.
@@ -116,6 +123,8 @@ message has an equivalent event in $X_{c}$ of the STNU being executed by any rec
 \in V$. If agent $v_{j}$ cannot find $x_{i}$ in their $X_{c}$, then $x_{i}$ can be ignored. As will
 be discussed in Algorithm [[alg:event-propagation]], we represent $x$ using a type that can be compared
 for equivalence with the events in an agent's STNUs, e.g. a list of strings.
+
+# ODOT
 
 We use $P$ to avoid cycles in event propagation. As will be shown in Algorithm
 [[alg:event-propagation]], agent $v_{i}$ will avoid propagating $x$ to any agents in $P$. Agent $v_{i}$
@@ -146,73 +155,100 @@ We now walk through the process of passing messages between agents as shown in A
 3. When $v_{i}$ receives an incoming message $m_{i}$ with contingent events $m_{i}[x]$ from another
    agent in $V$.
 
-Let =peers= be the terminal vertices for all $e \in E$ originating at $v_{i}$.
+Let =peers= be a mutable set initialized to the terminal vertices for all $e \in E$ originating at
+$v_{i}$.
 
 In the first case, agent $v_{i}$ fulfills its responsibilities as defined in $C$ by broadcasting $x$
 to its =peers=, who will receive $x$ as exogenous contingent events. The outgoing message $m_{o}$
 that will be passed to =peers= will include enough information such that no agent should receive a
-given $x$ more than once. We let $P$ be a list of $v_{i}$ and all =peers=. We finalize $m_{o} =
-\langle x, P \rangle$, which we simultaneously transmit to each $p$ in =peers=. Transmission is a
-"fire and forget" operation, where $v_{i}$ does not wait for acknowledgment from any $p$ that
-$m_{o}$ was received.
+given $x$ more than once. To do so, we let $P$ be a set of all agents that will have observed $x$
+when $m_{o}$ is received by =peers=, $P = \{ v_{i}, p~ \forall~ p \in \texttt{peers} \}$. We
+finalize $m_{o} = \langle x, P \rangle$, which we simultaneously transmit to each $p$ in =peers=.
+Transmission is a "fire and forget" operation, where $v_{i}$ does not wait for acknowledgment from
+any $p$ that $m_{o}$ was received.
 
 The second case plays out the same as the first, the only difference being that $x$ is itself
 observed from Nature. Once again, we let $P$ be a list of $v_{i}$ and all =peers=, and then transmit
 $m_{o}$ simultaneously to all =peers=.
 
 The third case is a relay operation. Agent $v_{i}$ is responsible for propagating events $m_{i}[x]$
-that it has just observed, but we want to avoid
+that it has just observed, but we want to avoid sending the events to =peers= who have already
+observed them. We remove those agents from =peers= accordingly with a set difference operation:
+=peers= $= \texttt{peers} - m_{i}[P]$. Likewise, we grow the list of agents who have received $x$,
+which is now $P = P \cup \texttt{peers}$. Agent $v_{i}$ composes a new $m_{o} = \langle m_{i}[x], P
+\rangle$ and transmits it to =peers=.
 
-It is possible that $v_{i}$ is a =peer= of one or more of its =peers=, so it includes
-
-# TODO $m$ or $x$?
+Ideally, the Event Propagation algorithm should run on a separate thread from the main scheduling
+loop, else we run the risk of incurring unnecessary delays in observing and dispatching events.
 
 #+label: alg:event-propagation
 #+begin_export tex
 \begin{algorithm}
-\label{alg:event-propagation}
 \SetAlgoLined
+\SetKwComment{Comment}{/*}{*/}
 \SetKwFunction{Return}{return}
 \SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
 \SetKwInput{Algorithm}{\textsc{Event Propagation}}
 \SetKwInput{Initialize}{Initialization}
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{Event propagation message $m$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
+\Input{Incoming message $m_{i}$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
 
 \Indp
 \Algorithm{}
 \Indp
 
-$x \gets x$ or $m[x]$\;
+$\texttt{peers} \gets \texttt{peers} - m_{i}[P]$\;
 
-$P \gets x[P] \cup v_{i} \cup \texttt{peers}$\;
+$P \gets \{ m_{i}[P] \} \cup \{ v_{i} \} \cup \texttt{peers}$\;
 
-$m \gets \langle x, P \rangle$\;
+$x \gets x$ or $m_{i}[x]$\;
 
-\For{each $p \in \texttt{peers}$} {
-    Add lower-bound edge $\edge{E}{Z}{-t}$\;
+$m_{o} \gets \langle x, P \rangle$\;
+
+\For{each $p$ in $\texttt{peers}$} {
+    Perform a non-blocking transmission of $m_{o}$ to $p$\;
 }
 
-For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
-
-\For{each event $E \in \texttt{Exec}$} {
-    Add upper-bound edge $\edge{Z}{E}{t}$\;
-}
-For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
 \caption{An event propagation algorithm that avoids recursive message passing.}
-\label{alg:fast-ex-update}
+\label{alg:event-propagation}
 \end{algorithm}
 #+end_export
 
-
-# TODO HTTP technically has more than one message passed. discuss other protocols and when you would want to use them here?
+The complexity of Algorithm [[alg:event-propagation]] is trivially $O(N)$, where $N$ is the number of
+executives in $V - 1$. The limiting factor to the performance of Event Propagation will be the time
+it takes to transmit messages between agents, which, to reiterate, should be modeled in the delay
+functions for any inter-agent temporal constraints.
 
 ** Experimental Analysis
 <<sec:ma-experimental>>
 
-*** Hardware Demonstrations
+# TODO HTTP technically has more than one message passed. discuss other protocols and when you would want to use them here?
+
+We performed two analyses of the Event Propagation algorithm. The first was a hardware demonstration
+performed on a Barrett WAM manipulator in the MERS lab. The second is a massively multi-agent
+simulation. Both will be described below.
+
+*** Hardware Demonstration
+
+# TODO need pics and such
+
+We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
+astronaut is performing scientific exploration while the robot performs remote construction tasks.
+The concept of operations allows for the astronaut to use a rover to traverse away from the robot in
+search of promising scientific samples. Due to the position of surface relays and general
+uncertainty in lunar topology, there is an uncertain time delay between agents.
+
+Bandwidth between Mission Control on Earth and the Moon is limited. There are low and high bandwidth
+communications available to both agents. Low bandwidth is responsible for transmitting critical data
+(e.g. suit telemetry), while high bandwidth communications are reserved for purposes such as video
+calls and large dumps of scientific data. It is not possible for both the astronaut and the robot to
+use high bandwidth communications simultaneously. Thus, there is a need for the agents to coordinate
+such that they make effective use of high bandwidth communications without stepping on each others
+toes, so to speak.
+
+Our demonstration hones in on a point in an EVA where there is substantial time delay between the
+astronaut and robot.
 
 *** Massively Multi-Agent Simulation
