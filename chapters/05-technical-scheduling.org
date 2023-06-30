@@ -10,7 +10,7 @@
 #+ATTR_LATEX: :width 2.5in
 #+caption: From a variable-delay STNU to scheduling decision
 #+label: fig:flow-chart
-[[file:flow-chart.png]]
+[[file:../images/flow-chart.png]]
 
 # TODO if it's not clear already, make it clear this is the novel part
 
@@ -22,6 +22,12 @@ scheduling/, an RTED-based strategy for dispatching free events in the case wher
 set-bounded observation delay for contingent events. As will be shown, delay scheduling is an
 extension to dynamic scheduling using the execution strategy as outlined in the variable-delay
 controllability checking procedure.
+
+We also separate scheduling from dispatching. In our view, the responsibilities of a scheduler end
+with the generation of an execution decision. The dispatcher then uses execution decisions to send
+commands to hardware at a time that is consistent with execution decision.
+
+
 
 We must address three gaps: first, we reconcile
 
@@ -468,8 +474,10 @@ An \textit{Event-No-op Pair}, $\phi$, is a two-tuple, $\langle X, \nu \rangle$, 
 #+end_export
 
 # TODO make prettier
+#+label: def:rted-op
 #+begin_export tex
 \begin{defn}
+\label{def:rted-op}
 \textbf{RTED with Operational Distinction} \\
 A \textit{Real-Time Execution Decision with Operational Distinction} is a two-tuple $\langle t, \Phi \rangle$, where:
 \begin{itemize}
@@ -485,9 +493,76 @@ Distinction, future references to RTEDs will always mean RTEDs with Operational 
 ** Dynamic Dispatching
 <<sec:dynamic-dispatching>>
 
-A /dynamic dispatcher/ (or just "dispatcher") is an interface layer with a two-fold responsibility:
-it triggers the execution of RTEDs in the outside world, and it relays observations from the outside
-world about the execution of events to the scheduler.
+# TODO is the salient point here RTEDs? or is there something else that's more important about the
+# relationship between the dispatcher and the scheduler?
+This thesis contributes a dynamic dispatching algorithm for which the process of generating RTEDs is
+a subroutine. In our view, RTEDs are not commands to the agent. Rather, they inform the agent of the
+time windows where actions ensure consistency. As such, a dedicated dispatcher layer is required to
+translate RTEDs to real actions at the right time. The dispatcher will request RTEDs and then wait
+until the time window of the execution to trigger their execution.
+
+# This thesis contributes a novel dispatching algorithm that works with any dynamic scheduler.
+
+# TODO these paragraphs need to be cleaned up and streamlined
+
+# scheduler doesn't do any "extraneous" jobs (extraneous is a good word. use it?)
+A /dynamic dispatcher/ (or just "dispatcher") is an interface layer situated between the scheduler
+and a /driver/ that communicates with hardware. The dispatcher has a two-fold responsibility: it
+triggers the execution of RTEDs in the outside world by communicating with the driver, and it relays
+observations from the outside world about the execution of events to the scheduler. Relaying
+observations is a matter of convenience. Explicitly giving the responsibility of observations to the
+dispatcher allows us to keep the scheduler simple. In the implementation of Kirk used in this
+thesis, the scheduler wholly consists of the algorithms described above, nothing more. We go so far
+as to enforce that the scheduler itself has no notion of a clock. Instead, the dispatcher has a
+clock. When the dispatcher wants the scheduler to update itself, it is required to send both an
+event and a elapsed time to the scheduler.
+
+Incidentally, the dispatching algorithm is separate from the scheduler. As such, there is no hard
+requirement on the FAST-EX-based scheduler described above. Any scheduler that produces RTEDs
+adhering to Definition [[def:rted-op]] will be compatible with the dispatcher described below.
+
+*** Dynamic Dispatching Algorithm
+
+The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. The inner
+loop is responsible for retrieving the latest RTEDs and firing driver commands when the clock
+indicates that the agent is inside RTED time windows. The outer loop runs continuously until the
+scheduler reports that there are no free events remaining to schedule. The dispatcher requests RTEDs
+with blocking synchronous calls, while the dispatcher and driver communicate asynchronously. The
+dispatcher spawns a thread to make non-blocking calls to the driver's interface to execute events.
+The dispatcher and driver also share an asynchronous queue that the driver can append messages to
+indicating the successful execution of events.
+
+# TODO ref the algo when its written
+We now provide a walkthrough of dynamic dispatching. For simplicity's sake, the term /schedule/ here
+is shorthand for whatever data structures the scheduler uses to generate RTED. /Updating the
+schedule/ refers to making an event assignment in the scheduler, triggering any necessary changes to
+the schedule.
+
+The interaction between the inner and outer loop is limited. The inner loop returns a Boolean
+indicating whether there are executable events remaining. The outer loop is a simple =while= that
+repeats until it receives =false= from the inner loop. Otherwise, the only communication between the
+inner and outer loops is that the outer loop creates a variable for the last RTED that was generated
+but not executed, which it passes by reference to the inner loop. The inner loop is free to use or
+modify the saved RTED as it sees fit.
+
+In the inner loop, we first check if the scheduler has any remaining executable events. If there are
+none, we return =false= to signal the loop's termination.
+
+# TODO is there another word besides "check" we could use here?
+Next we check the asynchronous queue for any event execution messages from the driver. If one is
+found, we ask the scheduler to update the schedule with the event and execution time. Note that
+while the queue itself is asynchronous, the scheduler update is a blocking operation because we need
+an up-to-date schedule to guarantee future RTEDs are consistent. We then invalidate the last RTED
+generated.
+
+Once we have popped all messages from the driver off the queue, we can then decide how to proceed.
+If we do not have a valid RTED from the last iteration of the inner loop, we ask the scheduler for
+one and save it to the referenced variable from the outer loop. Given that we interact with the
+driver asynchronously, it is possible that the current RTED is one that has already been sent to the
+driver but we have yet to receive a message confirming its execution. If so, there is nothing to do
+so we return =true=.
+
+
 
 ** Optimistic Rescheduling
 <<sec:optimistic>>
@@ -508,3 +583,7 @@ ctg event and the lower bound of when we were expecting it is greater than the t
 perform rescheduling
 
 It's a generate-and-test approach
+** Experimental Analysis
+Scheduling always follows constraints
+
+Optimistic vs normal VDC scheduling
