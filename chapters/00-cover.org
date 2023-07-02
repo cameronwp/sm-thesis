@@ -28,9 +28,9 @@
 
 % As of the 2007-08 academic year, valid degree months are September,
 % February, or June.  The default is June.
-\degreemonth{June}
+\degreemonth{September}
 \degreeyear{2023}
-\thesisdate{May 1, 2023}
+\thesisdate{August 15, 2023}
 
 %% By default, the thesis will be copyrighted to MIT.  If you need to copyright
 %% the thesis to yourself, just specify the `vi' documentclass option.  If for
@@ -88,4 +88,40 @@
 \section*{Acknowledgements}
 #+end_export
 
-So long and thanks for all the fish!
+My journey to this SM thesis began eight years ago when I was a software engineer living in San
+Francisco. Two years prior, I had just wrapped four years of teaching high school science and didn't
+know how to code. I taught myself Python using MIT OpenCourseware on a whim because it was something
+I had always wanted to learn. Coding took over my life the first time I wrote a function. My first
+projects were physics demos and websites, but soon I learned I loved helping systems make decisions.
+And there is absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and
+wondered, "I want to be a part of the next space race! What if I studied autonomy for human
+spaceflight? Where would I even go to learn autonomy?" (I admit I didn't know the field was called
+"autonomy" at the time.) Of course, MIT came up when I started searching. It took five more years of
+studying computer science, finding people to learn from, and integrating in the human spaceflight
+community, but eventually I found my way into AeroAstro and the MERS lab. It's been the journey of a
+lifetime and there's no way I would be here without the love and support from so many people.
+
+First, I have to thank my amazing wife, Mo, who is the hardest working, most driven person I've ever
+met. She's been my biggest cheerleader and sounding board for my ideas (even when she has no idea
+what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I think about her living
+in a world where there are thousands of people living and working in space. At the time of writing
+this, she's a month old and already making me work harder than I ever have. I never would have made
+it this far without a supportive family. My parents, Mark and Suzanne, and my brother, Max, have
+always been there for me.
+
+My advisor, Brian Williams, has consistently surprised me with how much support he's freely given.
+Brian has been one of the most helpful people I've ever met, starting with the first time I
+introduced myself and blurted out, "hi, I'm taking your class and I think it's amazing and I want to
+use everything at work and can I please join your lab?" From academic mentoring, to brainstorming
+executive architectures, to explaining basic concepts in temporal reasoning, to envisioning the next
+generation of online education, he's been open, honest, and eager to share ideas. Brian, you have
+had a profound impact on my life and career, and for that I'm forever grateful.
+
+Next, I have to thank all my labmates. I can't really quantify the level of impact any single person
+has had, so I'll be doing these chronological order of when we met.
+
+The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office hours
+even when I didn't have questions just because I wanted to hang out and talk autonomy with people.
+Simon, thank you for being a supportive TA (and introducing me to Aunty Donna). Sungkweon,
+
+# Incl Matthew

@@ -1,5 +1,10 @@
 #+title: Technical Scheduling
 
+* COMMENT
+** TODO consistency with "noop"
+is it =noop= or =no-op= or $\mathit{noop}$?
+** TODO consistency with capitalization and italics of Scheduler, Delay Scheduler, Dispatcher, Driver
+
 * Dynamic Scheduling with Delayed Event Monitoring
 <<ch:delay-scheduling>>
 
@@ -247,7 +252,7 @@ If a contingent event, $x_{c} \in X_{c}$, is observed earlier than the bounds of
 
 #+label: fig:observations
 #+caption: Here, we show how the combination of $\assign(x_{c})$ and $\gammabar(x_{c})$ lead to an assignment of $\assign(x'_{c})$ in $S'$. We see the range $\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})$ representing the earliest and latest assignments of \assign(x_{c})$ that could result in $\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})$, l^+(x_c)]$. The grey region represents the range of possible observation delays, $\gammabar(x_{c})$, supporting $\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$.
-[[file:viz-l-plus.png]]
+[[file:../images/viz-l-plus.png]]
 
 To demonstrate why buffering is sound, we compare the bounds of $x_{c}$ in $S$ and $x'_{c}$ in $S'$
 to show that our execution strategy for $\assign(x'_{c})$ is applicable to any $\assign(x_{c}) \in
@@ -366,10 +371,11 @@ $S'$. We now present a dispatcher and wrapper algorithms on top of FAST-EX that 
 robustness for variable observation delay.
 
 ** Modified FAST-EX for Variable Observation Delay
+<<sec:delay-scheduler>>
 
 # TODO intro needs work
 
-We present an overview of the scheduling and dispatching algorithms below with explanations following.
+We present an overview of the scheduling algorithm below with explanations following.
 
 While we made a careful distinction between $x_{c}$ and $x'_{c}$ in our discussion of scheduling, in
 our implementation it was important to be able to easily replace one with another when looking up
@@ -462,35 +468,38 @@ meaning the agent is responsible for taking some action to execute them, and tho
 /no-ops/, or algorithmic by-products that require no operation. This distinction naturally leads to
 the following addendum to the definition of RTEDs.
 
-#+begin_export tex
-\begin{defn}
-\textbf{Event-No-op Pair} \\
-An \textit{Event-No-op Pair}, $\phi$, is a two-tuple, $\langle X, \nu \rangle$, where:
-\begin{itemize}
-    \item $X$ is an event in $X_{e} \cup X_{c}$,
-    \item $\nu$ is a boolean, where if True, the event is a no-op, else real
-\end{itemize}
-\end{defn}
+#+begin_export latex
+\newcommand*{\eventnoop}{\mathit{event}\textsf{-}\mathit{noop}}
+\newcommand*{\eventnoops}{\mathit{event}\textsf{-}\mathit{noops}}
 #+end_export
 
-# TODO make prettier
+# TODO these variables aren't great
+#+label: def:rted
+#+latex: \begin{defn}
+*Event-No-op Pair*
+
+An /Event-No-op Pair/, $\eventnoop$, is a two-tuple, $\langle x, \mathit{noop} \rangle$,
+where:
+- $x$ is an event in $X_{e} \cup X_{c}$,
+- $\mathit{noop}$ is a boolean, where if true, the event does not correspond to an action an agent
+  should take, else real.
+#+latex: \end{defn}
+
 #+label: def:rted-op
-#+begin_export tex
-\begin{defn}
-\label{def:rted-op}
-\textbf{RTED with Operational Distinction} \\
-A \textit{Real-Time Execution Decision with Operational Distinction} is a two-tuple $\langle t, \Phi \rangle$, where:
-\begin{itemize}
-    \item $t$ is a time with domain $\mathbb{R}$,
-    \item $\Phi$ is a set of $\phi$ to be executed at time $t$,
-\end{itemize}
-\end{defn}
-#+end_export
+#+latex: \begin{defn}
+#+latex: \label{def:rted-op}
+*RTED with Operational Distinction*
+
+A /Real-Time Execution Decision with Operational Distinction/ is a two-tuple $\langle t,
+\eventnoops \rangle$, where:
+- $t$ is a time with domain $\mathbb{R}$,
+- $\eventnoops$ is a set of $\eventnoop$ pairs to be executed at time $t$.
+#+latex: \end{defn}
 
 For convenience and simplicity, and given the similarities between RTED and RTED with Operational
 Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
 
-** Dynamic Dispatching
+** Dispatching
 <<sec:dynamic-dispatching>>
 
 # TODO is the salient point here RTEDs? or is there something else that's more important about the
@@ -508,81 +517,338 @@ until the time window of the execution to trigger their execution.
 # scheduler doesn't do any "extraneous" jobs (extraneous is a good word. use it?)
 A /dynamic dispatcher/ (or just "dispatcher") is an interface layer situated between the scheduler
 and a /driver/ that communicates with hardware. The dispatcher has a two-fold responsibility: it
-triggers the execution of RTEDs in the outside world by communicating with the driver, and it relays
-observations from the outside world about the execution of events to the scheduler. Relaying
-observations is a matter of convenience. Explicitly giving the responsibility of observations to the
-dispatcher allows us to keep the scheduler simple. In the implementation of Kirk used in this
-thesis, the scheduler wholly consists of the algorithms described above, nothing more. We go so far
-as to enforce that the scheduler itself has no notion of a clock. Instead, the dispatcher has a
-clock. When the dispatcher wants the scheduler to update itself, it is required to send both an
-event and a elapsed time to the scheduler.
+triggers the execution of RTEDs in the outside world by communicating with the driver (Section
+[[sec:event-dispatching]]), and it relays observations from the outside world about the execution of
+events to the scheduler (Section [[sec:event-observations]]). An explicit dispatching layer allows us to
+centralize the logic for interacting with the outside world therein, keeping the scheduler simple.
+In the implementation of Kirk used in this thesis, the scheduler wholly consists of the algorithms
+described above, nothing more. We go so far as to enforce that the scheduler itself has no notion of
+a clock. Instead, the dispatcher has a clock. When the dispatcher wants the scheduler to update
+itself, it is required to send both an event and a elapsed time to the scheduler.
 
-Incidentally, the dispatching algorithm is separate from the scheduler. As such, there is no hard
-requirement on the FAST-EX-based scheduler described above. Any scheduler that produces RTEDs
-adhering to Definition [[def:rted-op]] will be compatible with the dispatcher described below.
+Consequently, the dispatching algorithm is separate from the scheduler. As such, there is no hard
+requirement on the FAST-EX-based scheduler described above. Any scheduling algorithm that produces
+RTEDs adhering to Definition [[def:rted-op]] would be compatible with the dispatcher described below.
 
-*** Dynamic Dispatching Algorithm
+*** Dynamic Event Dispatching
+<<sec:event-dispatching>>
 
 The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. The inner
-loop is responsible for retrieving the latest RTEDs and firing driver commands when the clock
-indicates that the agent is inside RTED time windows. The outer loop runs continuously until the
-scheduler reports that there are no free events remaining to schedule. The dispatcher requests RTEDs
-with blocking synchronous calls, while the dispatcher and driver communicate asynchronously. The
-dispatcher spawns a thread to make non-blocking calls to the driver's interface to execute events.
-The dispatcher and driver also share an asynchronous queue that the driver can append messages to
-indicating the successful execution of events.
+loop, Algorithm [[alg:dispatcher-inner]], is responsible for retrieving the latest RTEDs and firing
+driver commands when the clock indicates that the agent is inside RTED time windows. The outer loop,
+Algorithm, [[alg:dispatcher-outer]], runs continuously until the scheduler reports that there are no
+free events remaining to schedule. The dispatcher requests RTEDs with blocking synchronous calls,
+while the dispatcher and driver communicate asynchronously. The dispatcher spawns a thread to make
+non-blocking calls to the driver's interface to execute events. The dispatcher and driver also share
+a FIFO queue that the driver can append messages to indicating the successful execution of events.
 
-# TODO ref the algo when its written
-We now provide a walkthrough of dynamic dispatching. For simplicity's sake, the term /schedule/ here
-is shorthand for whatever data structures the scheduler uses to generate RTED. /Updating the
-schedule/ refers to making an event assignment in the scheduler, triggering any necessary changes to
-the schedule.
+We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
+/schedule/ here is shorthand for whatever data structures the scheduler uses to generate RTED.
+/Updating the schedule/ may be used to refer to making an event assignment in the scheduler,
+triggering any necessary changes to the schedule.
 
 The interaction between the inner and outer loop is limited. The inner loop returns a Boolean
 indicating whether there are executable events remaining. The outer loop is a simple =while= that
 repeats until it receives =false= from the inner loop. Otherwise, the only communication between the
-inner and outer loops is that the outer loop creates a variable for the last RTED that was generated
-but not executed, which it passes by reference to the inner loop. The inner loop is free to use or
-modify the saved RTED as it sees fit.
+inner and outer loops is a variable containing the last RTED that was generated but not executed.
+The outer loop creates the variable and passes it by reference to the inner loop. The inner loop is
+free to use or modify the variable as it sees fit.
 
-In the inner loop, we first check if the scheduler has any remaining executable events. If there are
-none, we return =false= to signal the loop's termination.
+We break the inner loop of algorithm into three distinct phases.
 
-# TODO is there another word besides "check" we could use here?
-Next we check the asynchronous queue for any event execution messages from the driver. If one is
-found, we ask the scheduler to update the schedule with the event and execution time. Note that
-while the queue itself is asynchronous, the scheduler update is a blocking operation because we need
-an up-to-date schedule to guarantee future RTEDs are consistent. We then invalidate the last RTED
+# TODO it's not a time window! it's a single time. probs need to define execution window
+1. Receive execution confirmation from the driver.
+2. Collect an RTED and confirm the clock time is within the execution window.
+3. If there is an RTED:
+   a. send executable events to the driver, else
+   b. immediately assign all =noop= events to the current time.
+
+Our goal in the inner loop is to dispatch events to the driver only after updating the schedule,
+collecting an up-to-date RTED, and confirming we are within the time window of the RTED. The loop
+will exit before reaching the dispatch step if any conditions are not met.
+
+For the first step, we ask the scheduler if there are any remaining executable events. If there are
+none, we return =false= to signal the loop's termination, otherwise we continue.
+
+Next, we check the FIFO queue for any event execution messages returned from the driver. The
+presence of a message would indicate that the driver has successfully executed a free event. We
+iteratively pop messages off the queue and update the schedule with the events and execution time
+contained in each message. Note that the scheduler update is a blocking operation because we need an
+up-to-date schedule to guarantee future RTEDs are consistent. We then invalidate the last RTED
 generated.
 
-Once we have popped all messages from the driver off the queue, we can then decide how to proceed.
-If we do not have a valid RTED from the last iteration of the inner loop, we ask the scheduler for
-one and save it to the referenced variable from the outer loop. Given that we interact with the
-driver asynchronously, it is possible that the current RTED is one that has already been sent to the
-driver but we have yet to receive a message confirming its execution. If so, there is nothing to do
-so we return =true=.
+# TODO do we need to be more specific about checking the RTED? what if some events overlap but not all?
+The second step starts once we have popped all messages from the driver off the queue. If we do not
+have a valid RTED from the last iteration of the inner loop, we ask the scheduler for one and save
+it to the referenced variable from the outer loop. Given that we interact with the driver
+asynchronously, it is possible that the current RTED is one that has already been sent to the driver
+but we have yet to receive a message confirming its execution. If so, there is nothing to do so we
+return =true=.
 
+# TODO does it make sense to call it a "suggested" time?
+# TODO isn't this the second \epsilon in the chapter? what about the epsilon proof? maybe the proof gets a new variable because this one is baked into Kirk?
+Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
+relationship between the scheduler, inner loop, and driver, we do not assume that dispatched events
+are executed instantaneously by the driver. We know that execution contends against delays such as
+the computational time in simply calling a function, to network latency, to robotic hardware that
+takes a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to
+preempt execution by dispatching events some small amount of time /before/ the clock time reaches
+the RTED execution window. We call this preemption time $\epsilon$, where $\epsilon \in
+\mathbb{R}^{\geq 0}$. Thus, we dispatch events, =dispatch-p=, when $\texttt{dispatch-p} =
+(t_{\text{RTED}} - t_{\text{clock}} \leq \epsilon)$. If $\epsilon = 0$, the dispatcher is not
+allowed to preemptively dispatch events before the RTED time. We allow the human operator to choose
+an $\epsilon$ that is consistent with the operational context for the driver.
 
+If =dispatch-p= is =false=, we are too early to execute the RTED and so the loop returns =true=.
+Otherwise we continue.
 
-** Optimistic Rescheduling
+Once we reach the third stage, we are guaranteed to be able to safely dispatch events because (1) we
+have confirmed that the RTED we have in hand has unexecuted events that have never been dispatched,
+and (2) that we are in a time window that the scheduler has told us is consistent with the STNU's
+constraints. Going forward, we take advantage of the operational distinction we added to
+Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the $\mathit{noop}$ property of each
+$\eventnoop$ pair in the RTED, we filter the $\eventnoop$ pairs into a set of =noop= events and a
+set of real events. The real events are asynchronously sent to the driver. We then loop through the
+=noop= events and schedule them in turn.
+
+Finally, because events were dispatched, the inner loop returns =true=.
+
+# TODO is it really an inner /loop/ or the inner part of the loop?
+
+# TODO annotate the algo better. maybe comments? sections?
+
+#+label: alg:dispatcher-outer
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Outer Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+\SetKw{Continue}{continue}
+
+\Indm
+
+\Initialize{$\mathit{RTED_{\mathit{last}}} \gets \varnothing$}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\While{Calling inner loop with $\mathit{RTED_{\mathit{last}}}$ returns $\textbf{true}$} {
+    \Continue
+}
+\caption{The outer loop of the dynamic dispatching algorithm.}
+\label{alg:dispatcher-outer}
+\end{algorithm}
+#+end_export
+
+# TODO check logic with last RTED
+
+#+label: alg:dispatcher-inner
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Inner Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{$\mathit{Scheduler}$; $\mathit{Driver}$; FIFO queue, $\mathit{Queue}$; $\mathit{RTED_{\mathit{last}}}$; $\epsilon$;}
+\Output{Boolean whether the outer loop should continue}
+
+\Initialize{$\mathit{events}_{\mathit{real}} \gets$ \{\}; $\mathit{events}_{\mathbf{noop}} \gets$ \{\};}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\If{$\mathit{Scheduler}$ has no more unexecuted events} {
+    \Return $\mathtt{false}$\;
+}
+
+\For{$\mathit{message}$ in $\mathit{Queue}$} {
+    Pop $\mathit{message}$\;
+    \For{$\mathit{event}, t_{\mathit{execution}}$ in $\mathit{message}$} {
+        Set $\assign(\mathit{event}) = t_{\mathit{execution}}$ in $\mathit{Scheduler}$\;
+    }
+    $\mathit{RTED_{\mathit{last}}} \gets \varnothing$\;
+}
+
+$\mathit{RTED} \gets$ a new RTED from $\mathit{Scheduler}$; \Comment{Equations \ref{eqn:rted-chi} and \ref{eqn:rted-t}}
+
+\If{$\mathit{RTED} = \mathit{RTED}_{\mathit{last}}$} {
+    \Return $\mathtt{true}$\;
+}
+
+$\mathit{RTED}_{\mathit{last}} \gets \mathit{RTED} = $\;
+
+\If{$t_{\mathit{RTED}} - t_{\mathit{current}} > \epsilon$} {
+    \Return $\mathtt{true}$\;
+}
+
+\For{$\eventnoop$ pair in $\mathit{RTED}_{\eventnoops}$} {
+    \eIf{$\eventnoop[noop]$ is \textbf{true}} {
+        Add $\eventnoop[x]$ to $\mathit{events}_{\mathbf{noop}}$\;
+    } {
+        Add $\eventnoop[x]$ to $\mathit{events}_{\mathit{real}}$\;
+    }
+}
+
+Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver}$\;
+
+\For{$\mathit{event}$ in $\mathit{events}_{\mathbf{noop}}$} {
+    Set $\assign(\mathit{event}) = t_{\mathit{RTED}}$ in $\mathit{Scheduler}$\;
+}
+
+\Return $\mathtt{true}$\;
+
+\caption{The inner loop of the dynamic dispatching algorithm.}
+\label{alg:dispatcher-inner}
+\end{algorithm}
+#+end_export
+
+The biggest contributor to the performance of the inner loop, Algorithm [[alg:dispatcher-inner]], is
+updating the schedule. Assuming the $\mathit{Scheduler}$ is the Delay Scheduler described in Section
+[[sec:delay-scheduler]], then performing an assignment of an event will trigger the FAST-EX update that
+runs in $O(N^{3})$ [cite:@Hunsberger2016 p144] with the number of events in the STNU. In the worst
+case, all events in the STNU arrive at the same time, whether as messages from the driver in the
+FIFO queue, or RTED =noop= events. Thus, the dynamic dispatcher's inner loop runs in $O(N^{4})$.
+
+*** Observing Contingent Events
+<<sec:event-observations>>
+
+The dispatcher relays contingent event observations to the scheduler. In the base case, when a
+contingent event is observed, the dispatcher updates the schedule with the event and current clock
+time. If this were the only responsibility of the dispatcher when receiving a contingent event, we
+would end the section here. However, this interface is also where we implement an /Optimistic
+Rescheduling/ technique to address a problem inherent to the buffering performed by the Delay
+Scheduler.
+
+# Now that we have a complete picture of the relationship between the scheduler, dispatcher, and
+# driver,
+
+We describe Optimistic Rescheduling below and present the full contingent event
+observation algorithm.
+
+**** Optimistic Rescheduling
 <<sec:optimistic>>
 
-The goal of this method is to dispatch future events as soon as possible. Contingent events may
-arrive earlier than expected due to the information lost during the variable-delay to fixed-delay
-STNU transformation process. Without this method, we would always be forced to buffer
-observations to the expected start time from the fixed-delay STNU in order to guarantee
-controllability of the rest of the STNU. Here, we create a new variable-delay STNU reflecting the
-resolutions of uncertainty so far, namely converting the original variable-delay contingent link
-to a free event set to lower==upper bounds matching its actual execution time, then re-perform
-controllability checks. If controllable, we get a new schedule that removes the need to buffer
-this contingent event. If not controllable, we do nothing, buffer the ctg event as planned, and
-continue dispatching against the original schedule.
+We return to problem of potentially unnecessary wait time created by the buffering execution
+strategy described in Lemma [[lemma:buffering]]. First, we use an example to demonstrate how buffering
+early contingent events results in a reduction of the execution space. Then we contribute a technique
+for managing event observations that circumvents the loss of execution space.
 
-Assume we have enough time to perform rescheduling, eg. the margin between the resolution of the
-ctg event and the lower bound of when we were expecting it is greater than the time it takes to
-perform rescheduling
+Consider the following variable-delay controllable STNU, which we will refer to as
+$\mathit{Bufferable}$.
 
-It's a generate-and-test approach
+$$
+\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
+\edge{}{C}{[5, 9]}
+$$
+
+Following the semantics of the delay scheduler, we would first transform $\mathit{Bufferable}$ to
+its fixed-delay equivalent, $\mathit{Bufferable}'$ by applying Lemma [[lemma:main-tightening]].
+
+$$
+\fdelayedge{A'}{B'}{[4, 8]}{0}
+\edge{}{C'}{[4, 6]}
+$$
+
+# TODO what's wrong with the latex at the end of this paragraph?
+# TODO clean up writing and explanation. point out difference in times
+If we assume $A$ is executed at $t = 0$, the only question is when to schedule $C$ (or its
+fixed-delay equivalent, $C'$). According to the semantics of $\mathit{Buffering}$, if $B$ is
+observed at $t = 2$, we know that $B$ was assigned at $t = 1$. Thus, we only need to wait until $t =
+6$ to schedule $C$. However, the delay scheduler would schedule according the constraints found in
+$\mathit{Buffering}'$, wherein $\assign(B') = 2$ falls earlier than the lower bound of
+$\conedge{A'}{B'}{[4, 8]}$, triggering Lemma [[lemma:buffering]]. As a result, we act as if $\assign(B')
+= 4$ and then wait for the lower bound of $\edge{B'}{C'}{[4, 6]}$. The end result is that $C'$ is
+assigned to a later time of $t = 8$.
+
+From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
+case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
+software is telling astronauts on Moon to just stand there doing nothing, responding that your
+algorithm /does not know/ if it is safe to act, would be unacceptable. Therefore, we contribute a
+generate-and-test approach that looks for opportunities to avoid buffering when contingent events
+arrive before their expected windows in the fixed-delay STNU. The goal of this method is to dispatch
+future events earlier if possible.
+
+# We can see that the full execution space for $C$ is $[1, 7] + [5, 9] = [6, 16]$.
+
+# TODO include a diagram used in group meeting that highlights the gaps at either end of the VDC->FDC translation
+
+At its core, Optimistic Rescheduling consists of copying the original variable-delay STNU then
+rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
+STNU is converting the original variable-delay contingent link that was just observed to a free
+constraint matching its actual execution time. We then re-perform controllability checks. If
+controllable, we have a new schedule that removes the need to buffer this contingent event. If not
+controllable, we do nothing, buffer the contingent event as planned, and continue dispatching
+against the original schedule.
+
+We now step through the Optimistic Rescheduling algorithm (Algorithm [[alg:optimistic-rescheduling]]) in
+detail.
+
+# TODO do we need to remind people schedule updates are handled by scheduler?
+
+#+label: alg:optimistic-rescheduling
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Inner Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{$\mathit{Scheduler}$; Original VDC STNU $S_{\mathit{original}}$; Partial history of observations $\mathit{observations}$; Observed contingent event $x$; Normalized lower bound $\hat x$; Current time $t$;}
+\Output{Boolean whether $x$ was successfully scheduled}
+
+\Indp
+\Algorithm{}
+\Indp
+
+$\mathit{successp}, \mathit{bufferedp} \gets \obs(x) = t$ as performed by $\mathit{Scheduler}$\;
+
+\If{$\neg \mathit{bufferedp}$} {
+    \Return $\mathit{successp}$\;
+}
+
+$S_{\mathit{optimistic}} \gets \mathtt{rewriteSTNU(S, x, t)}$\;
+
+\If{$S_{\mathit{optimistic}}$ is not variable-delay controllable} {
+    \Return $\mathit{successp}$\;
+}
+
+$\mathit{Scheduler} \gets \mathtt{createScheduler(S_{\mathit{optimistic}})}$\;
+
+\For{$\mathit{observation}$ in $\mathit{observations}$} {
+    $\obs(\mathit{observation[event]}) = \mathit{observation[time]}$\;
+}
+
+$\obs(\hat x) = t$\;
+$\obs(x) = t$\;
+
+\Return $\mathtt{true}$\;
+
+\caption{An Algorithm for observing contingent events with Optimistic Rescheduling.}
+\label{alg:optimistic-rescheduling}
+\end{algorithm}
+#+end_export
+
+# TODO need rewrite STNU algo
+# TODO do we need an algo in the scheduling section to call out the fact that we're returning more than a bool from scheduling?
+
 ** Experimental Analysis
 Scheduling always follows constraints
 

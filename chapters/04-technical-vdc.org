@@ -410,6 +410,8 @@ We sometimes use interval bounded schedules for requirement events as well, wher
 We once again revise our definition of situations, $\Omega_{v}$, to reflect the impact of the
 variable-delay function on the space of observations.
 
+# TODO we may need a history of observations
+
 #+label: def:omega-v
 #+latex: \begin{defn}
 #+latex: \label{def:omega-v}
@@ -474,7 +476,7 @@ with fixed-delay function, $\gamma(x'_{c})$.
 # TODO maybe use E instead of x_c for consistency's sake?
 #+label: fig:obs-assign
 #+caption: We visualize the relationship between realized assignments across $S$ and $S'$. In this example, each horizontal line is a timeline monotonically increasing from left to right. Dashed lines represent observation delays. We see how an assignment in $S$, \assign(x_{c})$, realized observation delay, $g(x_{c})$, and an observation in $S$, $\obs(x_{c})$, lead to an assignment in $S'$, \assign(x'_{c})$.
-[[file:viz-eqn-obs-assign.png]]
+[[file:../images/viz-eqn-obs-assign.png]]
 
 Note that we receive $\obs(x_{c})$ from Nature, but make the assignment $\xi(x'_{c})$ in the
 dispatchable form of $S'$. To be clear, while $\assign(x_{c})$ is an interval, $(\mathbb{R} \cup
@@ -1006,19 +1008,25 @@ unexecuted free timepoints. If $U_{x}$ is empty, then the RTED is to =WAIT=. Oth
 lower bound of the earliest executable time point and the set of executable events associated with
 it.
 
-\begin{align*}
+\begin{align}
 t &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
+\label{eqn:rted-chi}
 \chi &= \{X \in U_{x}~|~-D(X, Z) = t\}
-\end{align*}
+\end{align}
 
 We cannot execute events in the past. Let $\texttt{now}$ be the current time, i.e. the last timepoint
 captured in $\xi$. It is possible that $t \leq \texttt{now}$, in which case we must reassign $t$ to
 guarantee that $t > \texttt{now}$. To do so, we update $t$ as follows, where $t_{U}$ is earliest
 /upper/ bound of the executable timepoints,
 
-\begin{align*}
+#+label: eqn:rted2
+\begin{align}
 t_{U} &= \min\{D(Z, X)~|~X \in U_{x}\} \\
+\label{eqn:rted-t}
 t &= \cfrac{\texttt{now} + t_{U}}{2}
-\end{align*}
+\end{align}
 
 So long as $t_{U} > \texttt{now}$, we know that the reassignment of $t$ ensures $t > \texttt{now}$.
+
+** Experimental Analysis
+VDC experiments from VDC paper

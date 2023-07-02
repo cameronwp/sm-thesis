@@ -1,6 +1,6 @@
 #+title: Technical Robustness
 
-* Coordinating Multiple Agents in Extreme Environments
+* An Architecture for Robust Scheduling and Dispatching
 
 This is a chapter on distributed communication.
 

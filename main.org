@@ -57,9 +57,10 @@
 #+latex_header: \pagestyle{plain}
 
 # my packages
-#+latex_header: \usepackage{algorithm2e}
+#+latex_header: \usepackage[linesnumbered]{algorithm2e}
 #+latex_header: \usepackage{amsthm}
 #+latex_header: \usepackage{amsmath}
+#+latex_header: \usepackage{enumitem}
 #+latex_header: \usepackage{graphicx}
 #+latex_header: \usepackage{mathtools}
 #+latex_header: \usepackage{minted}
@@ -107,6 +108,8 @@
 \newcommand{\edge}[3]{#1 \xrightarrow{#3} #2}
 \newcommand{\conedge}[3]{#1 \xRightarrow{#3} #2}
 \newcommand{\gammabar}{\bar{\gamma}}
+\newcommand{\fdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\gamma = #4}{#2}}
+\newcommand{\vdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\bar{\gamma} \in #4}{#2}}
 %\newcommand{\obs}{\texttt{obs}}
 \newcommand{\obs}{\psi}
 \newcommand{\assign}{\xi}
@@ -124,6 +127,9 @@
 
 \theoremstyle{definition}
 \newtheorem{example}{Example}
+
+% org mode likes to add too much vertical spacing to lists
+\setlist{noitemsep}
 #+end_export
 
 #+include: "chapters/00-cover.org"

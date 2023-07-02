@@ -22,3 +22,5 @@ does the rewriting math actually work though with the infinity?
 - https://github.com/KevCui/mitm-scripts#mitm-delay-request
 - https://stackoverflow.com/questions/47827496/how-to-configure-docker-container-proxy
 - https://docs.docker.com/network/proxy/
+* TODO fix bug in optimistic rescheduling wrt re-assigning partial schedules
+maybe instead of using the partial history, we use observations

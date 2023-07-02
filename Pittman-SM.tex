@@ -1,4 +1,4 @@
-% Created 2023-06-25 Sun 13:59
+% Created 2023-07-02 Sun 16:44
 % Intended LaTeX compiler: pdflatex
 \documentclass[10pt,leftblank,twoside]{mitthesis}
 \usepackage[utf8]{inputenc}
@@ -17,9 +17,10 @@
 \usepackage{cmap}
 \usepackage[T1]{fontenc}
 \pagestyle{plain}
-\usepackage{algorithm2e}
+\usepackage[linesnumbered]{algorithm2e}
 \usepackage{amsthm}
 \usepackage{amsmath}
+\usepackage{enumitem}
 \usepackage{graphicx}
 \usepackage{mathtools}
 \usepackage{minted}
@@ -81,6 +82,8 @@
 \newcommand{\edge}[3]{#1 \xrightarrow{#3} #2}
 \newcommand{\conedge}[3]{#1 \xRightarrow{#3} #2}
 \newcommand{\gammabar}{\bar{\gamma}}
+\newcommand{\fdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\gamma = #4}{#2}}
+\newcommand{\vdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\bar{\gamma} \in #4}{#2}}
 %\newcommand{\obs}{\texttt{obs}}
 \newcommand{\obs}{\psi}
 \newcommand{\assign}{\xi}
@@ -98,6 +101,9 @@
 
 \theoremstyle{definition}
 \newtheorem{example}{Example}
+
+% org mode likes to add too much vertical spacing to lists
+\setlist{noitemsep}
 
 % NOTE:
 % These templates make an effort to conform to the MIT Thesis specifications,
@@ -124,9 +130,9 @@
 
 % As of the 2007-08 academic year, valid degree months are September,
 % February, or June.  The default is June.
-\degreemonth{June}
+\degreemonth{September}
 \degreeyear{2023}
-\thesisdate{May 1, 2023}
+\thesisdate{August 15, 2023}
 
 %% By default, the thesis will be copyrighted to MIT.  If you need to copyright
 %% the thesis to yourself, just specify the `vi' documentclass option.  If for
@@ -181,7 +187,41 @@ This is an abstract.
 
 \section*{Acknowledgements}
 
-So long and thanks for all the fish!
+My journey to this SM thesis began eight years ago when I was a software engineer living in San
+Francisco. Two years prior, I had just wrapped four years of teaching high school science and didn't
+know how to code. I taught myself Python using MIT OpenCourseware on a whim because it was something
+I had always wanted to learn. Coding took over my life the first time I wrote a function. My first
+projects were physics demos and websites, but soon I learned I loved helping systems make decisions.
+And there is absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and
+wondered, ``I want to be a part of the next space race! What if I studied autonomy for human
+spaceflight? Where would I even go to learn autonomy?'' (I admit I didn't know the field was called
+``autonomy'' at the time.) Of course, MIT came up when I started searching. It took five more years of
+studying computer science, finding people to learn from, and integrating in the human spaceflight
+community, but eventually I found my way into AeroAstro and the MERS lab. It's been the journey of a
+lifetime and there's no way I would be here without the love and support from so many people.
+
+First, I have to thank my amazing wife, Mo, who is the hardest working, most driven person I've ever
+met. She's been my biggest cheerleader and sounding board for my ideas (even when she has no idea
+what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I think about her living
+in a world where there are thousands of people living and working in space. At the time of writing
+this, she's a month old and already making me work harder than I ever have. I never would have made
+it this far without a supportive family. My parents, Mark and Suzanne, and my brother, Max, have
+always been there for me.
+
+My advisor, Brian Williams, has consistently surprised me with how much support he's freely given.
+Brian has been one of the most helpful people I've ever met, starting with the first time I
+introduced myself and blurted out, ``hi, I'm taking your class and I think it's amazing and I want to
+use everything at work and can I please join your lab?'' From academic mentoring, to brainstorming
+executive architectures, to explaining basic concepts in temporal reasoning, to envisioning the next
+generation of online education, he's been open, honest, and eager to share ideas. Brian, you have
+had a profound impact on my life and career, and for that I'm forever grateful.
+
+Next, I have to thank all my labmates. I can't really quantify the level of impact any single person
+has had, so I'll be doing these chronological order of when we met.
+
+The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office hours
+even when I didn't have questions just because I wanted to hang out and talk autonomy with people.
+Simon, thank you for being a supportive TA (and introducing me to Aunty Donna). Sungkweon,
 
 \pagestyle{plain}
 
@@ -197,12 +237,12 @@ So long and thanks for all the fish!
 \begin{document}
 
 \chapter{Introduction}
-\label{sec:org3d00f66}
+\label{sec:orgccceabb}
 
 This is the introduction.
 
 \section{Section Header}
-\label{sec:orgad878ca}
+\label{sec:org6ca79cb}
 
 This is a section of text. As said in\ldots{} \citeprocitem{1}{[1]} ``Hey''. So said \citeprocitem{2}{[2]} too
 that things are cool.
@@ -217,7 +257,7 @@ that things are cool.
 This is something I want to cite \citeprocitem{3}{[3]}
 
 \chapter{Problem Statement}
-\label{sec:org8428bf8}
+\label{sec:org0ae8e4d}
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
 uncertain inter-agent communication in uncertain environments. This thesis will focus on two
@@ -238,7 +278,7 @@ infrastructure, uncertain timing with respect to knowledge transfer between agen
 scientific equipment.
 
 \section{Extravehicular Activities as a Motivating Scenario}
-\label{sec:orgcca1af5}
+\label{sec:org22c9d5f}
 
 NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program\footnote{\url{https://www.nasa.gov/specials/artemis/}}. The Artemis astronauts will continue a longstanding
 tradition in the U.S. space program of performing EVAs \citeprocitem{4}{[4]}. Like the Apollo
@@ -291,7 +331,7 @@ limited bandwidth between space and ground, creating additional uncertainty betw
 product is ready and when it is available to the science team.
 
 \section{Motivating Scenario}
-\label{sec:org9de2604}
+\label{sec:org3214db2}
 A human and a rover are working together to perform scientific exploration on the lunar surface. The
 human is performing exploration of targets of opportunity that were identified during descent. The
 rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
@@ -307,7 +347,7 @@ Both the human and the robot have their own schedules of events to perform and a
 other agent's events.
 
 \chapter{Approach}
-\label{sec:org3adf869}
+\label{sec:org3fd69a8}
 \label{ch:approach}
 
 For addressing our problem statement, we envision that a high-level executive should take
@@ -353,7 +393,7 @@ easy to run, debug, integrate with existing autonomous systems
 Our approach to each research focus will be described below.
 
 \section{Modeling and Controllability}
-\label{sec:orgabb2a34}
+\label{sec:orgc41cbae}
 
 We take a model-based approach to deploying autonomous systems, that is, prior to a mission, we
 envision that engineers and domain experts work together to model the system at hand, then during
@@ -410,7 +450,7 @@ below, our approach was to add the ability for planners to model observation del
 temporal constraints in RMPL.
 
 \subsection{Modeling Uncertain Observation Delay in STNUs}
-\label{sec:org45ca9f4}
+\label{sec:orgf440bb2}
 \label{sec:obs-delay-in-stnus}
 
 In the case of observation delay, our model dictates that we reason over two time intervals. The
@@ -465,7 +505,7 @@ Chapter \label{ch:modeling-tn}.
 We formalize event observations and observation delay in Section \ref{sec:vdc}.
 
 \subsection{Modeling Observation Delay in RMPL}
-\label{sec:orgceae7c3}
+\label{sec:org8c46780}
 \label{sec:rmpl}
 
 RMPL is a key component of Kirk. This section steps through example RMPL control programs to
@@ -686,7 +726,7 @@ learn \emph{that} the contingent event occurred - is not guaranteed to learn whe
 contingent event was assigned, nor will it know how much observation delay was incurred.
 
 \subsection{Explicitly Modeling Agents in RMPL}
-\label{sec:org5b67d04}
+\label{sec:org9818691}
 \label{sec:rmpl-agents}
 
 This section is included to expand on the features of RMPL, though note that none of these features
@@ -762,7 +802,7 @@ Kirk is able to take RMPL as input to perform classical planning, though further
 falls outside the scope of this thesis.
 
 \section{Scheduling Temporal Events}
-\label{sec:orgc017521}
+\label{sec:org438f8d6}
 \label{sec:approach-scheduling}
 
 The bulk of the technical chapters of this thesis, namely Chapters \ref{ch:modeling-tn} and
@@ -784,7 +824,7 @@ FAST-EX capable of applying the execution strategy defined in our first contribu
 We elaborate further on our approach to each contribution below.
 
 \subsection{Defining a Valid Execution Strategy for STNUs with Variable Observation Delay}
-\label{sec:org064b069}
+\label{sec:org803ac35}
 
 We cannot execute an STNU without first demonstrating that it is controllable. Our approach to
 checking the controllability of STNUs with observation delay is to apply Bhargava's Variable-Delay
@@ -813,7 +853,7 @@ fixed-delay form. In Chapter \ref{ch:delay-scheduling}, we formally define the e
 variable-delay STNUs and prove its validity.
 
 \subsection{Online Dispatching for STNUs with Variable Observation Delay}
-\label{sec:orgb895e89}
+\label{sec:org1c4a90c}
 
 We chose to build the delay scheduler as a modified variant of Hunsberger's FAST-EX
 \citeprocitem{36}{[36]} because, to the best of our knowledge, FAST-EX is the fastest dynamic
@@ -842,7 +882,7 @@ despite never observing them. Imagining contingent events is a result of the oth
 the variable-delay to fixed-delay transformation (see Section \ref{sec:recording-vdc-ctg}).
 
 \section{Coordination}
-\label{sec:orgd44bb0b}
+\label{sec:org55d6839}
 \label{sec:approach-coordination}
 
 To the best of our knowledge, this thesis contributes the first framework for, and demonstration of,
@@ -889,7 +929,7 @@ system incorporates the time events spend propagating through the graph. Event p
 formally defined in Section \ref{sec:event-propagation}.
 
 \section{Robustness}
-\label{sec:orga22eae2}
+\label{sec:org3b3de06}
 
 Autonomy research tends to focus on ideal, generic executives that behave perfectly. For instance,
 temporal reasoning research assumes that controllable events are executed instantaneously at the
@@ -921,7 +961,7 @@ We improve the delay scheduler by differentiating real and \texttt{noop} control
 We remove the assumption that controllable events are instantaneously executed\ldots{}
 
 \chapter{Modeling Temporal Networks}
-\label{sec:org6fc614c}
+\label{sec:org9ae462a}
 \label{ch:modeling-tn}
 
 Our aim is to architect a pipeline that takes a temporal network as input and produces temporally
@@ -933,7 +973,7 @@ for modeling observation delay.
 TODO \ldots{}take the approach of defining temporal networks, and updating our defns as we work towards STNUs
 
 \section{Temporal Networks}
-\label{sec:orged30cea}
+\label{sec:org7029147}
 \label{sec:tn}
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
@@ -1096,7 +1136,7 @@ network exhibits dynamic controllability if an execution strategy, \(\mathcal{S}
 partial schedule, \(\xi\).
 
 \section{Fixed-Delay Controllability}
-\label{sec:org802924a}
+\label{sec:org1f821d6}
 \label{sec:fdc}
 
 Under fixed-delay controllability \citeprocitem{35}{[35]}, we consider the problem of scheduling
@@ -1235,7 +1275,7 @@ before its immediate successor. More detail can be found in \citeprocitem{37}{[3
 \end{table}
 
 \section{Variable-Delay Controllability}
-\label{sec:orgb55af8e}
+\label{sec:org391c363}
 \label{sec:vdc}
 
 While fixed-delay controllability is quite expressive, its fundamental limitation is that it cannot
@@ -1355,7 +1395,7 @@ with fixed-delay function, \(\gamma(x'_{c})\).
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=.9\linewidth]{chapters/viz-eqn-obs-assign.png}
+\includegraphics[width=.9\linewidth]{images/viz-eqn-obs-assign.png}
 \caption{\label{fig:obs-assign}We visualize the relationship between realized assignments across \(S\) and \(S'\). In this example, each horizontal line is a timeline monotonically increasing from left to right. Dashed lines represent observation delays. We see how an assignment in \(S\), \assign(x\textsubscript{c})\$, realized observation delay, \(g(x_{c})\), and an observation in \(S\), \(\obs(x_{c})\), lead to an assignment in \(S'\), \assign(x'\textsubscript{c})\$.}
 \end{figure}
 
@@ -1730,7 +1770,7 @@ must be executed in \([16, 24]\). The execution semantics for both cases match t
 from \ref{fig:combined-figure}a described above.
 
 \section{Dynamic Scheduling through Real-Time Execution Decisions}
-\label{sec:org9104d1f}
+\label{sec:orgedab738}
 \label{sec:dynamic-scheduling}
 
 An STNU, \(S\), that exhibits dynamic controllability can be \emph{scheduled} dynamically (or \emph{online}). At
@@ -1820,30 +1860,37 @@ unexecuted free timepoints. If \(U_{x}\) is empty, then the RTED is to \texttt{W
 lower bound of the earliest executable time point and the set of executable events associated with
 it.
 
-\begin{align*}
+\begin{align}
 t &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
+\label{eqn:rted-chi}
 \chi &= \{X \in U_{x}~|~-D(X, Z) = t\}
-\end{align*}
+\end{align}
 
 We cannot execute events in the past. Let \(\texttt{now}\) be the current time, i.e. the last timepoint
 captured in \(\xi\). It is possible that \(t \leq \texttt{now}\), in which case we must reassign \(t\) to
 guarantee that \(t > \texttt{now}\). To do so, we update \(t\) as follows, where \(t_{U}\) is earliest
 \emph{upper} bound of the executable timepoints,
 
-\begin{align*}
+\begin{align}
+\label{eqn:rted2}
 t_{U} &= \min\{D(Z, X)~|~X \in U_{x}\} \\
+\label{eqn:rted-t}
 t &= \cfrac{\texttt{now} + t_{U}}{2}
-\end{align*}
+\end{align}
 
 So long as \(t_{U} > \texttt{now}\), we know that the reassignment of \(t\) ensures \(t > \texttt{now}\).
 
+\section{Experimental Analysis}
+\label{sec:orgdc826ba}
+VDC experiments from VDC paper
+
 \chapter{Dynamic Scheduling with Delayed Event Monitoring}
-\label{sec:org5e3536d}
+\label{sec:org95c6967}
 \label{ch:delay-scheduling}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=2.5in]{chapters/flow-chart.png}
+\includegraphics[width=2.5in]{images/flow-chart.png}
 \caption{\label{fig:flow-chart}From a variable-delay STNU to scheduling decision}
 \end{figure}
 
@@ -1852,6 +1899,12 @@ scheduling}, an RTED-based strategy for dispatching free events in the case wher
 set-bounded observation delay for contingent events. As will be shown, delay scheduling is an
 extension to dynamic scheduling using the execution strategy as outlined in the variable-delay
 controllability checking procedure.
+
+We also separate scheduling from dispatching. In our view, the responsibilities of a scheduler end
+with the generation of an execution decision. The dispatcher then uses execution decisions to send
+commands to hardware at a time that is consistent with execution decision.
+
+
 
 We must address three gaps: first, we reconcile
 
@@ -1879,7 +1932,7 @@ contingent links in the fixed-delay STNU, which we must reconcile with the dispa
 Figure \ref{fig:flow-chart} for an overview of the information flow in scheduling a variable-delay STNU.
 
 \section{Scheduling with Variable-Observation Delay}
-\label{sec:org2fe8521}
+\label{sec:orgab9af72}
 
 To solidify the process of scheduling a variable-delay STNU, consider the following analogy.
 
@@ -1913,7 +1966,7 @@ Our key challenge for scheduling an STNU with variable observation delay is reco
 from \(S\) with the dispatchable form from \(S'\).
 
 \section{Recording Contingent Event Assignments}
-\label{sec:org57a19a9}
+\label{sec:orge67b146}
 \label{sec:recording-vdc-ctg}
 
 During execution, we observe the outcome of contingent events \(\obs(x_{c})\) in \(S\), but we make
@@ -2016,7 +2069,7 @@ If a contingent event, $x_{c} \in X_{c}$, is observed earlier than the bounds of
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=.9\linewidth]{chapters/viz-l-plus.png}
+\includegraphics[width=.9\linewidth]{images/viz-l-plus.png}
 \caption{\label{fig:observations}Here, we show how the combination of \(\assign(x_{c})\) and \(\gammabar(x_{c})\) lead to an assignment of \(\assign(x'_{c})\) in \(S'\). We see the range \(\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})\) representing the earliest and latest assignments of \assign(x\textsubscript{c})\$ that could result in \(\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})\), l\^{}+(x\textsubscript{c})]\$. The grey region represents the range of possible observation delays, \(\gammabar(x_{c})\), supporting \(\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]\).}
 \end{figure}
 
@@ -2113,9 +2166,10 @@ We have addressed the key issue of reconciling observations from \(S\) with the 
 robustness for variable observation delay.
 
 \section{Modified FAST-EX for Variable Observation Delay}
-\label{sec:org038c603}
+\label{sec:org0c84a09}
+\label{sec:delay-scheduler}
 
-We present an overview of the scheduling and dispatching algorithms below with explanations following.
+We present an overview of the scheduling algorithm below with explanations following.
 
 While we made a careful distinction between \(x_{c}\) and \(x'_{c}\) in our discussion of scheduling, in
 our implementation it was important to be able to easily replace one with another when looking up
@@ -2171,7 +2225,7 @@ Let \(x\) be a temporal event, \(x \forall x \in X_{c} \cup X_{e}\).
 \end{algorithm}
 
 \subsection{Real vs No-op Events}
-\label{sec:org0b85303}
+\label{sec:orgdbf51cb}
 \label{sec:real-vs-noop-events}
 
 The introduction of buffering and imagining events creates a new distinction between temporal
@@ -2201,58 +2255,364 @@ meaning the agent is responsible for taking some action to execute them, and tho
 \emph{no-ops}, or algorithmic by-products that require no operation. This distinction naturally leads to
 the following addendum to the definition of RTEDs.
 
+\newcommand*{\eventnoop}{\mathit{event}\textsf{-}\mathit{noop}}
+\newcommand*{\eventnoops}{\mathit{event}\textsf{-}\mathit{noops}}
+
 \begin{defn}
-\textbf{Event-No-op Pair} \\
-An \textit{Event-No-op Pair}, $\phi$, is a two-tuple, $\langle X, \nu \rangle$, where:
+\textbf{Event-No-op Pair}
+
+An \emph{Event-No-op Pair}, \(\eventnoop\), is a two-tuple, \(\langle x, \mathit{noop} \rangle\),
+where:
 \begin{itemize}
-    \item $X$ is an event in $X_{e} \cup X_{c}$,
-    \item $\nu$ is a boolean, where if True, the event is a no-op, else real
+\item \(x\) is an event in \(X_{e} \cup X_{c}\),
+\item \(\mathit{noop}\) is a boolean, where if true, the event does not correspond to an action an agent
+should take, else real.
 \end{itemize}
 \end{defn}
 
 \begin{defn}
-\textbf{RTED with Operational Distinction} \\
-A \textit{Real-Time Execution Decision with Operational Distinction} is a two-tuple $\langle t, \Phi \rangle$, where:
+\label{def:rted-op}
+\textbf{RTED with Operational Distinction}
+
+A \emph{Real-Time Execution Decision with Operational Distinction} is a two-tuple \(\langle t,
+\eventnoops \rangle\), where:
 \begin{itemize}
-    \item $t$ is a time with domain $\mathbb{R}$,
-    \item $\Phi$ is a set of $\phi$ to be executed at time $t$,
+\item \(t\) is a time with domain \(\mathbb{R}\),
+\item \(\eventnoops\) is a set of \(\eventnoop\) pairs to be executed at time \(t\).
 \end{itemize}
 \end{defn}
 
 For convenience and simplicity, and given the similarities between RTED and RTED with Operational
 Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
 
-\section{Dynamic Dispatching}
-\label{sec:org8d0c5ec}
+\section{Dispatching}
+\label{sec:org479e87d}
 \label{sec:dynamic-dispatching}
 
-A \emph{dynamic dispatcher} (or just ``dispatcher'') is an interface layer with a two-fold responsibility:
-it triggers the execution of RTEDs in the outside world, and it relays observations from the outside
-world about the execution of events to the scheduler.
+This thesis contributes a dynamic dispatching algorithm for which the process of generating RTEDs is
+a subroutine. In our view, RTEDs are not commands to the agent. Rather, they inform the agent of the
+time windows where actions ensure consistency. As such, a dedicated dispatcher layer is required to
+translate RTEDs to real actions at the right time. The dispatcher will request RTEDs and then wait
+until the time window of the execution to trigger their execution.
 
-\section{Optimistic Rescheduling}
-\label{sec:orgefab593}
+A \emph{dynamic dispatcher} (or just ``dispatcher'') is an interface layer situated between the scheduler
+and a \emph{driver} that communicates with hardware. The dispatcher has a two-fold responsibility: it
+triggers the execution of RTEDs in the outside world by communicating with the driver (Section
+\ref{sec:event-dispatching}), and it relays observations from the outside world about the execution of
+events to the scheduler (Section \ref{sec:event-observations}). An explicit dispatching layer allows us to
+centralize the logic for interacting with the outside world therein, keeping the scheduler simple.
+In the implementation of Kirk used in this thesis, the scheduler wholly consists of the algorithms
+described above, nothing more. We go so far as to enforce that the scheduler itself has no notion of
+a clock. Instead, the dispatcher has a clock. When the dispatcher wants the scheduler to update
+itself, it is required to send both an event and a elapsed time to the scheduler.
+
+Consequently, the dispatching algorithm is separate from the scheduler. As such, there is no hard
+requirement on the FAST-EX-based scheduler described above. Any scheduling algorithm that produces
+RTEDs adhering to Definition \ref{def:rted-op} would be compatible with the dispatcher described below.
+
+\subsection{Dynamic Event Dispatching}
+\label{sec:org516de04}
+\label{sec:event-dispatching}
+
+The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. The inner
+loop, Algorithm \ref{alg:dispatcher-inner}, is responsible for retrieving the latest RTEDs and firing
+driver commands when the clock indicates that the agent is inside RTED time windows. The outer loop,
+Algorithm, \ref{alg:dispatcher-outer}, runs continuously until the scheduler reports that there are no
+free events remaining to schedule. The dispatcher requests RTEDs with blocking synchronous calls,
+while the dispatcher and driver communicate asynchronously. The dispatcher spawns a thread to make
+non-blocking calls to the driver's interface to execute events. The dispatcher and driver also share
+a FIFO queue that the driver can append messages to indicating the successful execution of events.
+
+We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
+\emph{schedule} here is shorthand for whatever data structures the scheduler uses to generate RTED.
+\emph{Updating the schedule} may be used to refer to making an event assignment in the scheduler,
+triggering any necessary changes to the schedule.
+
+The interaction between the inner and outer loop is limited. The inner loop returns a Boolean
+indicating whether there are executable events remaining. The outer loop is a simple \texttt{while} that
+repeats until it receives \texttt{false} from the inner loop. Otherwise, the only communication between the
+inner and outer loops is a variable containing the last RTED that was generated but not executed.
+The outer loop creates the variable and passes it by reference to the inner loop. The inner loop is
+free to use or modify the variable as it sees fit.
+
+We break the inner loop of algorithm into three distinct phases.
+
+\begin{enumerate}
+\item Receive execution confirmation from the driver.
+\item Collect an RTED and confirm the clock time is within the execution window.
+\item If there is an RTED:
+\begin{enumerate}
+\item send executable events to the driver, else
+\item immediately assign all \texttt{noop} events to the current time.
+\end{enumerate}
+\end{enumerate}
+
+Our goal in the inner loop is to dispatch events to the driver only after updating the schedule,
+collecting an up-to-date RTED, and confirming we are within the time window of the RTED. The loop
+will exit before reaching the dispatch step if any conditions are not met.
+
+For the first step, we ask the scheduler if there are any remaining executable events. If there are
+none, we return \texttt{false} to signal the loop's termination, otherwise we continue.
+
+Next, we check the FIFO queue for any event execution messages returned from the driver. The
+presence of a message would indicate that the driver has successfully executed a free event. We
+iteratively pop messages off the queue and update the schedule with the events and execution time
+contained in each message. Note that the scheduler update is a blocking operation because we need an
+up-to-date schedule to guarantee future RTEDs are consistent. We then invalidate the last RTED
+generated.
+
+The second step starts once we have popped all messages from the driver off the queue. If we do not
+have a valid RTED from the last iteration of the inner loop, we ask the scheduler for one and save
+it to the referenced variable from the outer loop. Given that we interact with the driver
+asynchronously, it is possible that the current RTED is one that has already been sent to the driver
+but we have yet to receive a message confirming its execution. If so, there is nothing to do so we
+return \texttt{true}.
+
+Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
+relationship between the scheduler, inner loop, and driver, we do not assume that dispatched events
+are executed instantaneously by the driver. We know that execution contends against delays such as
+the computational time in simply calling a function, to network latency, to robotic hardware that
+takes a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to
+preempt execution by dispatching events some small amount of time \emph{before} the clock time reaches
+the RTED execution window. We call this preemption time \(\epsilon\), where \(\epsilon \in
+\mathbb{R}^{\geq 0}\). Thus, we dispatch events, \texttt{dispatch-p}, when \(\texttt{dispatch-p} =
+(t_{\text{RTED}} - t_{\text{clock}} \leq \epsilon)\). If \(\epsilon = 0\), the dispatcher is not
+allowed to preemptively dispatch events before the RTED time. We allow the human operator to choose
+an \(\epsilon\) that is consistent with the operational context for the driver.
+
+If \texttt{dispatch-p} is \texttt{false}, we are too early to execute the RTED and so the loop returns \texttt{true}.
+Otherwise we continue.
+
+Once we reach the third stage, we are guaranteed to be able to safely dispatch events because (1) we
+have confirmed that the RTED we have in hand has unexecuted events that have never been dispatched,
+and (2) that we are in a time window that the scheduler has told us is consistent with the STNU's
+constraints. Going forward, we take advantage of the operational distinction we added to
+Hunsberger's RTEDs in Definition \ref{def:rted-op}. Using the \(\mathit{noop}\) property of each
+\(\eventnoop\) pair in the RTED, we filter the \(\eventnoop\) pairs into a set of \texttt{noop} events and a
+set of real events. The real events are asynchronously sent to the driver. We then loop through the
+\texttt{noop} events and schedule them in turn.
+
+Finally, because events were dispatched, the inner loop returns \texttt{true}.
+
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Outer Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+\SetKw{Continue}{continue}
+
+\Indm
+
+\Initialize{$\mathit{RTED_{\mathit{last}}} \gets \varnothing$}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\While{Calling inner loop with $\mathit{RTED_{\mathit{last}}}$ returns $\textbf{true}$} {
+    \Continue
+}
+\caption{The outer loop of the dynamic dispatching algorithm.}
+\label{alg:dispatcher-outer}
+\end{algorithm}
+
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Inner Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{$\mathit{Scheduler}$; $\mathit{Driver}$; FIFO queue, $\mathit{Queue}$; $\mathit{RTED_{\mathit{last}}}$; $\epsilon$;}
+\Output{Boolean whether the outer loop should continue}
+
+\Initialize{$\mathit{events}_{\mathit{real}} \gets$ \{\}; $\mathit{events}_{\mathbf{noop}} \gets$ \{\};}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\If{$\mathit{Scheduler}$ has no more unexecuted events} {
+    \Return $\mathtt{false}$\;
+}
+
+\For{$\mathit{message}$ in $\mathit{Queue}$} {
+    Pop $\mathit{message}$\;
+    \For{$\mathit{event}, t_{\mathit{execution}}$ in $\mathit{message}$} {
+        Set $\assign(\mathit{event}) = t_{\mathit{execution}}$ in $\mathit{Scheduler}$\;
+    }
+    $\mathit{RTED_{\mathit{last}}} \gets \varnothing$\;
+}
+
+$\mathit{RTED} \gets$ a new RTED from $\mathit{Scheduler}$; \Comment{Equations \ref{eqn:rted-chi} and \ref{eqn:rted-t}}
+
+\If{$\mathit{RTED} = \mathit{RTED}_{\mathit{last}}$} {
+    \Return $\mathtt{true}$\;
+}
+
+$\mathit{RTED}_{\mathit{last}} \gets \mathit{RTED} = $\;
+
+\If{$t_{\mathit{RTED}} - t_{\mathit{current}} > \epsilon$} {
+    \Return $\mathtt{true}$\;
+}
+
+\For{$\eventnoop$ pair in $\mathit{RTED}_{\eventnoops}$} {
+    \eIf{$\eventnoop[noop]$ is \textbf{true}} {
+        Add $\eventnoop[x]$ to $\mathit{events}_{\mathbf{noop}}$\;
+    } {
+        Add $\eventnoop[x]$ to $\mathit{events}_{\mathit{real}}$\;
+    }
+}
+
+Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver}$\;
+
+\For{$\mathit{event}$ in $\mathit{events}_{\mathbf{noop}}$} {
+    Set $\assign(\mathit{event}) = t_{\mathit{RTED}}$ in $\mathit{Scheduler}$\;
+}
+
+\Return $\mathtt{true}$\;
+
+\caption{The inner loop of the dynamic dispatching algorithm.}
+\label{alg:dispatcher-inner}
+\end{algorithm}
+
+The biggest contributor to the performance of the inner loop, Algorithm \ref{alg:dispatcher-inner}, is
+updating the schedule. Assuming the \(\mathit{Scheduler}\) is the Delay Scheduler described in Section
+\ref{sec:delay-scheduler}, then performing an assignment of an event will trigger the FAST-EX update that
+runs in \(O(N^{3})\) \citeprocitem{36}{[36, p. 144]} with the number of events in the STNU. In the worst
+case, all events in the STNU arrive at the same time, whether as messages from the driver in the
+FIFO queue, or RTED \texttt{noop} events. Thus, the dynamic dispatcher's inner loop runs in \(O(N^{4})\).
+
+\subsection{Observing Contingent Events}
+\label{sec:org5070656}
+\label{sec:event-observations}
+
+The dispatcher relays contingent event observations to the scheduler. In the base case, when a
+contingent event is observed, the dispatcher updates the schedule with the event and current clock
+time. If this were the only responsibility of the dispatcher when receiving a contingent event, we
+would end the section here. However, this interface is also where we implement an \emph{Optimistic
+Rescheduling} technique to address a problem inherent to the buffering performed by the Delay
+Scheduler.
+
+We describe Optimistic Rescheduling below and present the full contingent event
+observation algorithm.
+
+\begin{enumerate}
+\item Optimistic Rescheduling
+\label{sec:org48a3491}
 \label{sec:optimistic}
 
-The goal of this method is to dispatch future events as soon as possible. Contingent events may
-arrive earlier than expected due to the information lost during the variable-delay to fixed-delay
-STNU transformation process. Without this method, we would always be forced to buffer
-observations to the expected start time from the fixed-delay STNU in order to guarantee
-controllability of the rest of the STNU. Here, we create a new variable-delay STNU reflecting the
-resolutions of uncertainty so far, namely converting the original variable-delay contingent link
-to a free event set to lower==upper bounds matching its actual execution time, then re-perform
-controllability checks. If controllable, we get a new schedule that removes the need to buffer
-this contingent event. If not controllable, we do nothing, buffer the ctg event as planned, and
-continue dispatching against the original schedule.
+We return to problem of potentially unnecessary wait time created by the buffering execution
+strategy described in Lemma \ref{lemma:buffering}. First, we use an example to demonstrate how buffering
+early contingent events results in a reduction of the execution space. Then we contribute a technique
+for managing event observations that circumvents the loss of execution space.
 
-Assume we have enough time to perform rescheduling, eg. the margin between the resolution of the
-ctg event and the lower bound of when we were expecting it is greater than the time it takes to
-perform rescheduling
+Consider the following variable-delay controllable STNU, which we will refer to as
+\(\mathit{Bufferable}\).
 
-It's a generate-and-test approach
+$$
+\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
+\edge{}{C}{[5, 9]}
+$$
+
+Following the semantics of the delay scheduler, we would first transform \(\mathit{Bufferable}\) to
+its fixed-delay equivalent, \(\mathit{Bufferable}'\) by applying Lemma \ref{lemma:main-tightening}.
+
+$$
+\fdelayedge{A'}{B'}{[4, 8]}{0}
+\edge{}{C'}{[4, 6]}
+$$
+
+If we assume \(A\) is executed at \(t = 0\), the only question is when to schedule \(C\) (or its
+fixed-delay equivalent, \(C'\)). According to the semantics of \(\mathit{Buffering}\), if \(B\) is
+observed at \(t = 2\), we know that \(B\) was assigned at \(t = 1\). Thus, we only need to wait until \(t =
+6\) to schedule \(C\). However, the delay scheduler would schedule according the constraints found in
+\(\mathit{Buffering}'\), wherein \(\assign(B') = 2\) falls earlier than the lower bound of
+\(\conedge{A'}{B'}{[4, 8]}\), triggering Lemma \ref{lemma:buffering}. As a result, we act as if \(\assign(B')
+= 4\) and then wait for the lower bound of \(\edge{B'}{C'}{[4, 6]}\). The end result is that \(C'\) is
+assigned to a later time of \(t = 8\).
+
+From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
+case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
+software is telling astronauts on Moon to just stand there doing nothing, responding that your
+algorithm \emph{does not know} if it is safe to act, would be unacceptable. Therefore, we contribute a
+generate-and-test approach that looks for opportunities to avoid buffering when contingent events
+arrive before their expected windows in the fixed-delay STNU. The goal of this method is to dispatch
+future events earlier if possible.
+
+At its core, Optimistic Rescheduling consists of copying the original variable-delay STNU then
+rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
+STNU is converting the original variable-delay contingent link that was just observed to a free
+constraint matching its actual execution time. We then re-perform controllability checks. If
+controllable, we have a new schedule that removes the need to buffer this contingent event. If not
+controllable, we do nothing, buffer the contingent event as planned, and continue dispatching
+against the original schedule.
+
+We now step through the Optimistic Rescheduling algorithm (Algorithm \ref{alg:optimistic-rescheduling}) in
+detail.
+
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Inner Loop}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{$\mathit{Scheduler}$; Original VDC STNU $S_{\mathit{original}}$; Partial history of observations $\mathit{observations}$; Observed contingent event $x$; Normalized lower bound $\hat x$; Current time $t$;}
+\Output{Boolean whether $x$ was successfully scheduled}
+
+\Indp
+\Algorithm{}
+\Indp
+
+$\mathit{successp}, \mathit{bufferedp} \gets \obs(x) = t$ as performed by $\mathit{Scheduler}$\;
+
+\If{$\neg \mathit{bufferedp}$} {
+    \Return $\mathit{successp}$\;
+}
+
+$S_{\mathit{optimistic}} \gets \mathtt{rewriteSTNU(S, x, t)}$\;
+
+\If{$S_{\mathit{optimistic}}$ is not variable-delay controllable} {
+    \Return $\mathit{successp}$\;
+}
+
+$\mathit{Scheduler} \gets \mathtt{createScheduler(S_{\mathit{optimistic}})}$\;
+
+\For{$\mathit{observation}$ in $\mathit{observations}$} {
+    $\obs(\mathit{observation[event]}) = \mathit{observation[time]}$ in $S_{\mathit{optimistic}}$\;
+}
+
+$\obs(\hat x) = t$\;
+$\obs(x) = t$\;
+
+\Return $\mathtt{true}$\;
+
+\caption{An Algorithm for observing contingent events with Optimistic Rescheduling.}
+\label{alg:optimistic-rescheduling}
+\end{algorithm}
+\end{enumerate}
+
+\section{Experimental Analysis}
+\label{sec:org1a9e596}
+Scheduling always follows constraints
+
+Optimistic vs normal VDC scheduling
 
 \chapter{Coordinating Multiple Agents under Uncertain Communication}
-\label{sec:org248db90}
+\label{sec:orge3312ba}
 \label{ch:technical-coordination}
 
 In this chapter, we present a novel MA framework for dynamic event scheduling with inter-agent
@@ -2278,18 +2638,128 @@ consistent with the temporal constraints and observation delay modeled in their 
 \end{itemize}
 
 To our knowledge, no such online scheduler for MA coordination has been proposed. In this chapter,
-we first describe the techniques and high-level language used to model MA constraints. Next, we
-define an event propagation algorithm used to guarantee that event observations match individual
-agent STNUs. We finish by presenting experimental analysis of our event propagation algorithms.
+we first present a grounded Artemis-like scenario to motivate coordination. Next, we describe a
+modeling framework for MA control programs that is necessary for establishing coordination between
+agents. Next, we define an event propagation algorithm used to guarantee that event observations
+match individual agent STNUs. We finish by presenting experimental analysis of our event propagation
+algorithms.
+
+\section{Motivating Scenario from EVAs}
+\label{sec:orgbe6c233}
+
+We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
+astronaut is performing scientific exploration while the robot performs remote construction tasks.
+The concept of operations allows for the astronaut to use a rover to traverse away from the robot in
+search of promising scientific samples. Due to the position of surface relays and general
+uncertainty in lunar topology, there is an uncertain time delay between agents.
+
+Bandwidth between Mission Control on Earth and the Moon is limited. There are low and high bandwidth
+communications available to both agents. Low bandwidth is responsible for transmitting critical data
+(e.g. suit telemetry), while high bandwidth communications are reserved for purposes such as video
+calls and large dumps of scientific data. It is not possible for both the astronaut and the robot to
+use high bandwidth communications simultaneously. Thus, there is a need for the agents to coordinate
+such that they make effective use of high bandwidth communications without stepping on each others
+toes, so to speak.
+
+We hone in on a point in an EVA where there is substantial time delay between the astronaut and
+robot. The astronaut has set out far from the robot in search of scientifically interesting rock
+samples. Meanwhile, the robot is preparing to perform a drilling operation. The astronaut's sample
+collection work involves spectroscopy and video imagery, which is being sent to Mission Control
+using the high bandwidth connection. It will take between 15 and 30 minutes to downlink all the
+data. As soon as sample collection is over, the robot can use the high bandwidth connection to
+perform a drilling operation.
+
+We say that the astronaut ``owns,'' or is responsible for sharing observations of, the start and end
+of the experiment, while the robot similarly owns the drilling operation.
 
 \section{Multi-Agent Control Programs}
-\label{sec:org57b82cd}
+\label{sec:orgeeac82e}
 \label{sec:ma-control-programs}
 
-The challenge of MA
+This thesis introduces challenges in writing control programs for multiple agents who need to
+coordinate. We do not claim to solve all aspects of coordination, rather we present a framework for
+simple scenarios with the key feature being that agents need to agree on the \emph{order} of a subset of
+events. We start by presenting an example of inter-agent temporal constraints, followed by defining
+a modeling framework for guaranteeing that agents agree about the order of events in their
+respective partial histories. To the best of our knowledge, we are unaware of any other MA framework
+for coordinating the order of event histories.
+
+Consider two agents, \texttt{agent1} and \texttt{agent2}, that are scheduling STNUs \(S_{1}\) and \(S_{2}\)
+respectively. \(S_{1}\) and \(S_{2}\) share a subset of semantically similar episodes, \(e_{1}\) and
+\(e_{2}\). \texttt{agent1} ``owns'' \(e_{1}\), meaning it is responsible for scheduling the free event
+\(e_{1}\)​-start and observing the contingent event \(e_{1}\)​-end, while \texttt{agent2} owns \(e_{2}\).
+
+A simplified MA view of the constraints is as follows.
+
+$$
+\conedge{e_{1}\text{-start}}{e_{1}\text{-end}}{[15, 30]}
+\edge{}{e_{2}\text{-start}}{[0, \infty]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
+
+From \texttt{agent1}'s perspective, \(S_{1}\) models the following constraints. We add a \texttt{noop} start event,
+\(Z\), to simplify coordination.
+
+$$
+\edge{Z}{e_{1}\text{-start}}{[0, 0]}
+\conedge{}{e_{1}\text{-end}}{[15, 30]}
+\conedge{}{e_{2}\text{-start}}{[0, \infty]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
+
+\(S_{2}\) is then modeled as follows.
+
+$$
+\conedge{Z}{e_{1}\text{-start}}{[0, 0]}
+\conedge{}{e_{1}\text{-end}}{[15, 30]}
+\edge{}{e_{2}\text{-start}}{[0, \infty]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
+
+For the sake of controllability of \(S_{1}\) and \(S_{2}\), we would simply add \([0, 0]\) free
+constraints between consecutive contingent constraints.
+
+We will walk through scheduling this scenario from the perspective of both agents. First, we
+describe their actions in the case that there is no communication delay, then we introduce the need
+for communication, and finally we add delay to communications. This scenario will motivate our
+analysis of the challenges that arise in MA control programs.
+
+If both agents have perfect knowledge of the world (instantaneous knowledge of events), scheduling
+is trivial. \texttt{agent1} and \texttt{agent2} execute \(Z\) simultaneously. \texttt{agent1} schedules \(e_{1}\)​-start and
+\texttt{agent2} instantaneously receives an observation of \(e_{1}\)​-start. \(e_{1}\)​-end arrives in \([15, 30]\)
+later, which again, both agents observe simultaneously. Now \texttt{agent2} is free to act. It schedules
+\(e_{2}\)​-start, which \texttt{agent1} observes instantaneously. \(e_{2}\)​-end arrives \([22, 26]\) later and is
+observed simultaneously by both agents.
+
+Now, we enforce that \texttt{agent1} ``owns'' \(e_{1}\) and is the only agent that can observe it directly.
+Likewise, \texttt{agent2} owns \(e_{2}\). In order for an agent to learn about an episode they do not own,
+they must receive a communication from the agent who does. After \texttt{agent1} schedules \(e_{1}\)​-start,
+it must send a message to \texttt{agent2}. \texttt{agent2} receives said message, which it interprets as an
+observation of \(e_{1}\)​-start. If communications are instantaneous, the partial histories of both
+agents agree on the assignment of \(e_{1}\)​-start. Later \(e_{1}\)​-end is observed by \texttt{agent1}, who is
+then responsible for relaying a communication to \texttt{agent2} indicating that it is safe to assign
+\(e_{1}\)​-end. \texttt{agent2} is now free to schedule \(e_{2}\)​-start, and follows the same pattern of sending
+messages that events have been scheduled to \texttt{agent1}. After all events have been scheduled, the
+histories of \texttt{agent1} and \texttt{agent2} still agree on the times assigned to each event.
+
+We now show that adding delay to the communications between agents forces us to add \emph{synthetic}
+episodes to \(S_{1}\) and \(S_{2}\) to maintain event ownership. We now say that for \(S_{2}\),
+\(\gammabar(e_{2}\text{-end}) = [5, 15]\). In other words, \texttt{agent2} learns that \texttt{agent1} has finished
+\(e_{2}\) some time in \([5, 15]\) after \texttt{agent1} has made the same assignment.
+
+Once again, \texttt{agent1} schedules \(e_{1}\)​-start and sends a message to \texttt{agent2}. Unlike before, their
+partial histories no longer match because \texttt{agent2} will assign \(e_{1}\)​-start to some time in \([5,
+15]\) after \texttt{agent1}.
+
+Adding communication introduces a coordination challenge, even when said communication is
+instantaneous. Once again, we assume both agents execute \(Z\) simultaneously. When \texttt{agent1} schedules
+\(e_{1}\)​-start, it must take the additional
+
+We define coordination as sharing an understanding of when their peers have scheduled a subset of
+events. To maintain consistency, we need to maintain the order of events. i.e.
 
 \section{Event Propagation}
-\label{sec:org7e79dba}
+\label{sec:org1e85c85}
 \label{sec:event-propagation}
 
 At a high level, scheduled events propagate through a simple directed graph of connected executives.
@@ -2308,13 +2778,15 @@ propagation,
 termination of the edge respectively.
 \end{itemize}
 
-Loops, or self-edges, are not allowed, i.e. for any vertex \(v_{i} \in V\), no edge \(e_{i} \in E\) may
-originate and terminate at \(v_{i}\).
+Loops, or self-edges, are not allowed, i.e. for any vertex \(v_{i} \in V\), no single edge \(e_{i} \in
+E\) may both originate and terminate at \(v_{i}\).
 \end{defn}
 
 For some executive \(v_{i} \in V\) with outgoing edges in \(E\), \((v_{i}, v_{j})\), \(\cdots\), \((v_{i},
 v_{k})\), any scheduled events that \(v_{i}\) assigns, whether free or contingent, are propagated to
-all peer executives \(v_{j}\), \(\cdots\), \(v_{k}\).
+all peer executives \(v_{j}\), \(\cdots\), \(v_{k}\). Likewise, all contingent events received from Nature
+are propagated to peers. Finally, any events \(v_{i}\) receives from other agents are also relayed to
+peers.
 
 \begin{defn}
 \label{def:event-propagations}
@@ -2332,8 +2804,9 @@ messages are passed between agents, and each agent has its own STNU. In some cas
 events, in others \(x\) will be contingent events. The type of event makes no difference to the
 algorithm so we do not distinguish between them here.
 
-Events that are received in \(m\) are treated the same as observations of contingent events during
-scheduling.
+Events that are received in \(m\), \(m[x]\), are handled the same as observations of contingent events
+during scheduling. Lemmas \ref{lemma:information-fixes-bounds}, \ref{lemma:ignore-inf-delay}, and
+\ref{lemma:subtract-gamma} are applied as appropriate when the observation of \(m[x]\) arrives.
 
 For an edge \((v_{i}, v_{j}) \in E\), it is possible that \(v_{j}\) receives events that are not present
 in its STNU.
@@ -2380,92 +2853,203 @@ We now walk through the process of passing messages between agents as shown in A
 agent in \(V\).
 \end{enumerate}
 
-Let \texttt{peers} be the terminal vertices for all \(e \in E\) originating at \(v_{i}\).
+Let \texttt{peers} be a mutable set initialized to the terminal vertices for all \(e \in E\) originating at
+\(v_{i}\).
 
 In the first case, agent \(v_{i}\) fulfills its responsibilities as defined in \(C\) by broadcasting \(x\)
 to its \texttt{peers}, who will receive \(x\) as exogenous contingent events. The outgoing message \(m_{o}\)
 that will be passed to \texttt{peers} will include enough information such that no agent should receive a
-given \(x\) more than once. We let \(P\) be a list of \(v_{i}\) and all \texttt{peers}. We finalize \(m_{o} =
-\langle x, P \rangle\), which we simultaneously transmit to each \(p\) in \texttt{peers}. Transmission is a
-``fire and forget'' operation, where \(v_{i}\) does not wait for acknowledgment from any \(p\) that
-\(m_{o}\) was received.
+given \(x\) more than once. To do so, we let \(P\) be a set of all agents that will have observed \(x\)
+when \(m_{o}\) is received by \texttt{peers}, \(P = \{ v_{i}, p~ \forall~ p \in \texttt{peers} \}\). We
+finalize \(m_{o} = \langle x, P \rangle\), which we simultaneously transmit to each \(p\) in \texttt{peers}.
+Transmission is a ``fire and forget'' operation, where \(v_{i}\) does not wait for acknowledgment from
+any \(p\) that \(m_{o}\) was received.
 
 The second case plays out the same as the first, the only difference being that \(x\) is itself
 observed from Nature. Once again, we let \(P\) be a list of \(v_{i}\) and all \texttt{peers}, and then transmit
 \(m_{o}\) simultaneously to all \texttt{peers}.
 
 The third case is a relay operation. Agent \(v_{i}\) is responsible for propagating events \(m_{i}[x]\)
-that it has just observed, but we want to avoid
+that it has just observed, but we want to avoid sending the events to \texttt{peers} who have already
+observed them. We remove those agents from \texttt{peers} accordingly with a set difference operation:
+\texttt{peers} \(= \texttt{peers} - m_{i}[P]\). Likewise, we grow the list of agents who have received \(x\),
+which is now \(P = P \cup \texttt{peers}\). Agent \(v_{i}\) composes a new \(m_{o} = \langle m_{i}[x], P
+\rangle\) and transmits it to \texttt{peers}.
 
-It is possible that \(v_{i}\) is a \texttt{peer} of one or more of its \texttt{peers}, so it includes
+Ideally, the Event Propagation algorithm should run on a separate thread from the main scheduling
+loop, else we run the risk of incurring unnecessary delays in observing and dispatching events.
 
 \begin{algorithm}
-\label{alg:event-propagation}
 \SetAlgoLined
+\SetKwComment{Comment}{/*}{*/}
 \SetKwFunction{Return}{return}
 \SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
 \SetKwInput{Algorithm}{\textsc{Event Propagation}}
 \SetKwInput{Initialize}{Initialization}
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{Event propagation message $m$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
+\Input{Incoming message $m_{i}$; Scheduled events $x$; Self $v_{i} \in V$; Set of outgoing $\texttt{peers} \subset V$}
 
 \Indp
 \Algorithm{}
 \Indp
 
-$x \gets x$ or $m[x]$\;
+$\texttt{peers} \gets \texttt{peers} - m_{i}[P]$\;
 
-$P \gets x[P] \cup v_{i} \cup \texttt{peers}$\;
+$P \gets \{ m_{i}[P] \} \cup \{ v_{i} \} \cup \texttt{peers}$\;
 
-$m \gets \langle x, P \rangle$\;
+$x \gets x$ or $m_{i}[x]$\;
 
-\For{each $p \in \texttt{peers}$} {
-    Add lower-bound edge $\edge{E}{Z}{-t}$\;
+$m_{o} \gets \langle x, P \rangle$\;
+
+\For{each $p$ in $\texttt{peers}$} {
+    Perform a non-blocking transmission of $m_{o}$ to $p$\;
 }
 
-For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
-
-\For{each event $E \in \texttt{Exec}$} {
-    Add upper-bound edge $\edge{Z}{E}{t}$\;
-}
-For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
 \caption{An event propagation algorithm that avoids recursive message passing.}
-\label{alg:fast-ex-update}
+\label{alg:event-propagation}
 \end{algorithm}
 
+The complexity of Algorithm \ref{alg:event-propagation} is trivially \(O(N)\), where \(N\) is the number of
+executives in \(V - 1\). The limiting factor to the performance of Event Propagation will be the time
+it takes to transmit messages between agents, which, to reiterate, should be modeled in the delay
+functions for any inter-agent temporal constraints.
+
 \section{Experimental Analysis}
-\label{sec:org587428b}
+\label{sec:orgd2fa71b}
 \label{sec:ma-experimental}
 
-\subsection{Hardware Demonstrations}
-\label{sec:orgc85bc61}
+We performed two analyses of the Event Propagation algorithm. The first was a hardware demonstration
+performed on a Barrett WAM manipulator in the MERS lab. The second is a massively multi-agent
+simulation. Both will be described below.
+
+\subsection{Hardware Demonstration}
+\label{sec:org5fc3562}
+
+We built a demonstration of the motivating scenario of this thesis in our lab using a Barrett WAM
+manipulator representing the robot, and Valve Steam Deck representing the astronaut.
+
+Each agent has their own RMPL control program, which we include in Listings \ref{code:astronaut-rmpl} and
+\ref{code:robot-rmpl}. Note that each control program is nearly identical. The control programs related to
+the high bandwidth handoff, \texttt{human-downlink-science}, \texttt{sync}, and \texttt{robot-drilling}, are nearly
+identical, differing in observation delay and whether the \texttt{sync} event is controllable. Adding
+observation delay reflects uncertain communication between the agents, while the \texttt{sync} activity
+serves to keep the STNUs of the agents aligned.
+
+\begin{listing}[htbp]
+\begin{minted}[]{lisp}
+;;;; -*- Mode: common-lisp; -*-
+
+(defpackage #:scenario1)
+
+(in-package #:scenario1)
+
+(define-control-program human-downlink-science ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30)
+                     :contingent t)))
+
+(define-control-program sync ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 15
+                             :min-observation-delay 0
+                             :max-observation-delay 1)
+                     :contingent t)))
+
+(define-control-program robot-drilling ()
+  (declare (primitive)
+           (duration (simple :lower-bound 22 :upper-bound 26
+                             :min-observation-delay 0
+                             :max-observation-delay 2)
+                     :contingent t)))
+
+(define-control-program human-closeout ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 30))))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 480)
+    (sequence (:slack nil)
+      (human-downlink-science)
+      (sync)
+      (robot-drilling)
+      (human-closeout))))
+\end{minted}
+\caption{\label{code:astronaut-rmpl}The control program the astronaut uses while collecting and downlinking scientific data.}
+\end{listing}
+
+\begin{listing}[htbp]
+\begin{minted}[]{lisp}
+;;;; -*- Mode: common-lisp; -*-
+
+(defpackage #:scenario1)
+
+(in-package #:scenario1)
+
+(define-control-program human-downlink-science ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30
+                             :min-observation-delay 5
+                             :max-observation-delay 15)
+                     :contingent t)))
+
+(define-control-program sync ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 15))))
+
+(define-control-program robot-drilling ()
+  (declare (primitive)
+           (duration (simple :lower-bound 22 :upper-bound 26
+                             :min-observation-delay 0
+                             :max-observation-delay 1)
+                     :contingent t)))
+
+(define-control-program robot-poweroff ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 30))))
+
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 480)
+    (sequence (:slack nil)
+      (human-downlink-science)
+      (sync)
+      (robot-drilling)
+      (robot-poweroff))))
+\end{minted}
+\caption{\label{code:robot-rmpl}The control program the robot uses to decide when to act with respect to learning the astronaut has finished collecting scientific data.}
+\end{listing}
 
 \subsection{Massively Multi-Agent Simulation}
-\label{sec:orga2c7bf8}
+\label{sec:org1166368}
 
-\chapter{Coordinating Multiple Agents in Extreme Environments}
-\label{sec:org2b37eba}
+\chapter{An Architecture for Robust Scheduling and Dispatching}
+\label{sec:org0cc5db8}
 
 This is a chapter on distributed communication.
 
 \section{Single-Responsibility Principle}
-\label{sec:orga267b65}
+\label{sec:org88454a2}
 
 Not an exact law but something we followed with scheduler > dispatcher > driver layers
 
 \chapter{Evaluation}
-\label{sec:org100bed9}
+\label{sec:org5c2a3d1}
 
 This is a chapter on evaluating all this stuff.
 
 \chapter{Discussion and Future Work}
-\label{sec:orgecbf7ad}
+\label{sec:orge6debd2}
+
+\section{Optimistic Rescheduling}
+\label{sec:org8233b10}
+
+What if we looked for conflicts? Could we possibly search for a time to dispatch early in the
+buffered execution space?
 
 \section{Coordination}
-\label{sec:org7e8544e}
+\label{sec:org450cdc0}
 \label{sec:mastnus}
 
 We were focused on addressing the multi-agent (MA) online scheduling problem. Before scheduling, we
@@ -2519,7 +3103,7 @@ consensus.
 \appendix
 
 \chapter{Comparison of Variable-Delay STNUs to Partially Observable STNUs}
-\label{sec:org0d7dbb2}
+\label{sec:orgc9ebaf5}
 \label{appendix:postnus}
 
 The delay scheduler is flexible in that so long as it receives a variable-delay STNU, it is capable
