@@ -1,8 +1,190 @@
 #+title: Technical Robustness
 
+* COMMENT maybe this gets moved to the discussion chapter?
+
 * An Architecture for Robust Scheduling and Dispatching
 
-This is a chapter on distributed communication.
+** Clock-Synchronized Dispatching and Monitoring
+
+In this section, we propose an architecture for organizing and executing long-running tasks in an
+autonomous executive.
+
+As described in Section [[sec:event-dispatching]], the dispatching algorithm should loop uninterrupted
+until all executable events have been scheduled. There are, however, other tasks that an executive
+needs to perform during execution, ranging from mission critical monitoring of contingent events, to
+more mundane logging of debug and info-level messages to a human operator. Naturally, modern CPUs
+and programming languages provide multi-threaded or multi-process applications to handle concurrent,
+long-running tasks. While parallel computing is a perfectly viable option for building an executive,
+we found that a clock-synchronized approach for long-running tasks more naturally aligns with our
+autonomy reasoning abilities, and gives us more flexibility in the capabilities of Kirk.
+
+*** Challenges of Parallel Computing for Long-Running Tasks
+
+Consider the high-level responsibilities of Kirk, or any goal-based task and motion planner, during
+execution. At a minimum, one must,
+
+1. monitor progress towards its goals,
+2. decide when to act,
+3. send commands to hardware, and
+4. communicate with a human operator.
+
+If we were to structure an executive based on these responsibilities, we may naturally start
+allocating each responsibility to its own thread. Monitoring progress might be a loop that
+constantly checks sensors or sensor-fused data. Deciding when to act would be the online dynamic
+dispatching algorithm described in Section [[sec:event-dispatching]]. We would not want hardware
+commands to block dispatching, so we once again create a new thread. Meanwhile, the last thread
+would collect information about the running executive, e.g. clock times, execution progress, and
+explanations of the actions taken, in order to pass it along to a human operator.
+
+While missions may take hours or days, simulations of said missions should take seconds. There are
+many reasons to simulate. Before deploying an executive on expensive hardware in an extreme
+environment, an operator may rightfully want to observe the behavior of the executive under a wide
+range of potential mission conditions. Or we may want to try a new long-running task or motion
+planning algorithm, but not want to wait hours to see how it performs. Or we may want to compare and
+benchmark different options for task and motion planning. For these reasons and more, we need the
+ability to reliably run an executive at faster than real-time speeds with confidence that its
+behavior in simulation is reflective of its performance in the real-world. Thus, during simulation,
+we add another responsibility:
+
+#+latex: \begin{enumerate} \setcounter{enumi}{4} \item
+update the clock at faster than real-time speeds.
+#+latex: \end{enumerate}
+
+Parallel computing starts to break down when we want to simulate a mission due to synchronization
+challenges. For instance, the event monitoring thread may be waiting to simulate a contingent event
+observation at time $t$. We would need to ensure that the operation in the monitoring thread that
+checks the clock time runs at least once while the clock is at $t$. If the clock is running too
+quickly, $t$ could be missed and the simulated contingent event is never observed. We could make the
+check more robust by either slowing the clock down or adding tolerance to the time check, e.g.
+checking that the clock is within a range near $t$ instead of exactly $t$, but the underlying
+problem remains.
+
+There may also be temporal dependencies between threads. Algorithm [[alg:dispatcher-inner]] assumes that
+the time does not change while it is running. During real-time operations, it is effectively the
+case that time is not passing, but we lose the guarantee in simulation. It could be that the
+dispatcher believes it to be time $t$ when it dispatches an event, but by the time the event is
+scheduled or the driver receives a command, the clock is now at time $t' \gg t$, impacting the
+controllability of the STNU.
+
+None of the problems introduced by parallel computing are insurmountable, but they add code and
+complexity to an already complex system. This creates two fundamental concerns that caused us to
+rewrite the online architecture of Kirk. First is that adding code /post-hoc/ to decision-making
+algorithms to address special cases, like faster than real-time clocks, means that the code we
+simulate and the code we run during missions fundamentally differ. This differentiation reduces our
+confidence that testing and verifying the executive in simulation is indicative of its performance
+in real-time. Second is that additional complexity increases the surface area for failures and
+anomalous behavior. Instead, we propose a clock-based synchronization approach that is no less
+efficient during real-time operations while requiring no change to our decision-making algorithms to enable
+faster than real-time simulation.
+
+*** Clock-Based Synchronization
+
+# TODO needs diagram? maybe?
+
+Clock-based synchronization hands control of long-running tasks to a shared clock. Rather than
+allowing each thread to run independently, the clock takes responsibility for executing tasks at an
+appropriate interval. We call each interval a /tick/.
+
+At each tick, every /task/ (Definition [[def:task]]) is run. Tasks are lambda functions that communicate
+to the clock by their return values. If a task returns =true=, it is interpreted as a signal that
+the clock may continue ticking. Returning =false= tells the clock that ticking should stop. So long
+as all tasks want the clock to continue ticking, it should. If any task returns =false=, ticking
+should stop.
+
+# $\displaystyle \neg \bigwedge_{\mathit{task}}^\mathit{queue}$ run $\mathit{task}$
+
+#+label: def:task
+#+latex: \begin{defn}
+#+latex: \label{def:task}
+*Task*
+
+A /task/ is a lambda function that takes nothing as input and returns a Boolean. The return value
+indicates whether the task wants the clock to continue ticking.
+#+latex: \end{defn}
+
+Before the clock starts to run, the executive adds tasks to a queue. The tasks will be run
+consecutively in the order they appear.
+
+Implemented in a real-time clock, the ticking algorithm should run as fast as possible. We do so by
+implementing Algorithm [[alg:realtime-clock-tick]], which recursively calls itself until it receives a
+signal from a task that it should stop.
+
+#+label: alg:realtime-clock-tick
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{clockTick}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{Boolean $\mathit{tickp}$; Task queue $\mathit{queue}$;}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\If{$\mathit{tickp} \land (\mathit{queue[length]} > 0)$} {
+    \For{$\mathit{task}$ in $\mathit{queue}$} {
+        $\mathit{tickp} \gets (\mathtt{task()} \land \mathit{tickp})$\;
+    }
+    $\mathtt{clockTick(\mathit{tickp}, \mathit{queue})}$
+}
+
+\caption{A recursive algorithm for clock-synchronized tasks in real-time.}
+\label{alg:realtime-clock-tick}
+\end{algorithm}
+#+end_export
+
+We simulate a faster than real-time clock with Algorithm [[alg:sim-clock-tick]]. The key difference is
+the additional clock advancement operation added before recursing. Unlike a synchronized thread
+approach, we are guaranteed an order of operations between tasks and the clock. We know tasks will
+run in the order they appear in $\mathit{queue}$, the clock will advance, then the tasks will run
+again.
+
+#+label: alg:sim-clock-tick
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{clockTick}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{Boolean $\mathit{tickp}$; Task queue $\mathit{queue}$; Sleep duration $d$;}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\If{$\mathit{tickp} \land (\mathit{queue[length]} > 0)$} {
+    \For{$\mathit{task}$ in $\mathit{queue}$} {
+        $\mathit{tickp} \gets (\mathtt{task()} \land \mathit{tickp})$\;
+    }
+    Advance clock by $d$\;
+    $\mathtt{clockTick(\mathit{tickp}, \mathit{queue}, \mathit{d})}$
+}
+
+\caption{A recursive algorithm for clock-synchronized tasks in faster than real-time.}
+\label{alg:sim-clock-tick}
+\end{algorithm}
+#+end_export
+
+If Algorithms [[alg:realtime-clock-tick]] and [[alg:sim-clock-tick]] are implemented as class methods,
+$\mathit{tickp}$ naturally lends itself to be a class property. As such, other interfaces can be
+built for controlling $\mathit{tickp}$, ultimately leading to a robust clock that can be arbitrarily
+started and stopped as required. In the implementation of Kirk for this thesis, this paradigm
+enables us to perform time consuming offline planning upon its initialization, including tasks like
+running the pipeline to go from RMPL to a distance graph, before starting the clock when we are
+ready to start scheduling.
 
 ** Single-Responsibility Principle
 

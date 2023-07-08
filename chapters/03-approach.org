@@ -606,13 +606,14 @@ execute. Given our need to deploy Kirk on real hardware, we contribute a seeming
 algorithms removing expectations of idealized performance, that, when taken together, enable
 deployment of temporal reasoning algorithms in real agents.
 
-We include four contributions to dynamic scheduling and dispatching for enabling robust executives.
+We include five contributions to dynamic scheduling and dispatching for enabling robust executives.
 
 1. A well defined architecture for event execution with distinct scheduler, dispatcher, and driver
    responsibilities
 2. Tolerance in event scheduling
 3. Controllable event preemption
 4. The separation of real and =noop= controllable events in execution decisions
+5. A clock-synchronized approach for managing repeated tasks during online execution
 
 # There lacks research into the design of interfaces between executives and agents.
 
@@ -623,3 +624,7 @@ This thesis identifies addresses three core issues...
 We improve the delay scheduler by differentiating real and =noop= controllable events...
 
 We remove the assumption that controllable events are instantaneously executed...
+
+We identify drawbacks in naïve approaches to building executives using parallel and concurrent
+processes. We propose a clock-synchronized architecture that addresses challenges in simulating
+executives and better matches our expectations of order of operations behavior as programmers.
