@@ -8,9 +8,12 @@ and an NTP server?
 * Discussion and Future Work
 
 ** Optimistic Rescheduling
+<<sec:discussion-optimistic-rescheduling>>
 
 What if we looked for conflicts? Could we possibly search for a time to dispatch early in the
 buffered execution space?
+
+Smarter rewriting STNU. Could we update the existing d-graph directly and check it for SRNCs? maybe?
 
 ** Coordination
 <<sec:mastnus>>

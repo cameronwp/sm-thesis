@@ -7,3 +7,5 @@ _minted*
 *archive
 chapters/*.pdf
 chapters/*.tex
+
+**/.venv

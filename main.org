@@ -111,7 +111,7 @@
 \newcommand{\fdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\gamma = #4}{#2}}
 \newcommand{\vdelayedge}[4]{#1 \xRightarrow{#3} \stackrel{\bar{\gamma} \in #4}{#2}}
 %\newcommand{\obs}{\texttt{obs}}
-\newcommand{\obs}{\psi}
+\newcommand{\obs}{\mathtt{obs}}
 \newcommand{\assign}{\xi}
 
 \newcommand{\finalversion}[1]{}

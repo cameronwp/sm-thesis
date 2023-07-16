@@ -1,25 +1,41 @@
 #+title: Technical VDC
 
-* Modeling Temporal Networks
+* COMMENT
+** TODO did we ever define RTEDs?
+
+* Consistency Checking of Temporal Constraint Networks with Uncertain Observation Delay
 <<ch:modeling-tn>>
 
-Our aim is to architect a pipeline that takes a temporal network as input and produces temporally
-consistent actions as output. This Section lays the groundwork for the delay scheduler by first
-describing our chosen models for temporal constraints and scheduling algorithms. We then outline the
-architecture of the delay scheduler, before finally providing the necessary background on our choice
-for modeling observation delay.
+Our overarching aim in this Chapter is to architect the offline portions of a single-agent pipeline
+that takes a temporal network with uncertain observation delay of exogenous events as input in order
+to execute events in the real world within time windows that guarantee temporal consistency. Given
+everything we know and do not know about the temporal relationship between events within and outside
+of our control, this chapter will lay the groundwork that there exists an execution strategy that
+guarantees all constraints are satisfied despite the uncertainty. The next chapter, Chapter
+[[ch:delay-scheduling]], will provide accompanying online procedures for acting on said execution
+strategy and dispatching events with real hardware (or by generally telling an agent what to do).
 
-# We chose to describe the architecture of the delay executive here because the background in temporal
-# networks and dynamic scheduling, along with the discussion of philosophy in Section [[sec:philosophy]],
-# is sufficient to motivate the design of the architecture. The base case for observation delay is no
-# delay, and as such our architecture be tolerant to temporal reasoning without delay as well.
+The three aims of this chapter are to
 
-# Thus, we need to establish a framework for reasoning over temporal constraints and checking
-# consistency. Here, we relate our chosen architecture for a scheduler under observation delay with
-# temporal reasoning and existing notions from online scheduling. We also highlight the implications
-# of VDC checking with respect to the execution space available to the delay scheduler.
+1. model temporal constraints with uncertain observation delay,
+2. define a consistency (controllability) checking procedure for temporal networks with uncertain
+   observation delay, and
+3. prove that the execution strategy assumed by the controllability checking procedure is safe.
 
-TODO ...take the approach of defining temporal networks, and updating our defns as we work towards STNUs
+# and the interaction between scheduling components and dispatching components within an executive.
+# Essentially, this chapter describes the process of single-agent execution with observation delay.
+
+In Section [[sec:tn]], we address aim (1) by outlining the necessary definitions for modeling temporal
+networks. Sections [[sec:fdc]] and [[sec:vdc]] describe our chosen model for temporal constraints with
+uncertain observation delay, and address aim (2) by presenting a procedure for checking the
+consistency thereof. Sections [[sec:fdc]] and [[sec:vdc]] are largely based on the work originally put forth
+by Bhargava et. al., [cite:@Bhargava2018;@Bhargava2020;] with additional contributions by us as
+highlighted below. Notably, Section [[sec:vdc]] addresses aim (3) by contributing novel proofs that the
+execution strategy assumed to exist by Bhargava et. al. is safe.
+
+# Section [[sec:dynamic-scheduling]] lays the ground work for scheduling with observation delay by
+# describing relevant aspects of Hunsberger's FAST-EX dynamic scheduling algorithm
+# [cite:@Hunsberger2016], which we build off of in section
 
 ** Temporal Networks
 <<sec:tn>>
@@ -307,7 +323,6 @@ before its immediate successor. More detail can be found in [cite:@Bhargava2018b
 #+latex: \begin{table}[htb]
 #+latex: \centering
 #+latex: \begin{tabular}{ |P{3.4cm}||P{3.5cm}|P{4cm}|P{2.5cm}|  }
-
 #+begin_export latex
  \hline
  \multicolumn{4}{|c|}{\textbf{Edge Generation Rules}} \\
@@ -326,49 +341,53 @@ before its immediate successor. More detail can be found in [cite:@Bhargava2018b
  \hline
 \end{tabular}
 #+end_export
-
-#+latex: \caption{Edge generation rules for a labeled distance graph from
-[cite:@Bhargava2018b].
-#+latex: }
+#+latex: \caption{Edge generation rules for a labeled distance graph from [cite:@Bhargava2018b].}
 #+latex: \label{table:delay-reductions}
 #+latex: \end{table}
 
 ** Variable-Delay Controllability
 <<sec:vdc>>
 
-While fixed-delay controllability is quite expressive, its fundamental limitation is that it cannot
-model variability in delay. If uncertainty in delay is added to the model, then the controllability
-problem requires the addition of reasoning over uncertainty in both the timing of contingent events
-and their subsequent observations. Notably, with variable observation delay, we no longer guaranteed
-to learn the true time when contingent events were assigned.
+While fixed-delay controllability is quite expressive, its fundamental limitation is that it assumes
+that contingent event assignments, even those made after a fixed delay, are always known. If
+uncertainty in observation delay, and thus uncertainty in contingent event assignment, is added to
+the model, then we are forced to decide when to act despite imperfect knowledge of the partial
+history.
+
+# To reiterate, with variable observation delay, we no longer guaranteed to learn the true time when
+# contingent events were assigned.
 
 We now introduce this model in terms of definitions for a /variable-delay function/ and
-/variable-delay controllability/ [cite:@Bhargava2018] as applied to /variable-delay STNUs/. Since
+/variable-delay controllability/ (VDC) checking as applied to /variable-delay STNUs/. Since
 variable-delay semantics generalizes the notion of fixed-delay, as a matter of convenience, we also
-use the simplified term /delay STNUs/ to refer to STNUs with variable observation delay.
+use the simplified term /delay STNUs/ to refer to STNUs with variable observation delay. VDC was
+originally presented by Nikhil Bhargava [cite:@Bhargava2018]. However, we contributed significant
+improvements of the lemmas and proofs herein, including the addition of novel visual depictions of
+VDC, in our role as a coauthor with Bhargava on a journal article on the topic of VDC that was
+submitted to the Journal of AI Research.
 
 #+latex: \begin{defn}
 *Variable-Delay Function*
 
-A /variable-delay function/, $\gammabar: X_c \rightarrow (\mathbb{R}^+ \cup \{\infty\}) \times
-(\mathbb{R}^+ \cup \{\infty\})$, maps a contingent event to an interval $[a, b]$, where $a \leq b$.
-The interval bounds the time that passes after $\xi(x_{c})$ before that value is observed to be
-assigned. No prior knowledge is assumed about the distribution associated with this interval.
+A /variable-delay function/, $\gammabar: x_c \rightarrow (\mathbb{R}^+ \cup \{\infty\}) \times
+(\mathbb{R}^+ \cup \{\infty\})$, maps a contingent event, $x_{c}$, to an interval $[a, b]$, where $a
+\leq b$. The interval bounds the time that passes after $\xi(x_{c})$ before that value is observed
+to be assigned. No prior knowledge is assumed about the distribution associated with this interval.
 #+latex: \end{defn}
 
 Importantly, this model does not assume that an executing agent infers /when/ a contingent event was
 executed, but instead infers /that/ the event was executed. Like contingent constraints, the
-resolved value of $\gammabar$ will be selected by Nature during execution. Thus, when an agent
-receives an observation is a function of the independent resolutions of the contingent link and
-$\gammabar$.
+resolved value of $\gammabar(x_{c})$ will be selected by Nature during execution. Thus, the timing
+of when an agent receives an observation is a function of the independent resolutions of the
+contingent link and $\gammabar(x_{c})$.
 
 By convention, we use $\gammabar^-(x_c)$ and $\gammabar^+(x_c)$ to represent the lower-bound and
-upper-bound, respectively, of the range representing the possible delay in observation. For any
-fixed-delay function $\gamma$, we can produce a corresponding variable-delay function $\gammabar$
-where $\gammabar^+(x_{c}) = \gammabar^-(x_{c}) = \gamma(x_c)$.
+upper-bound, respectively, of the range representing the possible delay in observation, i.e.
+$\gammabar(x_{c}) \in [\gammabar^{-}(x_{c}), \gammabar^{+}(x_{c})]$.
 
-During execution, the /observation projection/, $\Gamma$, represents the resolution of observation
-delay.
+# TODO I'm pretty sure this is mentioned later! don't need it here.
+# For any fixed-delay function $\gamma$, we can produce a corresponding variable-delay function
+# $\gammabar$ where $\gammabar^+(x_{c}) = \gammabar^-(x_{c}) = \gamma(x_c)$.
 
 #+latex: \begin{defn}
 *Observation Projection*
@@ -377,10 +396,11 @@ The /observation projection/ $\Gamma$ is a mapping from a contingent event to a 
 delay, $\Gamma~:~X_{c} \rightarrow \mathbb{R} \in [\gammabar^{-}(X_{c}), \gammabar^{+}(X_{c})]$.
 #+latex: \end{defn}
 
-Much like how a projection collapses a vanilla STNU to an STN, the observed projection collapses a
-contingent link with variable-observation delay to one with fixed-observation delay. However, unlike
-the projection of an STNU, the observation projection is not guaranteed to be learned. We update our
-definitions of $\obs$, $\xi$, and $\Omega$ accordingly.
+During execution, the /observation projection/, $\Gamma$, represents the resolution of observation
+delay. Much like how a projection collapses a vanilla STNU to an STN, the observed projection
+collapses a contingent link with variable-observation delay to one with fixed-observation delay.
+However, unlike the projection of an STNU, the observation projection is not guaranteed to be
+learned. We update our definitions of $\obs$, $\xi$, and $\Omega$ accordingly.
 
 #+label: defn:vdc-obs
 #+latex: \begin{defn}
@@ -585,6 +605,10 @@ None of our decisions depend on $\xi(x'_{c})$, thus no observation space mapping
 necessary.
 #+latex: \end{proof}
 
+#+label: fig:lemmas-combined
+#+caption: A visualization of the lemmas used to transform contingent links with variable observation delay and subsequent requirement links.
+[[file:../images/lemmas-combined.png]]
+
 #+label: lemma:not-enough-information
 #+latex: \begin{lemma}
 #+latex: \label{lemma:not-enough-information}
@@ -621,19 +645,17 @@ None of our decisions depend on $\xi(x'_{c})$, thus no observation space mapping
 necessary.
 #+latex: \end{proof}
 
-# TODO should main-tightening be u - l > g+ - g-? not \geq?
-
 #+label: lemma:main-tightening
 #+latex: \begin{lemma}
 #+latex: \label{lemma:main-tightening}
-If $u - l \geq \gammabar^+(x_c) - \gammabar^-(x_c)$, we can emulate $\gammabar(x_c)$ under minimal
+If $u - l > \gammabar^+(x_c) - \gammabar^-(x_c)$, we can emulate $\gammabar(x_c)$ under minimal
 information by replacing the bounds of $x_c$ with $x'_{c} \in [l^+(x_{c}), u^-(x_{c})]$ and letting
 $\gamma(x'_c) = 0$.
 #+latex: \end{lemma}
 
 #+latex:\begin{proof}
 Under Lemma [[lemma:main-tightening]], observations $\obs(x_{c})$ are guaranteed to narrow the range of
-\assign(x_{c})$.
+$\assign(x_{c})$.
 
 We have the same ranges for $\alpha$ and $\beta$ as in Lemma [[lemma:not-enough-information]], however
 we can show that $u^-(x_{c}) \geq l^+(x_{c})$ instead.
@@ -727,7 +749,7 @@ duration of $\conedge{X}{Y}{}$.
 #+latex: \end{lemma}
 
 #+latex: \begin{proof}
-See Figure \ref{fig:combined-figure}c for reference. From an execution perspective, $X$ and $Y$ are
+See Figure [[fig:lemmas-combined]]c for reference. From an execution perspective, $X$ and $Y$ are
 the only events that can give us any information that we can use to reason about when to execute $Z$
 (since $C$ is wholly unobservable).
 
@@ -761,16 +783,16 @@ with $[u - \gammabar^-(x_{c}), v - \gammabar^+(x_{c})]$.
 #+latex: \end{lemma}
 
 #+latex: \begin{proof}
-See Figure \ref{fig:combined-figure}d for reference. If we directly apply the transformation from
-Lemma \ref{lemma:execution} and Figure \ref{fig:combined-figure}c to our original STNU, we introduce
-complexity through the need to reason over $min$ and $max$ operations in our link bounds. However,
-from Lemma \ref{lemma:main-tightening}, we know that in a controllability evaluation context, it is
-acceptable for us to simplify the $\conedge{X}{Y}{}$ link to a stricter range of $[a + \gammabar^+,
-b + \gammabar^-]$, instead of $[a + \gammabar^-, b + \gammabar^+]$. This means that for the purpose
-of evaluating controllability, we can assume $a + \gammabar^+ \leq XY \leq b + \gammabar^-$. When we
+See Figure [[fig:lemmas-combined]]d for reference. If we directly apply the transformation from Lemma
+\ref{lemma:execution} and Figure [[fig:lemmas-combined]]c to our original STNU, we introduce complexity
+through the need to reason over $min$ and $max$ operations in our link bounds. However, from Lemma
+\ref{lemma:main-tightening}, we know that in a controllability evaluation context, it is acceptable
+for us to simplify the $\conedge{X}{Y}{}$ link to a stricter range of $[a + \gammabar^+, b +
+\gammabar^-]$, instead of $[a + \gammabar^-, b + \gammabar^+]$. This means that for the purpose of
+evaluating controllability, we can assume $a + \gammabar^+ \leq XY \leq b + \gammabar^-$. When we
 evaluate the requirement link $\edge{Y}{Z}{}$, we see $max(\gammabar^-, XY - b) = \gammabar^-$ and
 $min(\gammabar^+, XY - a) = \gammabar^+$. This gives us bounds of $[u - \gammabar^-, v -
-\gammabar^+]$ for the $\edge{Y}{Z}{}$ requirement link as seen in Figure \ref{fig:combined-figure}d.
+\gammabar^+]$ for the $\edge{Y}{Z}{}$ requirement link as seen in Figure [[fig:lemmas-combined]]d.
 #+latex: \end{proof}
 
 Lemma [[lemma:applied-execution]] handles outgoing requirement edges connected to contingent
@@ -791,6 +813,25 @@ $\edge{C}{Z}{}$ with bounds $[-v, -u]$. After reversing the edge, we can apply L
 \gammabar^+]$, which we can reverse again to get $\edge{Z}{Y}{}$ with bounds $[u + \gammabar^+, v +
 \gammabar^-]$.
 #+latex: \end{proof}
+
+We can examine a concrete example of Lemmas [[lemma:main-tightening]], [[lemma:execution]], and
+[[lemma:applied-execution]] to show equivalence in the transformation from Figure [[fig:lemmas-combined]]a
+to [[fig:lemmas-combined]]d. We start by building an example of [[fig:lemmas-combined]]a. Let
+$\conedge{X}{C}{[2, 5]}$ with $\gammabar(C) \in [1, 2]$ and $\edge{C}{Z}{[11, 20]}$. If we learn of
+event $C$ at time 4, then one possibility is that the realized duration of $C$ could have been 2
+with an observation delay of 2. In this case, event $Z$ must be executed in $[13, 22]$. However, if
+the realized duration of $C$ were 3 with an observation delay of 1, then $Z$ would fall in $[14,
+23]$. Given we cannot distinguish between the possibilities, we take the intersection of the
+intervals, yielding $Z \in [14, 22]$. Likewise, if we learn of $C$ at time 6, then $C$ could have
+been realized at time 5 with an observation delay of 1 or it could have been realized at time 4 with
+an observation delay of 2. In the first case, $Z$ must then fall in $[16, 25]$, while in the second,
+$Z$ would fall in $[15, 24]$. The intersection yields $[16, 24]$.
+
+By the semantics represented in Figure [[fig:lemmas-combined]]d, we can build an equivalent network with
+$\gamma(Y) = 0$ by setting $\conedge{X}{Y}{[4, 6]}$ and $\edge{Y}{Z}{[10, 18]}$. If $Y$ is observed
+at time 4, $Z$ must be executed in $[14, 22]$. If $Y$ is observed at time 6, $Z$ then must be
+executed in $[16, 24]$. The execution semantics for both cases match the equivalent networks from
+[[fig:lemmas-combined]]a described above.
 
 After applying Lemma [[lemma:main-tightening]], despite the limited expected range of assignments in
 $x'_{c}$ in $S'$ compared to $x_{c}$ in $S$, we can show that Lemma [[lemma:applied-execution]]
@@ -894,139 +935,6 @@ of $\xi(Y)$. In practice, there is no reason to wait until after $\obs(Y) = b + 
 receive a late observation. As soon as we see the clock has reached $b + \gammabar^-(Y)$, we are
 safe to imagine that $\obs(Y)$ has been received.
 #+latex: \end{proof}
-
-We can examine a concrete example of Lemmas [[lemma:main-tightening]], [[lemma:execution]], and
-[[lemma:applied-execution]] to show equivalence in the transformation from Figure
-\ref{fig:combined-figure}a to \ref{fig:combined-figure}d. We start by building an example of
-\ref{fig:combined-figure}a. Let $\conedge{X}{C}{[2, 5]}$ with $\gammabar(C) \in [1, 2]$ and
-$\edge{C}{Z}{[11, 20]}$. If we learn of event $C$ at time 4, then one possibility is that the
-realized duration of $C$ could have been 2 with an observation delay of 2. In this case, event $Z$
-must be executed in $[13, 22]$. However, if the realized duration of $C$ were 3 with an observation
-delay of 1, then $Z$ would fall in $[14, 23]$. Given we cannot distinguish between the
-possibilities, we take the intersection of the intervals, yielding $Z \in [14, 22]$. Likewise, if we
-learn of $C$ at time 6, then $C$ could have been realized at time 5 with an observation delay of 1
-or it could have been realized at time 4 with an observation delay of 2. In the first case, $Z$ must
-then fall in $[16, 25]$, while in the second, $Z$ would fall in $[15, 24]$. The intersection yields
-$[16, 24]$.
-
-By the semantics represented in Figure \ref{fig:combined-figure}d, we can build an equivalent
-network with $\gamma(Y) = 0$ by setting $\conedge{X}{Y}{[4, 6]}$ and $\edge{Y}{Z}{[10, 18]}$. If $Y$
-is observed at time 4, $Z$ must be executed in $[14, 22]$. If $Y$ is observed at time 6, $Z$ then
-must be executed in $[16, 24]$. The execution semantics for both cases match the equivalent networks
-from \ref{fig:combined-figure}a described above.
-
-** Dynamic Scheduling through Real-Time Execution Decisions
-<<sec:dynamic-scheduling>>
-
-An STNU, $S$, that exhibits dynamic controllability can be /scheduled/ dynamically (or /online/). At
-a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
-execution time of future free events. We follow the scheduling work by Hunsberger
-[cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ procedure, FAST-EX, for
-dynamic scheduling of STNUs. At its core is the notion of /Real-Time Execution Decisions/ (RTEDs),
-which map a timepoint to a set of requirement events to be executed and are generated based on
-/partial schedules/ of STNUs being executed. =WAIT= decisions may also be produced, reflecting the
-need to wait for the assignment of a contingent event before continuing. RTED-based scheduling
-applies a dynamic programming paradigm by first creating a dispatchable form of temporal constraints
-offline, updating the dispatchable form as the partial schedule is updated online, and querying the
-dispatchable form online to quickly find the next free event to schedule [cite:@Hunsberger2009].
-
-#+latex: \begin{defn}
-*Real-Time Execution Decisions* [cite:@Hunsberger2009]
-
-A /Real-Time Execution Decision/ is a two-tuple $\langle t, \chi \rangle$, where:
-- $t$ is a time with domain $\mathbb{R}$,
-- $\chi$ is a set of $x_{r} \in X_{r}$ to be executed at time $t$
-#+latex: \end{defn}
-
-#+latex: \begin{defn}
-*Partial Schedule*
-
-A /Partial Schedule/ for an STNU is a mapping $\xi ~:~ t \rightarrow \mathbb{R}$, where $t$ is a
-proper subset of timepoints in $X$ with domain $\mathbb{R}$.
-#+latex: \end{defn}
-
-A partial schedule is the set of assignments /so far/ during execution. They can be represented by
-$\xi_{t} = \{ (A, \xi(A) \}$ notation, meaning that by some time $t$, event $A$ has been scheduled
-at time $\xi(A)$. By definition, all STNU executions begin with a partial schedule $\xi_{0} =
-\emptyset$, meaning no timepoints have been assigned at time $0$. As timepoints are executed, the
-partial schedule grows. For example, if event $A$ is assigned to $1$ and $B$ to $2$, then at time
-$2, $\xi_{2} = \{ (A, 1), (B, 2) \}$.
-
-The dispatchable form employed by FAST-EX is the /AllMax/ distance graph, which is produced by the
-Morris $O(N^{4})$ DC-checking procedure [cite:@Morris2006].
-
-#+latex: \begin{defn}
-*AllMax Distance Graph* [cite:@Morris2005]
-
-The /AllMax/ distance graph is a distance graph exclusively consisting of unlabeled and upper-case
-edges.
-#+latex: \end{defn}
-
-The key idea of FAST-EX is maintaining accurate distances from a zero point, $Z$, of the graph to
-all events. At the outset of execution, all events from $S$ are present as nodes in /AllMax/. As
-contingent events are observed, /AllMax/ performs update steps using Dijkstra Single Source/Sink
-Shortest Path (SSSP) to maintain distances to unexecuted events, while also removing executed
-events. We include pseudo-code of the update step in Figure [[alg:fast-ex-update]].
-
-# TODO do we need more details on Dijkstra SSSP?
-
-#+label: alg:fast-ex-update
-#+begin_export tex
-\begin{algorithm}
-\SetAlgoLined
-\SetKwFunction{Return}{return}
-\SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
-\SetKwInput{Algorithm}{\textsc{FAST-EX Update}}
-\SetKwInput{Initialize}{Initialization}
-\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
-\Indm
-\Input{Time $t$; Set of newly executed events $\texttt{Exec} \subseteq X_{e} \cup X_{r}$; AllMax Graph $G$; Distance matrix $D$, where $D(A, B)$ is the distance from $A$ to $B$}
-\Output{Updated $D$}
-\Indp
-\Algorithm{}
-\Indp
-\For{each continent event $C \in \texttt{Exec}$} {
-    Remove each upper-case edge, $\edge{Y}{A}{C:-w}$, labled by $C$\;
-    Replace each edge from $Y$ to $Z$ with the strongest replacement edge\;
-}
-\For{each event $E \in \texttt{Exec}$} {
-    Add lower-bound edge $\edge{E}{Z}{-t}$\;
-}
-For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
-\For{each event $E \in \texttt{Exec}$} {
-    Add upper-bound edge $\edge{Z}{E}{t}$\;
-}
-For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
-\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapated from \citeprocitem{3}{[3]}, Fig. 19.}
-\label{alg:fast-ex-update}
-\end{algorithm}
-#+end_export
-
-Given an accurate distance matrix, we find the next RTED as follows. Let $U_{x}$ be the set of
-unexecuted free timepoints. If $U_{x}$ is empty, then the RTED is to =WAIT=. Otherwise, we find the
-lower bound of the earliest executable time point and the set of executable events associated with
-it.
-
-\begin{align}
-t &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
-\label{eqn:rted-chi}
-\chi &= \{X \in U_{x}~|~-D(X, Z) = t\}
-\end{align}
-
-We cannot execute events in the past. Let $\texttt{now}$ be the current time, i.e. the last timepoint
-captured in $\xi$. It is possible that $t \leq \texttt{now}$, in which case we must reassign $t$ to
-guarantee that $t > \texttt{now}$. To do so, we update $t$ as follows, where $t_{U}$ is earliest
-/upper/ bound of the executable timepoints,
-
-#+label: eqn:rted2
-\begin{align}
-t_{U} &= \min\{D(Z, X)~|~X \in U_{x}\} \\
-\label{eqn:rted-t}
-t &= \cfrac{\texttt{now} + t_{U}}{2}
-\end{align}
-
-So long as $t_{U} > \texttt{now}$, we know that the reassignment of $t$ ensures $t > \texttt{now}$.
 
 ** Experimental Analysis
 VDC experiments from VDC paper
