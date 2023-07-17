@@ -18,6 +18,8 @@
 
 * Introduction
 
+...a multi-faceted approach with the overall goal of a working executive for distributed collaboration and coordination in extreme environments.
+
 This is the introduction.
 
 ** Section Header

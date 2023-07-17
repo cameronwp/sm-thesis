@@ -13,56 +13,66 @@ include the fact that it returns if an event is buffered
 # TODO probably need to make this figure full page width to make it legible
 # TODO use same notation established earlier
 
-#+ATTR_ORG: :width 400
-#+ATTR_LATEX: :width 2.5in
-#+caption: From a variable-delay STNU to scheduling decision
-#+label: fig:flow-chart
-[[file:../images/flow-chart.png]]
+# TODO where do RTED noops fit in this summary?
+Now that we have shown there exists a valid execution strategy for variable-delay controllable
+STNUs, we contribute a novel scheduling and dispatching architecture for dynamic execution. In this
+Chapter, our aim is to describe the single-agent form of a new instantiation of Kirk, /Delay Kirk/,
+that can reason over uncertain observation delay. There are two main components to Delay Kirk: (1) a
+/delay scheduler/, and (2) a /delay dispatcher/. As will be shown in Section [[sec:delay-scheduling]],
+scheduling variable-delay controllable STNUs is an extension to existing dynamic scheduling
+algorithms with modifications for the execution strategy shown to be sound and complete in Chapter
+[[ch:tn]]. As to (2), to the best of our knowledge, there are no other formalized dispatching algorithms
+in the literature. In the development of Delay Kirk, we found it to be extremely useful to both
+formalize dispatching and create a clear interface boundary between scheduling and dispatching. As
+such the dispatching algorithms we put forth in Section [[sec:dispatching]] represent novel
+contributions to online scheduling and dispatching.
 
-Now that we have shown there exist
+# an RTED-based strategy for dispatching free events in the case where there is set-bounded
+# observation delay for contingent events.
 
-# TODO if it's not clear already, make it clear this is the novel part
+# We also separate scheduling from dispatching. In our view, the responsibilities of a scheduler end
+# with the generation of an execution decision. The dispatcher then uses execution decisions to send
+# commands to hardware at a time that is consistent with execution decision.
 
-# TODO something about how scheduling is the same, we just need to add delays to assignments
-
-# TODO really need to clean up the "...key to to reconciling" sentence
-This section represents the start of contributions from this paper. Our aim is to describe /delay
-scheduling/, an RTED-based strategy for dispatching free events in the case where there is
-set-bounded observation delay for contingent events. As will be shown, delay scheduling is an
-extension to dynamic scheduling using the execution strategy as outlined in the variable-delay
-controllability checking procedure.
-
-We also separate scheduling from dispatching. In our view, the responsibilities of a scheduler end
-with the generation of an execution decision. The dispatcher then uses execution decisions to send
-commands to hardware at a time that is consistent with execution decision.
-
+# TODO maybe?
 At the conclusion of this Section, we extend our approach to scheduling variable-delay STNUs by
 introducing an optional procedure that addresses a shortcoming in the semantics of scheduling a
 variable-delay STNU. The shortcoming takes the form of potentially unnecessary wait times that are
 added after receiving contingent event assignments, extending the makespan of procedures. We present
 a generate-and-test algorithm to partially mitigate said shortcomings.
 
-Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
-first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
-observation delay, we /do/ have the guarantee that we learn the exact assignment of contingent
-events (so long as the observation delay is not infinite). Thus, scheduling a fixed-delay STNU only
-differs from scheduling a vanilla STNU in that we must subtract a fixed observation delay when we
-make contingent event assignments. Otherwise, the dispatchable form is the same as in the case of a
-vanilla STNU, and we can choose any STNU scheduling algorithm to generate execution decisions.
+# Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
+# first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
+# observation delay, we /do/ have the guarantee that we learn the exact assignment of contingent
+# events (so long as the observation delay is not infinite). Thus, scheduling a fixed-delay STNU only
+# differs from scheduling a vanilla STNU in that we must subtract a fixed observation delay when we
+# make contingent event assignments. Otherwise, the dispatchable form is the same as in the case of a
+# vanilla STNU, and we can choose any STNU scheduling algorithm to generate execution decisions.
 
 # TODO explain "execution space" earlier?
 # TODO wc "tractable"
-The flow from variable-delay STNU to fixed-delay STNU to dispatchable form may appear sufficient to
-enable scheduling of variable-delay STNUs, but we must contend with a novel issue: the execution
-spaces of the original variable-delay STNU and its transformed fixed-delay equivalent are
-mismatched. Nature is obliged to respect the uncertainties of the original variable-delay STNU. As
-will be shown later, the fixed-delay equivalent reduces the execution space to make the
-controllability check tractable. As such, we may receive observations outside the range of the
-contingent links in the fixed-delay STNU, which we must reconcile with the dispatchable form. See
-Figure [[fig:flow-chart]] for an overview of the information flow in scheduling a variable-delay STNU.
+# The flow from variable-delay STNU to fixed-delay STNU to dispatchable form may appear sufficient to
+# enable scheduling of variable-delay STNUs, but we must contend with a novel issue: the execution
+# spaces of the original variable-delay STNU and its transformed fixed-delay equivalent are
+# mismatched. Nature is obliged to respect the uncertainties of the original variable-delay STNU. As
+# will be shown later, the fixed-delay equivalent reduces the execution space to make the
+# controllability check tractable. As such, we may receive observations outside the range of the
+# contingent links in the fixed-delay STNU, which we must reconcile with the dispatchable form. See
+# Figure [[fig:flow-chart]] for an overview of the information flow in scheduling a variable-delay STNU.
 
 ** Scheduling through Real-Time Execution Decisions
 <<sec:dynamic-scheduling>>
+
+#+ATTR_ORG: :width 400
+#+ATTR_LATEX: :width 1\textwidth
+#+caption: From a variable-delay STNU to scheduling decision
+#+label: fig:flow-chart
+[[file:../images/flow-chart.png]]
+
+Figure [[fig:flow-chart]] presents a high-level overview of...
+
+There is a problem in dynamic scheduling of variable-delay STNUs, or /delay scheduling/.
+
 
 An STNU, $S$, that exhibits dynamic controllability can be /scheduled/ dynamically (or /online/). At
 a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
@@ -1130,3 +1140,11 @@ Scheduling always follows constraints
 
 Optimistic vs normal VDC scheduling
 
+#+label: fig:dish-stnu
+#+attr_latex: :width 1\textwidth
+#+caption: An STNU representing the installation and test of repeater antennas. Each row represents a single astronaut. The episode durations are representative of the bounds used in simulation.
+[[file:../images/dish-install-stnu.png]]
+
+we introduce an example which models a construction task on the lunar surface. This scenario depicted with the STNU in Figure \ref{fig:dish-stnu} represents an EVA wherein $i$ astronauts are each installing $j$ surface signal repeater antennas. During the activity, every astronaut is responsible for installing one repeater. %Each event, $X$, is represented for the $i$-th astronaut and $j$-th repeater as $X_{i,j}$.
+
+The astronauts work in parallel, with a $[0, \infty)$ requirement link from the start of the STNU to each $A_{i,1}$ (not shown). The first episode, $\conedge{A_{i,j}}{B_{i,j}}{}$, represents traversing to the site of the installation. We model traverses as uncontrollable due to the fact that crews are embarking across unknown terrain. Once at the site, an antenna is installed as represented by $\edge{B_{i,j}}{C_{i,j}}{}$. Each repeater needs to have its configuration tested and confirmed working by $D_{i,j}$, represented by the edge $\conedge{C_{i,j}}{D_{i,j}}{}$. Confirmation takes the form of a request-response cycle to the ground. We model $D_{i,j}$ as uncontrolled and with variable delay because each antenna takes an unknown time to self-configure and the crew does not know when they will receive a response from MCC that the repeater installation has been verified due to uncertainty in communication. Bandwidth is limited, so we limit the number of repeaters simultaneously sending requests to their configuration. We use the $\edge{D_{i,j}}{C_{i+1,j}}{}$ links to enforce that the start of the confirmation of the next repeater does not begin until after the previous repeater's confirmation. Confirmations are required until we reach the last crew member or the last activity. Once testing is complete, the astronauts clean up their workstations, $\edge{D_{i,j}}{A_{i,j+1}}{}$ and then repeat the cycle until all antennas have been installed.
