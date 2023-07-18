@@ -32,7 +32,8 @@ we first present a grounded Artemis-like scenario to motivate coordination. Next
 modeling framework for MA control programs that is necessary for establishing coordination between
 agents. Next, we define an event propagation algorithm used to guarantee that event observations
 match individual agent STNUs. We finish by presenting experimental analysis of our event propagation
-algorithms.
+algorithms, and the results of hardware demonstrations of Delay Kirk using a robotic arm and a
+simulated astronaut.
 
 ** Motivating Scenario from EVAs
 

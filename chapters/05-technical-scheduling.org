@@ -6,333 +6,34 @@ is it =noop= or =no-op= or $\mathit{noop}$?
 ** TODO consistency with capitalization and italics of Scheduler, Delay Scheduler, Dispatcher, Driver
 ** TODO we need an =updateSchedule= algo defined in the execution strategy section
 include the fact that it returns if an event is buffered
-
-* Dynamic Scheduling with Delayed Event Monitoring
-<<ch:delay-scheduling>>
-
-# TODO probably need to make this figure full page width to make it legible
-# TODO use same notation established earlier
-
-# TODO where do RTED noops fit in this summary?
-Now that we have shown there exists a valid execution strategy for variable-delay controllable
-STNUs, we contribute a novel scheduling and dispatching architecture for dynamic execution. In this
-Chapter, our aim is to describe the single-agent form of a new instantiation of Kirk, /Delay Kirk/,
-that can reason over uncertain observation delay. There are two main components to Delay Kirk: (1) a
-/delay scheduler/, and (2) a /delay dispatcher/. As will be shown in Section [[sec:delay-scheduling]],
-scheduling variable-delay controllable STNUs is an extension to existing dynamic scheduling
-algorithms with modifications for the execution strategy shown to be sound and complete in Chapter
-[[ch:tn]]. As to (2), to the best of our knowledge, there are no other formalized dispatching algorithms
-in the literature. In the development of Delay Kirk, we found it to be extremely useful to both
-formalize dispatching and create a clear interface boundary between scheduling and dispatching. As
-such the dispatching algorithms we put forth in Section [[sec:dispatching]] represent novel
-contributions to online scheduling and dispatching.
-
-# an RTED-based strategy for dispatching free events in the case where there is set-bounded
-# observation delay for contingent events.
-
-# We also separate scheduling from dispatching. In our view, the responsibilities of a scheduler end
-# with the generation of an execution decision. The dispatcher then uses execution decisions to send
-# commands to hardware at a time that is consistent with execution decision.
-
-# TODO maybe?
-At the conclusion of this Section, we extend our approach to scheduling variable-delay STNUs by
-introducing an optional procedure that addresses a shortcoming in the semantics of scheduling a
-variable-delay STNU. The shortcoming takes the form of potentially unnecessary wait times that are
-added after receiving contingent event assignments, extending the makespan of procedures. We present
-a generate-and-test algorithm to partially mitigate said shortcomings.
-
-# Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
-# first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
-# observation delay, we /do/ have the guarantee that we learn the exact assignment of contingent
-# events (so long as the observation delay is not infinite). Thus, scheduling a fixed-delay STNU only
-# differs from scheduling a vanilla STNU in that we must subtract a fixed observation delay when we
-# make contingent event assignments. Otherwise, the dispatchable form is the same as in the case of a
-# vanilla STNU, and we can choose any STNU scheduling algorithm to generate execution decisions.
+** TODO clean up fast-ex algos
+- [ ] double check accuracy!
+- [ ] weird italics
+- [ ] check for loop usage
+** TODO fix:observations is weird. fix notation, caption
+** extra content 1
+Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
+first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
+observation delay, we /do/ have the guarantee that we learn the exact assignment of contingent
+events (so long as the observation delay is not infinite). Thus, scheduling a fixed-delay STNU only
+differs from scheduling a vanilla STNU in that we must subtract a fixed observation delay when we
+make contingent event assignments. Otherwise, the dispatchable form is the same as in the case of a
+vanilla STNU, and we can choose any STNU scheduling algorithm to generate execution decisions.
 
 # TODO explain "execution space" earlier?
 # TODO wc "tractable"
-# The flow from variable-delay STNU to fixed-delay STNU to dispatchable form may appear sufficient to
-# enable scheduling of variable-delay STNUs, but we must contend with a novel issue: the execution
-# spaces of the original variable-delay STNU and its transformed fixed-delay equivalent are
-# mismatched. Nature is obliged to respect the uncertainties of the original variable-delay STNU. As
-# will be shown later, the fixed-delay equivalent reduces the execution space to make the
-# controllability check tractable. As such, we may receive observations outside the range of the
-# contingent links in the fixed-delay STNU, which we must reconcile with the dispatchable form. See
-# Figure [[fig:flow-chart]] for an overview of the information flow in scheduling a variable-delay STNU.
-
-** Scheduling through Real-Time Execution Decisions
-<<sec:dynamic-scheduling>>
-
-#+ATTR_ORG: :width 400
-#+ATTR_LATEX: :width 1\textwidth
-#+caption: From a variable-delay STNU to scheduling decision
-#+label: fig:flow-chart
-[[file:../images/flow-chart.png]]
-
-Figure [[fig:flow-chart]] presents a high-level overview of...
-
-There is a problem in dynamic scheduling of variable-delay STNUs, or /delay scheduling/.
-
-
-An STNU, $S$, that exhibits dynamic controllability can be /scheduled/ dynamically (or /online/). At
-a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
-execution time of future free events. We follow the scheduling work by Hunsberger
-[cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ procedure, FAST-EX, for
-dynamic scheduling of STNUs. At its core is the notion of /Real-Time Execution Decisions/ (RTEDs),
-which map a timepoint to a set of requirement events to be executed and are generated based on
-/partial schedules/ of STNUs being executed. =WAIT= decisions may also be produced, reflecting the
-need to wait for the assignment of a contingent event before continuing. RTED-based scheduling
-applies a dynamic programming paradigm by first creating a dispatchable form of temporal constraints
-offline, updating the dispatchable form as the partial schedule is updated online, and querying the
-dispatchable form online to quickly find the next free event to schedule [cite:@Hunsberger2009].
-
-#+latex: \begin{defn}
-*Real-Time Execution Decisions* [cite:@Hunsberger2009]
-
-A /Real-Time Execution Decision/ is a two-tuple $\langle t, \chi \rangle$, where:
-- $t$ is a time with domain $\mathbb{R}$,
-- $\chi$ is a set of $x_{r} \in X_{r}$ to be executed at time $t$
-#+latex: \end{defn}
-
-#+latex: \begin{defn}
-*Partial Schedule*
-
-A /Partial Schedule/ for an STNU is a mapping $\xi ~:~ t \rightarrow \mathbb{R}$, where $t$ is a
-proper subset of timepoints in $X$ with domain $\mathbb{R}$.
-#+latex: \end{defn}
-
-A partial schedule is the set of assignments /so far/ during execution. They can be represented by
-$\xi_{t} = \{ (A, \xi(A) \}$ notation, meaning that by some time $t$, event $A$ has been scheduled
-at time $\xi(A)$. By definition, all STNU executions begin with a partial schedule $\xi_{0} =
-\emptyset$, meaning no timepoints have been assigned at time $0$. As timepoints are executed, the
-partial schedule grows. For example, if event $A$ is assigned to $1$ and $B$ to $2$, then at time
-$2, $\xi_{2} = \{ (A, 1), (B, 2) \}$.
-
-The dispatchable form employed by FAST-EX is the /AllMax/ distance graph, which is produced by the
-Morris $O(N^{4})$ DC-checking procedure [cite:@Morris2006].
-
-#+latex: \begin{defn}
-*AllMax Distance Graph* [cite:@Morris2005]
-
-The /AllMax/ distance graph is a distance graph exclusively consisting of unlabeled and upper-case
-edges.
-#+latex: \end{defn}
-
-The key idea of FAST-EX is maintaining accurate distances from a zero point, $Z$, of the graph to
-all events. At the outset of execution, all events from $S$ are present as nodes in /AllMax/. As
-contingent events are observed, /AllMax/ performs update steps using Dijkstra Single Source/Sink
-Shortest Path (SSSP) to maintain distances to unexecuted events, while also removing executed
-events. We include pseudo-code of the update step in Figure [[alg:fast-ex-update]].
-
-
-# TODO do we need more details on Dijkstra SSSP?
-
-#+label: alg:fast-ex-update
-#+begin_export tex
-\begin{algorithm}
-\SetAlgoLined
-\SetKwFunction{Return}{return}
-\SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
-\SetKwInput{Algorithm}{\textsc{FAST-EX Update}}
-\SetKwInput{Initialize}{Initialization}
-\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
-\Indm
-\Input{Time $t$; Set of newly executed events $\texttt{Exec} \subseteq X_{e} \cup X_{r}$; AllMax Graph $G$; Distance matrix $D$, where $D(A, B)$ is the distance from $A$ to $B$}
-\Output{Updated $D$}
-\Indp
-\Algorithm{}
-\Indp
-\For{each continent event $C \in \texttt{Exec}$} {
-    Remove each upper-case edge, $\edge{Y}{A}{C:-w}$, labled by $C$\;
-    Replace each edge from $Y$ to $Z$ with the strongest replacement edge\;
-}
-\For{each event $E \in \texttt{Exec}$} {
-    Add lower-bound edge $\edge{E}{Z}{-t}$\;
-}
-For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
-\For{each event $E \in \texttt{Exec}$} {
-    Add upper-bound edge $\edge{Z}{E}{t}$\;
-}
-For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
-\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapated from \citeprocitem{3}{[3]}, Fig. 19.}
-\label{alg:fast-ex-update}
-\end{algorithm}
-#+end_export
-
-Given an accurate distance matrix, we find the next RTED as follows. Let $U_{x}$ be the set of
-unexecuted free timepoints. If $U_{x}$ is empty, then the RTED is to =WAIT=. Otherwise, we find the
-lower bound of the earliest executable time point and the set of executable events associated with
-it.
-
-\begin{align}
-t &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
-\label{eqn:rted-chi}
-\chi &= \{X \in U_{x}~|~-D(X, Z) = t\}
-\end{align}
-
-We cannot execute events in the past. Let $\texttt{now}$ be the current time, i.e. the last timepoint
-captured in $\xi$. It is possible that $t \leq \texttt{now}$, in which case we must reassign $t$ to
-guarantee that $t > \texttt{now}$. To do so, we update $t$ as follows, where $t_{U}$ is earliest
-/upper/ bound of the executable timepoints,
-
-#+label: eqn:rted2
-\begin{align}
-t_{U} &= \min\{D(Z, X)~|~X \in U_{x}\} \\
-\label{eqn:rted-t}
-t &= \cfrac{\texttt{now} + t_{U}}{2}
-\end{align}
-
-So long as $t_{U} > \texttt{now}$, we know that the reassignment of $t$ ensures $t > \texttt{now}$.
-
-** Scheduling with Variable-Observation Delay
-
-To solidify the process of scheduling a variable-delay STNU, consider the following analogy.
-
-#+begin_quote
-Alex wants to go hiking in the woods. The area is unfamiliar to them, so they ask their friend, Sam,
-who hiked these trails a long time ago, to give them directions to traverse from the trailhead to a
-particularly spectacular overlook. Sam has a working idea of the trail map, but their memory is
-imperfect. Regardless, they guarantee Alex that their directions will lead Alex to the overlook even
-if the woods have changed over the years. Sam writes down directions like "turn left after 500
-meters at the giant oak tree" and "turn right after 100 meters when you see the brook." Alex knows
-that Nature will not necessarily obey Sam's directions. They may observe a giant oak tree earlier
-than expected, so they must then wait to take the next trail going left. Or the brook may have dried
-up, so they imagine they saw one near where Sam thought it would be and take the next right. While
-hiking, Alex is charged with reconciling Sam's directions with their own observations. Even though
-they may identify the landmarks in Sam's directions earlier or later than expected, their actions
-will need to follow Sam's instructions to maintain the guarantee of reaching the overlook.
-#+end_quote
-
-In our analogy, $S$ models the current state of the hiking trails and the full range of projections,
-while $S'$ is Sam's working memory of them. Sam's directions are the execution strategy described by
-the AllMax graph we get by checking the fixed-delay controllability of $S'$. Observations of Nature
-obey $S$. Alex is charged with reconciling their observations from $S$ with Sam's hiking directions
-from $S'$. The analogy ends here, though, as the math and logic of temporal reasoning do not neatly
-translate into hiking. Luckily, we have more information than Alex. Unlike human memory, which is
-untrustworthy and irrational, the fixed-delay STNU, $S'$, is created by a set of Lemmas with
-deterministic outcomes. As such, we have the means to interpret how observations in $S$ /would
-appear/ in $S'$, which will be critical in adapting our fixed-delay execution strategy in response
-to variable observation delay.
-
-Our key challenge for scheduling an STNU with variable observation delay is reconciling observations
-from $S$ with the dispatchable form from $S'$.
-
-** Recording Contingent Event Assignments
-<<sec:recording-vdc-ctg>>
-# TODO smooth out, make sure nothing repeated from above
-
-During execution, we observe the outcome of contingent events $\obs(x_{c})$ in $S$, but we make
-assignments in the dispatchable form of $\assign(x'_{c})$ in $S'$. Despite being equivalent with
-respect to controllability, the bounds of contingent links $x_{c}$ in $S$ and $x'_{c}$ in $S'$ are
-not equivalent.
-
-We need a modified procedure for contingent event assignments that wraps FAST-EX. No
-modifications to FAST-EX are necessary to schedule fixed-delay STNUs because checking FDC includes
-the procedure of creating the same AllMax graph that FAST-EX requires.
-
-We now present our strategy for recording observations during execution as derived from the
-transformations outlined in Section [[sec:vdc]].
-
-#+label: lemma:information-fixes-bounds
-#+begin_export tex
-\begin{lemma}
-\label{lemma:information-fixes-bounds}
-For any contingent event, $x_{c} \in S$ or $x'_{c} \in S'$, observing $x_{c}$ at time $t \in [l^-(x_{c}), u^+(x_{c})]$ fixes the observation to $\obs(x_{c}) = [t, t] = t$.
-\end{lemma}
-#+end_export
-
-#+begin_export tex
-\begin{proof}
-#+end_export
-# wc 'members'?
-Prior to execution, observations are defined as set-bounded intervals from the earliest possible
-observation at $l^-(x_{c})$ to the last possible observation at $u^+(x_{c})$. Receiving an
-observation $\obs(x_{c}) = t$ during execution eliminates all members of the pre-execution interval
-except $t$.
-#+begin_export tex
-\end{proof}
-#+end_export
-
-# #+label: lemma:equal-is-fixed-bounds
-# #+begin_export tex
-# \begin{lemma}
-# \label{equal-is-fixed-bounds}
-# For any temporal constraint, $x$, with bounds $x \in [l, u]$ for some $l$ and $u$, and timepoint $t \in [l, u]$, if information reduces the bounds of $x$ to $x \in [t, t]$, we may assert $x = t$.
-# \end{lemma}
-# #+end_export
-
-# #+begin_export tex
-# \begin{proof}
-# #+end_export
-
-# # TODO is this sound?
-# When the bounds of an interval, $x \in [l, u]$ are fixed such that $t = l = u$, we can assert that
-# $x$ must have resolved to $t$.
-# #+begin_export tex
-# \end{proof}
-# #+end_export
-
-# Receiving a projection of a contingent event necessarily fixes the bounds of its observation range.
-
-#+label: lemma:ignore-inf-delay
-#+begin_export tex
-\begin{lemma}
-\label{lemma:ignore-inf-delay}
-For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) = \infty$, we mark the event executed but do not assign \assign(x'_{c})$ in the dispatchable form of $S'$.
-\end{lemma}
-#+end_export
-
-#+begin_export tex
-\begin{proof}
-#+end_export
-If we are scheduling a fixed-delay STNU, $S'$, that is already known to be fixed-delay controllable,
-an execution strategy must exist that is independent of the assignment of $\assign(x'_{c})$ when
-$\gamma(x'_{c}) = 0$. We are not required to record $\assign(x'_{c})$ when $\gamma(x'_{c}) = \infty$
-to guarantee controllability and may safely ignore it.
-
-We mark the event executed to prevent it from appearing in future RTEDs.
-
-#+begin_export tex
-\end{proof}
-#+end_export
-
-Lemma [[lemma:ignore-inf-delay]] may be applicable to any contingent events, $x'_{c} \in X_{c}$ in $S'$
-that were transformed from the variable-delay form $S$ using Lemmas [[lemma:emulating-fixed]],
-[[lemma:partially-unobservable]], or [[lemma:not-enough-information]].
-
-#+label: lemma:subtract-gamma
-#+latex: \begin{lemma}
-\label{lemma:subtract-gamma} For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable
-$S'$, if $\gamma(x'_{c}) \in \mathbb{R}$, we assign $\assign(x'_{c}) = \obs(x_{c}) - \gamma(x'_{c})$
-in the dispatchable form of $S'$.
-#+latex: \end{lemma}
-
-#+latex: \begin{proof}
-The central challenge of checking fixed-delay controllability is determining that an execution
-strategy exists that allows an agent to wait an additional $\gamma(x'_{c})$ time units after a
-contingent event has been assigned to learn its outcome. Importantly, the $\gamma$ function is not
-used to modify the edges of the labeled distance graph, which are derived from the constraints $r
-\in R_{e} \cup R_{c}$ in $S'$.
-
-As $\gamma(x'_{c})$ resolves to a known and finite value, we can derive the true value of
-\assign(x'_{c})$ to be assigned in the labeled distance graph. Contingent event assignments, \assign(x'_{c})$,
-are recorded in the labeled distance graph as follows, where $\obs(x_{c})$ is the resolved observation,
-
-#+label: eqn:fixed-recording
-#+begin_export tex
-\begin{align}\assign(x'_c) = \obs(x_c) - \gamma(x'_c) \label{eqn:fixed-recording}
-\end{align}
-#+end_export
-#+latex: \end{proof}
-
+The flow from variable-delay STNU to fixed-delay STNU to dispatchable form may appear sufficient to
+enable scheduling of variable-delay STNUs, but we must contend with a novel issue: the execution
+spaces of the original variable-delay STNU and its transformed fixed-delay equivalent are
+mismatched. Nature is obliged to respect the uncertainties of the original variable-delay STNU. As
+will be shown later, the fixed-delay equivalent reduces the execution space to make the
+controllability check tractable. As such, we may receive observations outside the range of the
+contingent links in the fixed-delay STNU, which we must reconcile with the dispatchable form. See
+Figure [[fig:flow-chart]] for an overview of the information flow in scheduling a variable-delay STNU.
+** old explanation of buffering and imagining
 Next, in comparing the bounds of $x_{c}$ and $x'_{c}$ when $u - l \geq \gammabar^+(x_c) -
 \gammabar^-(x_c)$, $x'_{c} \in [l^+(x_{c}), u^-(x_{c})]$ (Lemma [[lemma:main-tightening]]) there are
 three regimes of observations of $\obs(x_{c})$ we must consider:
-
-1. $\obs(x_{c}) \in [l^-(x_{c}), l^+(x_{c}))$, ie. strictly earlier than the range of $\assign(x'_{c})$,
-2. $\obs(x_{c}) \in [l^+(x_{c}), u^-(x_{c})]$, ie. the range equivalent to $x'_{c}$, and
-3. $\obs(x_{c}) \in(u^-(x_{c}), u^+(x_{c})]$, ie. strictly later than the range of $\assign(x'_{c})$.
 
 # TODO might be wordy
 Nature decides in which regime we receive $\obs(x_{c})$. We are faced with the unique challenge of
@@ -350,29 +51,23 @@ that, due to the uncertainty in observation delay, we are allowed to /modify/ ou
 $\assign(x'_{c})$ to ensure it respects $S'$. We present two modification strategies for addressing
 the first and third cases, which we call /buffering/ and /imagining/ respectively.
 
-We first address the case where $\obs(x_{c}) < l^+(x_{c})$.
+We first address the case where $\obs(x_{c}) < l^+(x_{c})$. As shown in Lemma
+[[lemma:buffering-imagining]], buffering is a valid execution strategy for early observations.
 
 #+label: lemma:buffering
-#+begin_export tex
-\begin{lemma}
-\label{lemma:buffering}
-If a contingent event, $x_{c} \in X_{c}$, is observed earlier than the bounds of $x'_{c}$ in $S'$ for a fixed-delay controllable $S'$, $\obs(x_{c}) < l^+(x_{c})$, we perform a \textit{buffering} operation by letting $\assign(x'_{c}) = l^+(x_{c})$ in $S'$.
-\end{lemma}
-#+end_export
+#+latex: \begin{lemma}
+#+latex: \label{lemma:buffering}
+If a contingent event, $x_{c} \in X_{c}$, is observed earlier than the bounds of $x'_{c}$ in $S'$
+for a fixed-delay controllable $S'$, $\obs(x_{c}) < l^+(x_{c})$, we perform a /buffering/ operation
+by letting $\assign(x'_{c}) = l^+(x_{c})$ in $S'$.
+#+latex: \end{lemma}
 
-#+begin_export tex
-\begin{proof}
-#+end_export
+#+latex: \begin{proof}
 # Our strategy is to artificially assign \assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$, or, in other
 # words, /buffer/ it.
 
 # TODO ditch g(x_c) in graph
 # TODO subscripts and superscripts look like garbage in g docs
-
-#+label: fig:observations
-#+caption: Here, we show how the combination of $\assign(x_{c})$ and $\gammabar(x_{c})$ lead to an assignment of $\assign(x'_{c})$ in $S'$. We see the range $\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})$ representing the earliest and latest assignments of \assign(x_{c})$ that could result in $\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})$, l^+(x_c)]$. The grey region represents the range of possible observation delays, $\gammabar(x_{c})$, supporting $\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$.
-[[file:../images/viz-l-plus.png]]
-
 To demonstrate why buffering is sound, we compare the bounds of $x_{c}$ in $S$ and $x'_{c}$ in $S'$
 to show that our execution strategy for $\assign(x'_{c})$ is applicable to any $\assign(x_{c}) \in
 [l, l^+(x_{c})]$.
@@ -480,34 +175,44 @@ u^-(x_{c})$. We then ignore the real observation of $x_{c}$ that we receive late
 \end{proof}
 #+end_export
 
-# The last two lemmas and associated corollary from Bhargava [cite:@Bhargava2018] elaborate on the
-# impact of variable observation delay on subsequent requirement links in $S'$. The definitions are
-# included below. During scheduling, we dispatch requirement events from $S'$ according to FAST-EX
-# [cite:@Hunsberger2016] without further modification.
+** extra content 2 - analogy
+To solidify the process of scheduling a variable-delay STNU, consider the following analogy.
 
-We have addressed the key issue of reconciling observations from $S$ with the dispatchable form from
-$S'$. We now present a dispatcher and wrapper algorithms on top of FAST-EX that combine to add
-robustness for variable observation delay.
+#+begin_quote
+Alex wants to go hiking in the woods. The area is unfamiliar to them, so they ask their friend, Sam,
+who hiked these trails a long time ago, to give them directions to traverse from the trailhead to a
+particularly spectacular overlook. Sam has a working idea of the trail map, but their memory is
+imperfect. Regardless, they guarantee Alex that their directions will lead Alex to the overlook even
+if the woods have changed over the years. Sam writes down directions like "turn left after 500
+meters at the giant oak tree" and "turn right after 100 meters when you see the brook." Alex knows
+that Nature will not necessarily obey Sam's directions. They may observe a giant oak tree earlier
+than expected, so they must then wait to take the next trail going left. Or the brook may have dried
+up, so they imagine they saw one near where Sam thought it would be and take the next right. While
+hiking, Alex is charged with reconciling Sam's directions with their own observations. Even though
+they may identify the landmarks in Sam's directions earlier or later than expected, their actions
+will need to follow Sam's instructions to maintain the guarantee of reaching the overlook.
+#+end_quote
 
-** Modified FAST-EX for Variable Observation Delay
-<<sec:delay-scheduler>>
+In our analogy, $S$ models the current state of the hiking trails and the full range of projections,
+while $S'$ is Sam's working memory of them. Sam's directions are the execution strategy described by
+the AllMax graph we get by checking the fixed-delay controllability of $S'$. Observations of Nature
+obey $S$. Alex is charged with reconciling their observations from $S$ with Sam's hiking directions
+from $S'$. The analogy ends here, though, as the math and logic of temporal reasoning do not neatly
+translate into hiking. Luckily, we have more information than Alex. Unlike human memory, which is
+untrustworthy and irrational, the fixed-delay STNU, $S'$, is created by a set of Lemmas with
+deterministic outcomes. As such, we have the means to interpret how observations in $S$ /would
+appear/ in $S'$, which will be critical in adapting our fixed-delay execution strategy in response
+to variable observation delay.
 
-# TODO intro needs work
+Our key challenge for scheduling an STNU with variable observation delay is reconciling observations
+from $S$ with the dispatchable form from $S'$.
 
-We present an overview of the scheduling algorithm below with explanations following.
+During execution, we observe the outcome of contingent events $\obs(x_{c})$ in $S$, but we make
+assignments in the dispatchable form of $\assign(x'_{c})$ in $S'$. Despite being equivalent with
+respect to controllability, the bounds of contingent links $x_{c}$ in $S$ and $x'_{c}$ in $S'$ are
+not equivalent.
 
-While we made a careful distinction between $x_{c}$ and $x'_{c}$ in our discussion of scheduling, in
-our implementation it was important to be able to easily replace one with another when looking up
-values in hash-tables and lists. For instance, to implement Equation [[eqn:fixed-recording]], we receive
-$x_{c}$ but key the fixed-delay function on $x'_{c}$. Rather than adding an additional translation
-layer, we give each temporal event in $S$ a unique name, all of which get copied to their equivalent
-events in $S'$. Hash-tables are keyed on event names, vastly simplifying lookups in the AllMax
-graph, delay function, and elsewhere.
-
-# TODO explain difference between scheduling and dispatching here?
-# TODO check notation
-# TODO explain how
-
+** I think VDC->FDC algo? not sure why this was here
 Let $x$ be a temporal event, $x \forall x \in X_{c} \cup X_{e}$.
 
 #+begin_export tex
@@ -524,7 +229,6 @@ Let $x$ be a temporal event, $x \forall x \in X_{c} \cup X_{e}$.
 \Output{Updated AllMax Graph $G$}
 \Initialize{}
 \Indp
-{\assign(x'_{c}) \leftarrow \obs(x_{c}) - \gamma(x'_{c})$}\;
 \Indm
 \Algorithm{}
 \Indp
@@ -554,6 +258,424 @@ Let $x$ be a temporal event, $x \forall x \in X_{c} \cup X_{e}$.
 \label{alg:conversion}
 \end{algorithm}
 #+end_export
+** something about practicalities of string event-ids
+While we made a careful distinction between $x_{c}$ and $x'_{c}$ in our discussion of scheduling, in
+our implementation it was important to be able to easily replace one with another when looking up
+values in hash-tables and lists. For instance, to implement Equation [[eqn:fixed-recording]], we receive
+$x_{c}$ but key the fixed-delay function on $x'_{c}$. Rather than adding an additional translation
+layer, we give each temporal event in $S$ a unique name, all of which get copied to their equivalent
+events in $S'$. Hash-tables are keyed on event names, vastly simplifying lookups in the AllMax
+graph, delay function, and elsewhere.
+
+* Single-Agent Execution with Delayed Event Monitoring
+<<ch:delay-scheduling>>
+
+Now that we have shown there exists a valid execution strategy for variable-delay controllable
+STNUs, we contribute a novel scheduling and dispatching architecture for online, dynamic execution.
+In this Chapter, our aim is to describe the single-agent form of a new instantiation of Kirk, /Delay
+Kirk/, that can reason over uncertain observation delay to decide when to execute requirement events
+on real hardware. There are two main components to Delay Kirk: (1) a /delay scheduler/, and (2) a
+/delay dispatcher/. As will be shown in Section [[sec:delay-scheduling]], scheduling variable-delay
+controllable STNUs is an extension to existing dynamic scheduling algorithms with modifications for
+the execution strategy shown to be sound and complete in Chapter [[ch:modeling-tn]].
+
+Additionally, to the best of our knowledge, scheduling fixed-delay STNUs has not been presented in
+the literature. Fixed-delay scheduling is required for addressing (1). As such, we contribute a
+fixed-delay scheduler in Section [[sec:delay-scheduling]]. The execution strategy from Chapter
+[[ch:modeling-tn]] will be shown to be a small extension to the fixed-delay scheduler. As to (2), to the
+best of our knowledge, there are no other formalized dispatching algorithms in the literature. In
+the development of Delay Kirk, we found it to be extremely useful to formalize dispatching as part
+of creating a clear interface boundary between scheduling and dispatching. The dispatching
+algorithms we put forth in Section [[sec:dynamic-dispatching]] represent novel contributions to temporal
+reasoning.
+
+This Chapter makes additional contributions to scheduling and dispatching. Safely executing events
+on real hardware requires modifications to generating decisions in dynamic scheduling. We include
+said modifications, with confluent interfaces in dynamic dispatching, to suit our intended use cases
+for Delay Kirk.
+
+# TODO maybe?
+In Section [[sec:optimistic-rescheduling]], we extend our approach to scheduling variable-delay STNUs by
+introducing an optional procedure that addresses a shortcoming in the semantics of scheduling a
+variable-delay STNU. The shortcoming takes the form of potentially unnecessary wait times that are
+added after receiving contingent event assignments, extending the makespan of procedures. We present
+a generate-and-test algorithm to partially mitigate said shortcomings.
+
+Finally, Section [[sec:scheduling-experimental]] provides a series of benchmarks of the scheduling and
+dispatching algorithms described in this Chapter.
+
+** Dynamic Scheduling through Real-Time Execution Decisions
+<<sec:dynamic-scheduling>>
+
+We first provide a necessary overview of dynamic scheduling of vanilla STNUs, which we will extend
+for STNUs with observation delay in Section [[sec:delay-scheduling]].
+
+An STNU, $S$, that exhibits dynamic controllability can be /scheduled/ dynamically (or /online/). At
+a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
+execution time of future free events. We will build off of the scheduling work by Hunsberger
+[cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ online procedure, FAST-EX, for
+dynamic scheduling of STNUs. We chose FAST-EX because, to the best of our knowledge, this is the
+fastest dynamic scheduling algorithm in the literature today. At its core is the notion of
+/Real-Time Execution Decisions/ (RTEDs), which map a timepoint to a set of requirement events to be
+executed and are generated based on /partial schedules/ of STNUs being executed. =WAIT= decisions
+may also be produced, reflecting the need to wait for the assignment of a contingent event before
+continuing. RTED-based scheduling applies a dynamic programming paradigm in three steps:
+
+# TODO why did I use Hunsberger2009 here? not 2016?
+1. creating a dispatchable form of temporal constraints offline in the form of a distance graph,
+2. updating the dispatchable form as the partial schedule is updated online through event
+   assignments, and
+3. querying the dispatchable form online to quickly find the next RTED [cite:@Hunsberger2009].
+
+The dispatchable form employed by FAST-EX is the /AllMax/ distance graph, which is produced by the
+Morris $O(N^{4})$ DC-checking procedure [cite:@Morris2006].
+
+#+latex: \begin{defn}
+*AllMax Distance Graph* [cite:@Morris2005]
+
+The /AllMax/ distance graph is a distance graph exclusively consisting of unlabeled and upper-case
+edges.
+#+latex: \end{defn}
+
+The key idea of FAST-EX is maintaining accurate distances from an artificial zero point, $Z$, of the
+distance graph to all events. At the outset of execution, all events from $S$ are present as nodes
+in /AllMax/. As events are assigned, /AllMax/ performs update steps using Dijkstra Single
+Source/Sink Shortest Path (SSSP) to maintain distances to unexecuted events, while also collapsing
+executed events to $Z$. We include pseudo-code of the real-time update step in Figure
+[[alg:fast-ex-update]].
+
+#+label: alg:fast-ex-update
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{FAST-EX Update}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+\Indm
+\Input{Time $t$; Set of newly executed events $\texttt{Exec} \subseteq X_{e} \cup X_{r}$; AllMax Graph $G$; Distance matrix $D$, where $D(A, B)$ is the distance from $A$ to $B$}
+\Output{Updated $D$}
+\Indp
+\Algorithm{}
+\Indp
+\For{each contingent event $C \in \texttt{Exec}$} {
+    Remove each upper-case edge, $\edge{Y}{A}{C:-w}$, labled by $C$\;
+    Replace each edge from $Y$ to $Z$ with the strongest replacement edge\;
+}
+\For{each event $E \in \texttt{Exec}$} {
+    Add lower-bound edge $\edge{E}{Z}{-t}$\;
+}
+For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
+\For{each event $E \in \texttt{Exec}$} {
+    Add upper-bound edge $\edge{Z}{E}{t}$\;
+}
+For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
+\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapated from \citeprocitem{3}{[3]}, Fig. 19.}
+\label{alg:fast-ex-update}
+\end{algorithm}
+#+end_export
+
+With an up-to-date distance graph in hand, we can perform an online query for the current RTED.
+
+#+latex: \begin{defn}
+*Real-Time Execution Decisions* [cite:@Hunsberger2009]
+
+A /Real-Time Execution Decision/ is a two-tuple $\langle t, \chi \rangle$, where:
+- $t$ is a time with domain $\mathbb{R}$,
+- $\chi$ is a set of $x_{r} \in X_{r}$ to be executed at time $t$
+#+latex: \end{defn}
+
+Let $U_{x}$ be the set of unexecuted free timepoints. If $U_{x}$ is empty, then the RTED is to
+=WAIT=. Otherwise, we find the lower bound of the earliest executable time point and the set of
+executable events associated with it.
+
+#+label: eqn:rted1
+\begin{align}
+t &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
+\label{eqn:rted-chi}
+\chi &= \{X \in U_{x}~|~-D(X, Z) = t\}
+\end{align}
+
+We cannot execute events in the past. Let =now= be the current time, i.e. the last timepoint
+captured in the event assignments. It is possible that $t \leq \texttt{now}$, in which case we must
+reassign $t$ to guarantee that $t > \texttt{now}$. To do so, we update $t$ as follows, where $t^+$
+is earliest upper bound of the executable timepoints,
+
+#+label: eqn:rted2
+\begin{align}
+t^+ &= \min\{D(Z, X)~|~X \in U_{x}\} \\
+\label{eqn:rted-t}
+t &= \cfrac{\texttt{now} + t^+}{2}
+\end{align}
+
+So long as $t^+ > \texttt{now}$, we know that the reassignment of $t$ ensures $t > \texttt{now}$.
+
+** Delay Scheduling as an Extension to Dynamic Scheduling
+<<sec:delay-scheduling>>
+
+#+ATTR_ORG: :width 400
+#+ATTR_LATEX: :width 0.8\textwidth
+#+caption: A high-level flow chart showing how we use variable-delay STNUs to generate scheduling decisions. The boxes represent the data structures involved in scheduling, while the arrows are the processes that are followed to eventually produce RTEDs.
+#+label: fig:flow-chart
+[[file:../images/flow-chart.png]]
+
+Figure [[fig:flow-chart]] presents a high-level overview of the information flow in the scheduling
+process.
+
+In order to schedule a variable-delay STNU, the core problem we must address is that, to date, there
+is no means to directly create a corresponding dispatchable form that accounts for uncertain
+assignments resulting from variable observation delay. We encountered this same problem when
+describing the process of checking VDC in Section [[sec:vdc]]. We overcame this limitation by first
+transforming the variable-delay STNU to a fixed-delay STNU before checking FDC. A similar strategy
+will be followed for scheduling in that we will transform the variable-delay to a fixed-delay STNU,
+then dispatch events using the dispatchable form of the fixed-delay STNU instead. However, doing so
+creates a second problem. While we will be performing FAST-EX against the fixed-delay STNU, the
+contingent event observations we receive will adhere to the constraints and variable-delay function
+of the variable-delay STNU. Hence, we must modify our real-time update and RTED generation
+algorithms to account for early and late contingent event observations.
+
+# TODO rewrite
+We start by providing an explanation of fixed-delay scheduling, before expanding it to address the
+execution strategies of variable-delay scheduling.
+
+*** Fixed-Delay Scheduling
+
+# TODO wc algebra
+We first establish the algebra of receiving observations.
+
+#+label: lemma:information-fixes-bounds
+#+latex: \begin{lemma}
+#+latex: \label{lemma:information-fixes-bounds}
+For any contingent event, $x_{c} \in S$ or $x'_{c} \in S'$, observing $x_{c}$ at time $t \in
+[l^-(x_{c}), u^+(x_{c})]$ fixes the observation to $\obs(x_{c}) = [t, t]$.
+#+latex: \end{lemma}
+#+latex: \begin{proof}
+
+# TODO use def:schedule-as-interval?
+
+Prior to execution, an observation of $x_{c}$ may fall anywhere within the set-bounded interval from
+the earliest possible observation at $l^-(x_{c})$ to the last possible observation at $u^+(x_{c})$.
+Receiving an observation $\obs(x_{c}) = t$ during execution eliminates all possible observations
+outside the interval $[t, t]$.
+#+latex: \end{proof}
+
+#+label: lemma:equal-is-fixed-bounds
+#+latex: \begin{lemma}
+#+latex: \label{equal-is-fixed-bounds}
+For any temporal constraint, $x$, with bounds $x \in [l, u]$ for some $l$ and $u$, and timepoint $t
+\in [l, u]$, if information reduces the bounds of $x$ to $x \in [t, t]$, we may assert $x = t$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+# TODO is this sound?
+When the bounds of an interval, $x \in [l, u]$ are fixed such that $t = l = u$, we can assert that
+$x$ must have resolved to $t$.
+#+latex: \end{proof}
+
+#+label: lemma:subtract-gamma
+#+latex: \begin{lemma}
+#+latex: \label{lemma:subtract-gamma}
+For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) \in
+\mathbb{R}$, we assign $\assign(x'_{c}) = \obs(x_{c}) - \gamma(x'_{c})$ in the dispatchable form of
+$S'$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+The central challenge of checking fixed-delay controllability is determining that an execution
+strategy exists that allows an agent to wait an additional $\gamma(x'_{c})$ time units after a
+contingent event has been assigned to learn its outcome. Importantly, the $\gamma$ function is not
+used to modify the edges of the labeled distance graph, which are derived from the constraints $r
+\in R_{e} \cup R_{c}$ in $S'$.
+
+As $\gamma(x'_{c})$ resolves to a known and finite value, we can derive the true value of
+$\assign(x'_{c})$ to be assigned in the labeled distance graph. Contingent event assignments are
+recorded in the labeled distance graph as follows, where $\obs(x_{c})$ is the resolved observation,
+
+#+label: eqn:fixed-recording
+#+begin_export tex
+\begin{align}\assign(x'_c) = \obs(x_c) - \gamma(x'_c) \label{eqn:fixed-recording}
+\end{align}
+#+end_export
+#+latex: \end{proof}
+
+The FAST-EX real-time update algorithm, Algorithm [[alg:fast-ex-update]], then becomes Algorithm
+[[alg:fast-ex-fixed-obs]].
+
+#+label: alg:fast-ex-fixed-obs
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{FAST-EX Update with Fixed Observation Delay}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+\Indm
+\Input{Time $t$; Set of newly observed events $\texttt{Exec} \subseteq X_{e} \cup X_{r}$; AllMax Graph $G$; Distance matrix $D$, where $D(A, B)$ is the distance from $A$ to $B$; Fixed-delay function $\gamma$;}
+\Output{Updated $D$}
+\Indp
+\Algorithm{}
+\Indp
+\For{each contingent event $C \in \texttt{Exec}$} {
+    $\assign(C) \leftarrow \obs(C) - \gamma(C)$\;
+    Remove each upper-case edge, $\edge{Y}{A}{C:-w}$, labled by $C$\;
+    Replace each edge from $Y$ to $Z$ with the strongest replacement edge\;
+}
+\For{each event $E \in \texttt{Exec}$} {
+    Add lower-bound edge $\edge{E}{Z}{-t}$\;
+}
+For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
+\For{each event $E \in \texttt{Exec}$} {
+    Add upper-bound edge $\edge{Z}{E}{t}$\;
+}
+For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
+\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution or observation of an event.}
+\label{alg:fast-ex-fixed-obs}
+\end{algorithm}
+#+end_export
+
+No other modifications to FAST-EX are required to schedule a fixed-delay STNU.
+
+*** Variable-Delay Scheduling
+
+Our execution strategy must address each of the following special categories of contingent event
+observations:
+
+1. contingent events with infinite observation delay,
+2. contingent events that are observed outside $[l^+(x_{c}), u^-(x_{c})]$ in $S'$.
+
+The first category is a requirement for dispatching the fixed-delay equivalent of a variable-delay
+STNU. If the constraints of a problem domain are modeled directly in a fixed-delay STNU and the
+modeler gives a contingent event, $x_{c}$, infinite delay, e.g. $\gamma(x_{c}) = \infty$, the event
+will never be observed and thus a fixed-delay scheduler has no need for an execution strategy in the
+event that $x_{c}$ is observed. However, by Lemmas [[lemma:partially-unobservable]] and
+[[lemma:not-enough-information]] there are some contingent events with potentially finite observation
+delay in $S$ that are transformed to infinite observation delay in $S'$, making it possible that the
+scheduler receives observations of them.
+
+#+label: lemma:ignore-inf-delay
+#+latex: \begin{lemma}
+#+latex: \label{lemma:ignore-inf-delay}
+For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) =
+\infty$, we mark the event executed but do not assign $\assign(x'_{c})$ in the dispatchable form of
+$S'$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+If we are scheduling a fixed-delay STNU, $S'$, that is already known to be fixed-delay controllable,
+an execution strategy must exist that is independent of the assignment of $\assign(x'_{c})$ when
+$\gamma(x'_{c}) = 0$. We are not required to record $\assign(x'_{c})$ when $\gamma(x'_{c}) = \infty$
+to guarantee controllability and may safely ignore it.
+
+We mark the event executed to prevent it from appearing in future RTEDs.
+#+latex: \end{proof}
+
+#+label: fig:observations
+#+attr_latex: :width 3in
+#+caption: Here, we show how the combination of $\assign(x_{c})$ and $\gammabar(x_{c})$ lead to an assignment of $\assign(x'_{c})$ in $S'$. We see the range $\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})$ representing the earliest and latest assignments of $\assign(x_{c})$ that could result in $\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})$, l^+(x_c)]$. The grey region represents the range of possible observation delays, $\gammabar(x_{c})$, supporting $\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$.
+[[file:../images/viz-l-plus.png]]
+
+The second category refers to the need for buffering and imagining events as a result of Lemma
+[[lemma:main-tightening]] using the execution strategy proven to be valid in Lemma
+[[lemma:buffering-imagining]]. There are three regimes of contingent event observations to address.
+
+1. $\obs(x_{c})  \in [l^-(x_{c}), l^+(x_{c}))$, ie. strictly earlier than the range
+   of $\assign(x'_{c})$,
+2. $\obs(x_{c}) \in [l^+(x_{c}), u^-(x_{c})]$, ie. the range equivalent to $x'_{c}$, and
+3. $\obs(x_{c}) \in(u^-(x_{c}), u^+(x_{c})]$, ie. strictly later than the range of
+   $\assign(x'_{c})$.
+
+Note that we omit the $-\gamma(x'_{c})$ term from Equation [[eqn:fixed-recording]] in this analysis due
+to the fact that $\gamma(x'_{c}) = 0$ after applying Lemma [[lemma:main-tightening]].
+
+Our execution strategy is to then make the following assignments during the FAST-EX real-time
+update.
+
+#+begin_export tex
+\begin{equation}
+\assign(x'_c) = \begin{cases}
+$l^+(x_{c})$  & \text{if } $\obs(x_{c}) \in [l^-(x_{c}), l^+(x_{c}))$ \textit{(buffering)} \\
+$\obs(x_{c})$ & \text{if } $\obs(x_{c}) \in [l^+(x_{c}), u^-(x_{c})]$ \\
+$u^-(x_{c})$  & \text{if } $\obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})]$ \textit{(imagining)}
+\end{cases}
+\end{equation}
+#+end_export
+
+In the last case, late observations are assigned to an earlier time. During execution, time is
+always increasing. There is no need to wait to make an observation after $u^-(x_{c})$. Instead, we
+modify RTED generation, namely Equation [[eqn:rted1]], such that we dispatch $x'_{c}$ at $u^-(x_{c})$ if
+it is not been observed before $u^-(x_{c})$. Let $U_{c}$ be the set of unobserved contingent
+timepoints.
+
+#+label: rted-with-ctg
+\begin{align}
+t_{x} &= \min\{-D(X, Z)~|~X \in U_{x}\} \\
+t_{c} &= \min\{D(Z, X)~|~X \in U_{c}\} \\
+t &= \min\{t_{x}, t_{c}\} \\
+\chi_{x} &= \{X \in U_{x}~|~-D(X, Z) = t\} \\
+\chi_{c} &= \{X \in U_{c}~|~D(Z, X) = t\} \\
+\chi &= \chi_{x} \cup \chi_{c}
+\end{align}
+
+We see that RTEDs may now include unobserved (or unexecuted) contingent timepoints at their upper
+bounds. Note that there is no need to distinguish between contingent events that are the result of
+tightening during the fixed-delay transformation by applying Lemma [[lemma:main-tightening]] and others.
+We assume that the contingent constraints of the variable-delay STNU accurately reflect Nature. The
+latest any other contingent event should be observed is their upper bound in $S'$ and thus should
+never be in the set of events, $\chi$, of an executed RTED.
+
+We have defined variable-delay execution strategies for when contingent events have infinite delay
+and tightened constraints. The remaining category of contingent events is when a contingent event
+has a finite, non-zero $\gamma(x'_{c})$ in $S'$. If that is the case, $x'_{c}$ must have had fixed
+observation delay in $S$, Lemma [[lemma:emulating-fixed]], and can be scheduled normally after backing
+out the observation delay with Equation [[eqn:fixed-recording]].
+
+We have addressed the key issue of reconciling observations from $S$ with the dispatchable form from
+$S'$. We now present a dispatcher and wrapper algorithms on top of FAST-EX that combine to add
+robustness for variable observation delay.
+
+** Dynamic Dispatching of STNUs with Observation Delay
+<<sec:delay-scheduler>>
+
+The terms "scheduling" and "dispatching" are often used interchangeably in temporal reasoning
+literature. However, we distinguish the goals of a scheduler, as described above, and a dispatcher.
+
+- *Scheduling*: Generating RTEDs based on a partial schedule.
+- *Dispatching*: Reasoning over a clock and RTEDs to guarantee requirement events are safely (w.r.t.
+  controllability) executed.
+
+We assume that events in an STNU map 1:1 to actions in the real world. To put the design of the
+dispatcher in context, it is worth considering what events may look like. In the case of a robotic
+agent, requirement events may represent the instantaneous timepoint when a motion plan begins, while
+contingent events could be anything from the completion of said motion plan to receiving a "GO"
+message from a third party. For a human, a requirement event could be presented in a mission
+timeline as the start of action like, say, collecting a scientific sample. The end of sampling would
+then be a contingent event. Or contingent events could be the actions performed by other agents,
+like say another astronaut on an EVA, with whom temporal constraints are shared. In both the case of
+the robot and the human, a robust dispatcher should take into consideration that passing a message
+to the agent telling it to execute a requirement event does not cause the event to occur
+instantaneously. Put in other words, dispatching is not the same as assignment. A robot may need
+offline processing before it executes the motion plan. Or a human may need to acknowledge that they
+have started the activity their mission timeline has told them to perform. Neither is a problem,
+though, for our chosen formalism for representing temporal constraints and scheduling so long as a
+requirement event is assigned at some point within its constraint in the STNU. In our view, the
+dispatcher is responsible for ensuring said requirement constraints are met by both monitoring the
+real-world and interfacing with hardware to cause actions to be performed.
+
+In this Section, we contribute a set of algorithms for building a robust executive that can reason
+over observation delay and safely enact the actions symbolized in requirement events in the real
+world.
+
+
+Dynamic dispatching is designed around the two interfaces of scheduling - the input of partial
+schedules and output of RTEDs. As such, we contribute algorithms for observing events and managing
+RTEDs.
+
+In our view, RTEDs are not commands to the agent. Rather, they inform the executive of the
+time where actions ensure consistency.
 
 *** Real vs No-op Events
 <<sec:real-vs-noop-events>>
@@ -618,14 +740,13 @@ A /Real-Time Execution Decision with Operational Distinction/ is a two-tuple $\l
 For convenience and simplicity, and given the similarities between RTED and RTED with Operational
 Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
 
-** Dispatching
+** Dynamic Dispatching
 <<sec:dynamic-dispatching>>
 
 # TODO is the salient point here RTEDs? or is there something else that's more important about the
 # relationship between the dispatcher and the scheduler?
 This thesis contributes a dynamic dispatching algorithm for which the process of generating RTEDs is
-a subroutine. In our view, RTEDs are not commands to the agent. Rather, they inform the agent of the
-time windows where actions ensure consistency. As such, a dedicated dispatcher layer is required to
+a subroutine. As such, a dedicated dispatcher layer is required to
 translate RTEDs to real actions at the right time. The dispatcher will request RTEDs and then wait
 until the time window of the execution to trigger their execution.
 
@@ -858,12 +979,12 @@ We describe Optimistic Rescheduling below and present the full contingent event
 observation algorithm.
 
 **** Optimistic Rescheduling
-<<sec:optimistic>>
+<<sec:optimistic-rescheduling>>
 
 We return to problem of potentially unnecessary wait time created by the buffering execution
-strategy described in Lemma [[lemma:buffering]]. First, we use an example to demonstrate how buffering
-early contingent events results in a reduction of the execution space. Then we contribute a technique
-for managing event observations that circumvents the loss of execution space.
+strategy described in Lemma [[lemma:buffering-imagining]]. First, we use an example to demonstrate how
+buffering early contingent events results in a reduction of the execution space. Then we contribute
+a technique for managing event observations that circumvents the loss of execution space.
 
 Consider the following variable-delay controllable STNU, which we will refer to as
 $\mathit{Bufferable}$.
@@ -888,9 +1009,9 @@ fixed-delay equivalent, $C'$). According to the semantics of $\mathit{Buffering}
 observed at $t = 2$, we know that $B$ was assigned at $t = 1$. Thus, we only need to wait until $t =
 6$ to schedule $C$. However, the delay scheduler would schedule according the constraints found in
 $\mathit{Buffering}'$, wherein $\assign(B') = 2$ falls earlier than the lower bound of
-$\conedge{A'}{B'}{[4, 8]}$, triggering Lemma [[lemma:buffering]]. As a result, we act as if $\assign(B')
-= 4$ and then wait for the lower bound of $\edge{B'}{C'}{[4, 6]}$. The end result is that $C'$ is
-assigned to a later time of $t = 8$.
+$\conedge{A'}{B'}{[4, 8]}$, triggering Lemma [[lemma:buffering-imagining]]. As a result, we act as if
+$\assign(B') = 4$ and then wait for the lower bound of $\edge{B'}{C'}{[4, 6]}$. The end result is
+that $C'$ is assigned to a later time of $t = 8$.
 
 From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
 case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
@@ -1009,13 +1130,13 @@ x_{c}^{\ast} &= [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c
 #+latex: \end{lemma}
 
 #+latex: \begin{proof}
-Buffering is only possible if the conditions of Lemmas [[lemma:main-tightening]] and [[lemma:buffering]] are
-triggered. By Lemma [[lemma:main-tightening]], we are guaranteed to be able to narrow where in the range
-$[l, u]$ $x_{c}$ was scheduled. By Lemma [[lemma:buffering]], we know that rewritten bounds will lead to
-an assignment of $x_{c}$ that is no later than $l + \gammabar^{+}(x_{c})$. Our tool for narrowing the
-bounds is Equation [[eqn:fixed-recording]], which allows us to use the observation to reason over the
-assignment and observation delay. Our strategy is to look at the extreme cases leading to an
-observation.
+Buffering is only possible if the conditions of Lemmas [[lemma:main-tightening]] and
+[[lemma:buffering-imagining]] are triggered. By Lemma [[lemma:main-tightening]], we are guaranteed to be
+able to narrow where in the range $[l, u]$ $x_{c}$ was scheduled. By Lemma
+[[lemma:buffering-imagining]], we know that rewritten bounds will lead to an assignment of $x_{c}$ that
+is no later than $l + \gammabar^{+}(x_{c})$. Our tool for narrowing the bounds is Equation
+[[eqn:fixed-recording]], which allows us to use the observation to reason over the assignment and
+observation delay. Our strategy is to look at the extreme cases leading to an observation.
 
 We start by reasoning over the earliest and latest assignments respectively. In order for $x_{c}$ to
 be assigned as early as possible, $l^{\ast}$, we assume the delay has taken on its maximum value,
@@ -1136,7 +1257,7 @@ complexity of $O(N^{4})$. We discuss potential means for improving Optimistic Re
 Section [[sec:discussion-optimistic-rescheduling]].
 
 ** Experimental Analysis
-Scheduling always follows constraints
+<<sec:scheduling-experimental>>
 
 Optimistic vs normal VDC scheduling
 

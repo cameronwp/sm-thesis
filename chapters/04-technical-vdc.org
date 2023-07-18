@@ -278,7 +278,7 @@ first, we describe fixed-delay controllability, which introduces known observati
 ** Fixed-Delay Controllability
 <<sec:fdc>>
 
-Under fixed-delay controllability [cite:@Bhargava2018a], we consider the problem of scheduling
+Under fixed-delay controllability (FDC) [cite:@Bhargava2018a], we consider the problem of scheduling
 execution decisions when the assignment of values to contingent events is learned after some time
 has passed from the initial assignment, if ever. Fixed-delay controllability uses a /fixed-delay
 function/ to encode the delay between when an event occurs and when it is observed by a scheduling
@@ -496,7 +496,9 @@ must use interval-bounded contingent event assignments instead.
 
 # TODO we already defined schedule!
 
+#+label: def:schedule-as-interval
 #+latex: \begin{defn}
+#+latex: \label{def:schedule-as-interval}
 *Schedule*
 
 A /schedule/, $\assign$, when applied to contingent events, is a mapping of events to
@@ -795,7 +797,9 @@ than the upper bound of the observation space, $\obs(x_{c}) > \omega_{f}^+(x'_{c
 $\xi(x'_{c})$ to the upper bound of the observation space, $\xi(x'_{c}) = \omega_{f}^+(x'_{c})$.
 #+latex: \end{defn}
 
+#+label: lemma:buffering-imagining
 #+latex: \begin{lemma}
+#+latex: \label{lemma:buffering-imagining}
 If $S'$ is fixed-delay controllable after applying Lemmas [[lemma:main-tightening]], [[lemma:execution]],
 and [[lemma:applied-execution]] to contingent event $Y$ with following requirement event $Z$, there is a
 valid $\mathcal{S}$ for any observation in the observation space of $S$, $\omega_{v}(Y) = [a^-(Y),

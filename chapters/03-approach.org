@@ -537,9 +537,10 @@ assumption that contingent events are instantaneously observed. Essentially, we 
 observation delay to decide where in the past an observed contingent event was assigned. Second, to
 account for one special case due to the transformation, we use observations to optimistically
 rewrite the variable-delay STNU in an attempt to shorten the overall makespan (see Section
-[[sec:optimistic]]). Key to (2) is that we are allowed to /imagine/ that contingent events were assigned
-despite never observing them. Imagining contingent events is a result of the other special case from
-the variable-delay to fixed-delay transformation (see Section [[sec:recording-vdc-ctg]]).
+[[sec:optimistic-rescheduling]]). Key to (2) is that we are allowed to /imagine/ that contingent events
+were assigned despite never observing them. Imagining contingent events is a result of the other
+special case from the variable-delay to fixed-delay transformation (see Section
+[[sec:delay-scheduling]]).
 
 ** Coordination
 <<sec:approach-coordination>>
