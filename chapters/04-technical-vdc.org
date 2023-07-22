@@ -268,12 +268,13 @@ In the world of STNU literature, there are many forms of controllability that re
 of a scheduler to enact execution strategies that satisfy constraints under different conditions
 [cite:@Vidal1999]. Three forms of controllability, /strong/, /weak/, and /dynamic/ are studied most
 often, though in practice we omit weak controllability from our analysis. A temporal network is
-/strongly controllable/ (or exhibits strong controllability), if there exists a complete schedule
-that will satisfy all constraints for all projections of the STNU. A temporal network exhibits
-dynamic controllability if an execution strategy exists for a given partial schedule. As we will see
-below, variable-delay controllability, used to check the consistency of temporal networks with
-uncertain observation delay, will unify strong and dynamic controllability into a single theory. But
-first, we describe fixed-delay controllability, which introduces known observation delay to STNUs.
+/strongly controllable/ (or exhibits strong controllability) (SC), if there exists a complete
+schedule that will satisfy all constraints for all projections of the STNU. A temporal network
+exhibits dynamic controllability (DC) if an execution strategy exists for a given partial schedule.
+As we will see below, variable-delay controllability, used to check the consistency of temporal
+networks with uncertain observation delay, will unify strong and dynamic controllability into a
+single theory. But first, we describe fixed-delay controllability, which introduces known
+observation delay to STNUs.
 
 ** Fixed-Delay Controllability
 <<sec:fdc>>

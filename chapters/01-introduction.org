@@ -15,24 +15,94 @@
 
 ** TODO intro to EVAs here? exploration?
 ** TODO can we include a Portal 2 reference somewhere???
+** EVAs and TRL
+The current generation concepts of operations and decision support systems for extravehicular
+activities (EVAs) cannot cope with the communication delays and dropouts the next generation of
+lunar explorers will face while guaranteeing safe and effective exploration. I propose to develop
+low TRL technologies that will enable safe and effective planetary exploration through a decision
+support system (DSS) for making real-time decisions with distributed collaboration and coordination
+under uncertain communications. The lunar surface is a stochastic environment where the information
+found during a mission will impact planning. The situation will be fluid, and as such we need a DSS
+that enables continuous planning, whether those plans help teams reach unexpected, high value
+science targets, or work around unexpected equipment failures - even when they cannot talk to one
+another.
+
+This research proposes to address TA 4.4.5, Distributed Collaboration and Coordination, for a
+mixed-initiative system of astronauts, robotic assets, and ground-based support personnel during
+exploration EVAs. It will build off existing frameworks for decision-making from autonomy that have
+enabled robotic missions with analogous constraints. Combined task and motion planning for
+autonomous exploration has been well-demonstrated. Similarly, there is a substantial body of work
+behind continuous online planning. Distributed, multi-agent decision making has also been addressed,
+however, there has not been a look at how uncertain communications impact how a mixed-initiative
+team should dynamically adapt and solve problems in an evolving world.
 
 * Introduction
 
-...a multi-faceted approach with the overall goal of a working executive for distributed collaboration and coordination in extreme environments.
+The United States, Europe, private companies, and new space agencies around the world are
+collectively urging humanity further into the cosmos with a never-before-seen zeal. We are witness
+to the great forces of political will, economics, and technological prowess launching our foothold
+beyond low Earth orbit and into planetary colonization. From every perspective, the scale of space
+exploration is staggering. It will take relentless effort from untold numbers of people, and our
+robot partners, to usher us into the era where living outside of Earth and interplanetary travel are
+commonplace. In every envisioned scenario for deep space exploration, there is a need to coordinate
+between agents, whether human or robotic, who must find a way to safely work together in the face of
+the communication challenges inherent to extreme environments.
 
-...leverage work in VDC...
+There is good reason to design a system for coordination around the notion of uncertain
+communication. We take for granted that communication is easy in our civilized corners of the
+Earth's surface. Cellular signals and WiFi are security blankets, tricking us into thinking it must
+be easy for /everyone/ to communicate /everywhere/. The fact of the matter is that the communication
+is far from a given when you leave civilization. Consider low Earth orbit. The largest artificial
+satellite, the International Space Station (ISS), has been in orbit since 1998. Despite that, it
+still loses communication with the ground regularly. Satellites with much less robust infrastructure
+lose contact with the ground even more often. When astronauts set foot on the south pole of the Moon
+soon as part of the Artemis program [cite:@Coan2020a], they will find uncertain satellite coverage
+and the need to contend against local topology that is hostile to radio signals. Any robots working
+near a habitat or astronauts on Extravehicular Activity (EVA) may be reliant on complicated systems
+of relays to communicate with other /in situ/ agents, let alone the Earth. Communications may be
+delayed due to passing through multiple relays and the speed of light. Or communications may drop
+out altogether when agents accidentally walk behind a big boulder between them and the closest
+relay.
 
-This is the introduction.
+The gap in our understanding of distributed collaboration and coordination that this thesis proposes
+to address is deciding how to act when there is uncertainty about when, /if ever/, communications are
+received. To do so, we leverage and contribute to temporal reasoning research to implement the task
+scheduling and execution capabilities of a high-level executive that is capable of facilitating
+swarm-like coordination, where each agent independently decides how to act based on their knowledge
+of their peers' actions.
 
-** Section Header
+A mature corpus of research in the temporal reasoning community provides the foundation for this
+thesis, which largely based on the notion of events, which are discrete time points representing
+actions, and timing constraints between events. In English, these may take the form of "the sample
+collection event must be finished no more than eight minutes before samples are stowed." "Sample
+collection" and "sample stowing" would be two events, with a constraint of $< 5$ minutes between
+them. Constraints between events we can control [cite:@Dechter1991], events we cannot control
+[cite:@Vidal1999], between multiple agents [cite:@Casanova2016], and events that may not be observed
+[cite:@Moffitt2007] give mission planners a robust set of modeling tools for creating schedules and
+guaranteeing that all constraints are satisfied during a mission. However, these tools lack a notion
+of observation delay, meaning that they assume events are learned either instantaneously or never.
+This thesis proposes to address the following high-level gaps that are required in order to build a
+robust task scheduling executive that is ready to be deployed to real hardware.
 
-This is a section of text. As said in... [cite:@Bhargava2018] "Hey". So said [cite:@Miller2017] too
-that things are cool.
+1. Provide both a formalism and a human friendly modeling language for describing temporal
+   constraints with observation delay.
+2. Guarantee that all temporal constraints can be satisfied when event observations are made after a delay.
+3. Decide when to execute events to satisfy constraints.
+4. Coordinate observations with peer agents.
 
-#+ATTR_LATEX: :float nil
-#+caption: This is a caption.
-#+begin_src lisp
-(format t "hello, world!")
-#+end_src
-
-This is something I want to cite [cite:@Wang]
+Note that the first three gaps would be required whether we are building a single-agent or
+multi-agent executive. Thus, the executive of this thesis is effectively is a single-agent executive
+with the additional ability to reason over communications from peers. Thus, the structure of this
+thesis is as follows. A more detailed problem statement, include descriptions of the scenarios used
+for testing distributed collaboration and coordination with uncertain communication, will be
+provided in Chapter [[ch:problem-statement]]. Our approach to addressing the problem statement will be
+outlined in Chapter [[ch:approach]]. Chapter [[ch:modeling-tn]] will provide the first technical
+contributions of this thesis, first by addressing the issue of modeling observation delay, then by
+providing a procedure that can be used to guarantee that temporal constraints with observation delay
+are satisfiable. Chapter [[ch:delay-scheduling]] expands existing algorithms for deciding when to act
+given the resolution of constraints. There, we contribute a novel strategy for deciding when to act
+given observation delay. Additionally, we formalize and separate often confused components of
+scheduling, allowing us to design a more robust task scheduling executive that can be deployed to
+real hardware. Chapter [[ch:technical-coordination]] finally contributes a multi-agent coordination
+architecture for environments with uncertain communication. The discussion in Chapter [[ch:discussion]]
+concludes this thesis by providing additional context for the decisions made during this research.

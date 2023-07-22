@@ -8,6 +8,7 @@ delay is critical. Uncertainty in communication delay is an unavoidable factor o
 timelines, such as those for Lunar exploration.
 
 * Problem Statement
+<<ch:problem-statement>>
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
 uncertain inter-agent communication in uncertain environments. This thesis will focus on two

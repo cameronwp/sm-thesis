@@ -1,8 +1,11 @@
 #+title: Technical Scheduling
 
 * COMMENT
+:PROPERTIES:
+:startup: content
+:END:
 ** TODO consistency with "noop"
-is it =noop= or =no-op= or $\mathit{noop}$?
+is it =noop= or =no-op= or $\mathit{noop}$ or /noop/ or /no-op/?
 ** TODO consistency with capitalization and italics of Scheduler, Delay Scheduler, Dispatcher, Driver
 ** TODO we need an =updateSchedule= algo defined in the execution strategy section
 include the fact that it returns if an event is buffered
@@ -11,6 +14,7 @@ include the fact that it returns if an event is buffered
 - [ ] weird italics
 - [ ] check for loop usage
 ** TODO fix:observations is weird. fix notation, caption
+** TODO RTED defn is missing info in the scheduler section. also check it is accurate wrt code
 ** extra content 1
 Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
 first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
@@ -211,6 +215,33 @@ During execution, we observe the outcome of contingent events $\obs(x_{c})$ in $
 assignments in the dispatchable form of $\assign(x'_{c})$ in $S'$. Despite being equivalent with
 respect to controllability, the bounds of contingent links $x_{c}$ in $S$ and $x'_{c}$ in $S'$ are
 not equivalent.
+** extra content about the dispatcher
+# TODO is the salient point here RTEDs? or is there something else that's more important about the
+# relationship between the dispatcher and the scheduler?
+This thesis contributes a dynamic dispatching algorithm for which the process of generating RTEDs is
+a subroutine. As such, a dedicated dispatcher layer is required to
+translate RTEDs to real actions at the right time. The dispatcher will request RTEDs and then wait
+until the time window of the execution to trigger their execution.
+
+# This thesis contributes a novel dispatching algorithm that works with any dynamic scheduler.
+
+# TODO these paragraphs need to be cleaned up and streamlined
+
+# scheduler doesn't do any "extraneous" jobs (extraneous is a good word. use it?)
+A /dynamic dispatcher/ (or just "dispatcher") is an interface layer situated between the scheduler
+and a /driver/ that communicates with hardware. The dispatcher has a two-fold responsibility: it
+triggers the execution of RTEDs in the outside world by communicating with the driver (Section
+[[sec:dynamic-dispatching]]), and it relays observations from the outside world about the execution of
+events to the scheduler (Section [[sec:event-observations]]). An explicit dispatching layer allows us to
+centralize the logic for interacting with the outside world therein, keeping the scheduler simple.
+In the implementation of Kirk used in this thesis, the scheduler wholly consists of the algorithms
+described above, nothing more. We go so far as to enforce that the scheduler itself has no notion of
+a clock. Instead, the dispatcher has a clock. When the dispatcher wants the scheduler to update
+itself, it is required to send both an event and a elapsed time to the scheduler.
+
+Consequently, the dispatching algorithm is separate from the scheduler. As such, there is no hard
+requirement on the FAST-EX-based scheduler described above. Any scheduling algorithm that produces
+RTEDs adhering to Definition [[def:rted-op]] would be compatible with the dispatcher described below.
 
 ** I think VDC->FDC algo? not sure why this was here
 Let $x$ be a temporal event, $x \forall x \in X_{c} \cup X_{e}$.
@@ -266,6 +297,8 @@ $x_{c}$ but key the fixed-delay function on $x'_{c}$. Rather than adding an addi
 layer, we give each temporal event in $S$ a unique name, all of which get copied to their equivalent
 events in $S'$. Hash-tables are keyed on event names, vastly simplifying lookups in the AllMax
 graph, delay function, and elsewhere.
+** TODO fix dish install diagram
+- [ ] doesn't need lambda
 
 * Single-Agent Execution with Delayed Event Monitoring
 <<ch:delay-scheduling>>
@@ -604,11 +637,20 @@ $u^-(x_{c})$  & \text{if } $\obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})]$ \textit{(i
 \end{equation}
 #+end_export
 
+# TODO or the assignment might fail altogether!
+In the first case, we cannot immediately schedule buffered events. It may be the case that there are
+other unexecuted timepoints between $\obs(x_{c})$ and $l^+(x_{c})$. If we make an assignment at
+$l^+(x_{c})$, we would be preempting later timepoints, which would cause us to later make
+assignments in the past, which invalidates our assumptions of partial history. Thus, we buffer
+$x'_{c}$ in the sense that we wait until $l^+(x_{c})$ to assign $\assign(x'_{c}) = l^+(x_{c})$.
+
 In the last case, late observations are assigned to an earlier time. During execution, time is
 always increasing. There is no need to wait to make an observation after $u^-(x_{c})$. Instead, we
 modify RTED generation, namely Equation [[eqn:rted1]], such that we dispatch $x'_{c}$ at $u^-(x_{c})$ if
 it is not been observed before $u^-(x_{c})$. Let $U_{c}$ be the set of unobserved contingent
 timepoints.
+
+# TODO this omits t_U logic! needs to be fixed
 
 #+label: rted-with-ctg
 \begin{align}
@@ -640,74 +682,86 @@ robustness for variable observation delay.
 ** Dynamic Dispatching of STNUs with Observation Delay
 <<sec:delay-scheduler>>
 
+# TODO architecture img
+
 The terms "scheduling" and "dispatching" are often used interchangeably in temporal reasoning
-literature. However, we distinguish the goals of a scheduler, as described above, and a dispatcher.
+literature. However, we distinguish the goals of a scheduler, as described above, and a dispatcher,
+described here.
 
 - *Scheduling*: Generating RTEDs based on a partial schedule.
-- *Dispatching*: Reasoning over a clock and RTEDs to guarantee requirement events are safely (w.r.t.
-  controllability) executed.
+- *Dispatching*: Reasoning over a clock and RTEDs to guarantee that requirement events are safely
+  executed (w.r.t. controllability).
 
 We assume that events in an STNU map 1:1 to actions in the real world. To put the design of the
 dispatcher in context, it is worth considering what events may look like. In the case of a robotic
-agent, requirement events may represent the instantaneous timepoint when a motion plan begins, while
-contingent events could be anything from the completion of said motion plan to receiving a "GO"
-message from a third party. For a human, a requirement event could be presented in a mission
-timeline as the start of action like, say, collecting a scientific sample. The end of sampling would
-then be a contingent event. Or contingent events could be the actions performed by other agents,
-like say another astronaut on an EVA, with whom temporal constraints are shared. In both the case of
-the robot and the human, a robust dispatcher should take into consideration that passing a message
-to the agent telling it to execute a requirement event does not cause the event to occur
-instantaneously. Put in other words, dispatching is not the same as assignment. A robot may need
-offline processing before it executes the motion plan. Or a human may need to acknowledge that they
-have started the activity their mission timeline has told them to perform. Neither is a problem,
-though, for our chosen formalism for representing temporal constraints and scheduling so long as a
-requirement event is assigned at some point within its constraint in the STNU. In our view, the
-dispatcher is responsible for ensuring said requirement constraints are met by both monitoring the
+agent, requirement events may represent the instantaneous timepoints when motion plans begin, while
+contingent events could be anything from the completion of said motion plans to the receipt of
+=PROCEED= messages from a third party. For a human, requirement events could be presented in a
+mission timeline as the start of planned actions such as the collection of scientific samples. The
+end of a sampling activity would then be a contingent event. Or contingent events could be the
+actions performed by other agents, like say another astronaut on an EVA, with whom temporal
+constraints are shared. In both the case of the robot and the human, a robust dispatcher should take
+into consideration that passing a message to the agent telling it to execute a requirement event
+does not cause the event to occur instantaneously. Put in other words, dispatching is not the same
+as assignment. A robot may require offline processing before it executes the motion plan. Or a human
+may need to acknowledge that they have started the activity their mission timeline has told them to
+perform. Neither is a problem, though, for our chosen formalism for temporal reasoning so long as
+each requirement event is assigned at some point within their constraints in the STNU. In our view,
+the dispatcher is responsible for ensuring requirement constraints are met by both monitoring the
 real-world and interfacing with hardware to cause actions to be performed.
 
-In this Section, we contribute a set of algorithms for building a robust executive that can reason
-over observation delay and safely enact the actions symbolized in requirement events in the real
-world.
+We finally introduce a third component, the /driver/, that can interpret dispatched events and cause
+some action to be performed in an exogenous system. For instance, if Delay Kirk is controlling a
+robotic arm, the driver might be responsible for forming and publishing ROS messages when the
+dispatcher dispatches an event. If Delay Kirk is managing an astronaut's EVA schedule, the driver
+might be responsible for causing a heads up display to alert the astronaut to start their sample
+collection procedure.
 
+In this Section, we contribute a set of algorithms for building the dispatcher for a robust
+executive that can reason over observation delay and safely enact the actions symbolized in
+requirement events in the real world. Dynamic dispatching is designed around the two interfaces of
+scheduling - the input of partial schedules and output of RTEDs. As such, we focus on the
+interpretation, management, and flow of RTEDs in Section [[sec:dynamic-dispatching]] and observing
+events in Section [[sec:event-observations]]. But first, we present a novel view on RTEDs that is
+required for dispatching events to real hardware in Section [[sec:real-vs-noop-events]].
 
-Dynamic dispatching is designed around the two interfaces of scheduling - the input of partial
-schedules and output of RTEDs. As such, we contribute algorithms for observing events and managing
-RTEDs.
-
-In our view, RTEDs are not commands to the agent. Rather, they inform the executive of the
-time where actions ensure consistency.
-
-*** Real vs No-op Events
+*** Guaranteeing Agents Receive Actionable Events
 <<sec:real-vs-noop-events>>
 
-The introduction of buffering and imagining events creates a new distinction between temporal
-events: there are events that need to be executed by the agent and there are those events that do
-not. We call these /real/ and /no-op/ ("no operation") events. Both contingent /and/ requirement
-events may fall into either category. Below, we present our rationale for the distinction between
-real and no-op events, and how we modify real-time execution decisions accordingly.
+# In our view, RTEDs are not commands to the agent. Rather, they inform the executive of the
+# time where actions ensure consistency.
 
-To start, both buffered and imagined contingent events are no-ops. Both cases represent timepoints
-that we use to update our dispatchable form to maintain consistency with $S'$.
+We take the view that events in an STNU may be interpreted as commands by the driver. It is improper
+to knowingly send an invalid command. Accordingly, the driver must never receive a dispatched event
+that cannot be mapped to a corresponding action in its exogenous system. As such, it is the
+dispatcher's responsibility to filter events in order to only dispatch valid commands to the driver.
 
-Consider the process of normalization of an STNU [cite:@Morris2006]. While building the labeled
-distance graph during a dynamic controllabillity check, we rewrite contingent links such that their
-lower bounds are always $0$. For instance, for a contingent event $C$ and free event $E$, $C - E \in
-[l, u]$, during normalization we create a new requirement event, $C'$, fixed at the lower bound of
-the contingent link, and then shift the bounds of the contingent link to start at 0 while
-maintaining the original range, $u - l$. This results in two constraints: $E - C' \in [l, l]$ and
-$C - C' \in [0, u - l]$ that still reflect the original contingent link's semantics.
+In a variable-delay STNU, there are events that need to be executed by the driver and there are
+events that do not. We call these /real/ and /noop/ ("no operation") events. Both contingent /and/
+requirement events may fall into either category. Below, we present our rationale for the
+distinction between real and no-op events, and how we modify real-time execution decisions
+accordingly.
 
-# TODO how many times am I going to use the word "semantics"?
+To start, imagined contingent events are no-ops. They are assignments we artificially perform with
+no corresponding real-world action, and solely exist to maintain the controllability of the
+fixed-delay dispatchable form. Imagined events should never be dispatched to a driver.
 
-To a scheduler, there is no distinction between the semantics of a real event, as modeled by a human
-planner writing an STNU for an agent to execute, and $C'$, an artifact of checking controllability.
-Both are modeled in the AllMax distance graph forming the basis of RTED generation. However, an
-agent does not need to execute any task in the outside world to satisfy $E - C'$. We take a view
-that the only information our agent has about the timepoints it should execute comes from the input
-STNU. Thus, we need RTEDs to reflect the distinction between requirement events that are /real/,
-meaning the agent is responsible for taking some action to execute them, and those that are
-/no-ops/, or algorithmic by-products that require no operation. This distinction naturally leads to
-the following addendum to the definition of RTEDs.
+There are requirement events that are also no-ops. Consider the process of normalization of an STNU
+[cite:@Morris2006]. While building the labeled distance graph during a DC check, we rewrite
+contingent links such that their lower bounds are always $0$. For instance, for a contingent event
+$C$ and free event $E$, $C - E \in [l, u]$, during normalization we create a new requirement event,
+$C'$, fixed at the lower bound of the contingent link, and then shift the bounds of the contingent
+link to start at 0 while maintaining the original range, $u - l$. This results in two constraints:
+$E - C' \in [l, l]$ and $C - C' \in [0, u - l]$ that still reflect the original contingent link's
+semantics.
+
+Importantly, the requirement events representing the normalized lower bounds of contingent events
+are in the dispatchable form for dynamic scheduling because we draw the AllMax graph directly from
+the DC check. To a scheduler, there is no distinction between the semantics of a real event, as
+modeled by a human planner writing an STNU for an agent to execute, and $C'$, an artifact of
+checking controllability. Both are modeled in the AllMax distance graph forming the basis of RTED
+generation. However, an agent does not need to execute any task in the outside world to satisfy $E -
+C'$. Thus, we make the following addendum to the definition of RTEDs.
 
 #+begin_export latex
 \newcommand*{\eventnoop}{\mathit{event}\textsf{-}\mathit{noop}}
@@ -722,8 +776,8 @@ the following addendum to the definition of RTEDs.
 An /Event-No-op Pair/, $\eventnoop$, is a two-tuple, $\langle x, \mathit{noop} \rangle$,
 where:
 - $x$ is an event in $X_{e} \cup X_{c}$,
-- $\mathit{noop}$ is a boolean, where if true, the event does not correspond to an action an agent
-  should take, else real.
+- /noop/ is a boolean, where if true, the event cannot be interpreted by the driver, else the event
+  is a valid command.
 #+latex: \end{defn}
 
 #+label: def:rted-op
@@ -738,74 +792,49 @@ A /Real-Time Execution Decision with Operational Distinction/ is a two-tuple $\l
 #+latex: \end{defn}
 
 For convenience and simplicity, and given the similarities between RTED and RTED with Operational
-Distinction, future references to RTEDs will always mean RTEDs with Operational Distinctions.
-
-** Dynamic Dispatching
-<<sec:dynamic-dispatching>>
-
-# TODO is the salient point here RTEDs? or is there something else that's more important about the
-# relationship between the dispatcher and the scheduler?
-This thesis contributes a dynamic dispatching algorithm for which the process of generating RTEDs is
-a subroutine. As such, a dedicated dispatcher layer is required to
-translate RTEDs to real actions at the right time. The dispatcher will request RTEDs and then wait
-until the time window of the execution to trigger their execution.
-
-# This thesis contributes a novel dispatching algorithm that works with any dynamic scheduler.
-
-# TODO these paragraphs need to be cleaned up and streamlined
-
-# scheduler doesn't do any "extraneous" jobs (extraneous is a good word. use it?)
-A /dynamic dispatcher/ (or just "dispatcher") is an interface layer situated between the scheduler
-and a /driver/ that communicates with hardware. The dispatcher has a two-fold responsibility: it
-triggers the execution of RTEDs in the outside world by communicating with the driver (Section
-[[sec:event-dispatching]]), and it relays observations from the outside world about the execution of
-events to the scheduler (Section [[sec:event-observations]]). An explicit dispatching layer allows us to
-centralize the logic for interacting with the outside world therein, keeping the scheduler simple.
-In the implementation of Kirk used in this thesis, the scheduler wholly consists of the algorithms
-described above, nothing more. We go so far as to enforce that the scheduler itself has no notion of
-a clock. Instead, the dispatcher has a clock. When the dispatcher wants the scheduler to update
-itself, it is required to send both an event and a elapsed time to the scheduler.
-
-Consequently, the dispatching algorithm is separate from the scheduler. As such, there is no hard
-requirement on the FAST-EX-based scheduler described above. Any scheduling algorithm that produces
-RTEDs adhering to Definition [[def:rted-op]] would be compatible with the dispatcher described below.
+Distinction, future references to RTEDs will always refer to RTEDs with Operational Distinctions.
 
 *** Dynamic Event Dispatching
-<<sec:event-dispatching>>
+<<sec:dynamic-dispatching>>
 
-The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. The inner
-loop, Algorithm [[alg:dispatcher-inner]], is responsible for retrieving the latest RTEDs and firing
-driver commands when the clock indicates that the agent is inside RTED time windows. The outer loop,
-Algorithm, [[alg:dispatcher-outer]], runs continuously until the scheduler reports that there are no
-free events remaining to schedule. The dispatcher requests RTEDs with blocking synchronous calls,
-while the dispatcher and driver communicate asynchronously. The dispatcher spawns a thread to make
-non-blocking calls to the driver's interface to execute events. The dispatcher and driver also share
-a FIFO queue that the driver can append messages to indicating the successful execution of events.
+The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. It consists
+of a dispatching routine and some type of outer loop monitoring it. The dispatching routine,
+Algorithm [[alg:dispatcher-inner]], is responsible for retrieving the latest RTEDs and firing driver
+commands when the clock indicates that the agent has reached time $t$ corresponding to the latest
+RTED. The outer loop allows the dispatching routine to run until the scheduler reports there are no
+requirement events remaining.
+
+The dispatcher requests RTEDs with blocking synchronous calls, while the dispatcher and driver
+communicate asynchronously. The dispatcher spawns a thread to make non-blocking calls to the
+driver's interface to execute events. The dispatcher and driver also share a FIFO queue that the
+driver can append messages to indicating the successful execution of events.
+# TODO is the part about non-blocking calls to the driver true? does it matter?
 
 We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
-/schedule/ here is shorthand for whatever data structures the scheduler uses to generate RTED.
-/Updating the schedule/ may be used to refer to making an event assignment in the scheduler,
-triggering any necessary changes to the schedule.
+/schedule/ here is shorthand for whatever data structures the scheduler uses to generate RTEDs.
+/Updating the schedule/ refers to running the fixed-delay FAST-EX update, Algorithm
+[[alg:fast-ex-fixed-obs]], using the variable-delay execution strategy from Section
+[[sec:delay-scheduling]].
 
-The interaction between the inner and outer loop is limited. The inner loop returns a Boolean
-indicating whether there are executable events remaining. The outer loop is a simple =while= that
-repeats until it receives =false= from the inner loop. Otherwise, the only communication between the
-inner and outer loops is a variable containing the last RTED that was generated but not executed.
-The outer loop creates the variable and passes it by reference to the inner loop. The inner loop is
-free to use or modify the variable as it sees fit.
+The interaction between the dispatching routine and monitoring loop is limited. Algorithm
+[[alg:dispatcher-inner]] returns a Boolean indicating whether there are executable events remaining.
+Here, the monitoring loop is a simple =while= that repeats until it receives =false= from the inner
+loop. Otherwise, the only communication between the dispatching routine and outer loop is a variable
+containing the last RTED that was generated but not executed. The outer loop creates the variable
+and passes it by reference to the dispatching routine, which is free to use or modify the variable
+as it sees fit.
 
-We break the inner loop of algorithm into three distinct phases.
+We break the dispatching routine into three distinct phases.
 
-# TODO it's not a time window! it's a single time. probs need to define execution window
 1. Receive execution confirmation from the driver.
-2. Collect an RTED and confirm the clock time is within the execution window.
+2. Collect an RTED and confirm the clock time matches RTED time $t$.
 3. If there is an RTED:
    a. send executable events to the driver, else
-   b. immediately assign all =noop= events to the current time.
+   b. immediately assign all /no-op/ events to the current time.
 
-Our goal in the inner loop is to dispatch events to the driver only after updating the schedule,
-collecting an up-to-date RTED, and confirming we are within the time window of the RTED. The loop
-will exit before reaching the dispatch step if any conditions are not met.
+Our goal in the dispatching routine is to dispatch events to the driver only after updating the
+schedule, collecting an up-to-date RTED, and confirming we are within the time window of the RTED.
+The routine will exit before reaching the dispatch step if any conditions are not met.
 
 For the first step, we ask the scheduler if there are any remaining executable events. If there are
 none, we return =false= to signal the loop's termination, otherwise we continue.
@@ -819,25 +848,25 @@ generated.
 
 # TODO do we need to be more specific about checking the RTED? what if some events overlap but not all?
 The second step starts once we have popped all messages from the driver off the queue. If we do not
-have a valid RTED from the last iteration of the inner loop, we ask the scheduler for one and save
-it to the referenced variable from the outer loop. Given that we interact with the driver
+have a valid RTED from the last iteration of the routine, we ask the scheduler for one and save it
+to the referenced variable from the outer loop. Given that we interact with the driver
 asynchronously, it is possible that the current RTED is one that has already been sent to the driver
-but we have yet to receive a message confirming its execution. If so, there is nothing to do so we
-return =true=.
+but we have yet to receive an acknowledgment message confirming its execution. If so, there is
+nothing to do so we return =true=.
 
 # TODO does it make sense to call it a "suggested" time?
 # TODO isn't this the second \epsilon in the chapter? what about the epsilon proof? maybe the proof gets a new variable because this one is baked into Kirk?
 Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
-relationship between the scheduler, inner loop, and driver, we do not assume that dispatched events
-are executed instantaneously by the driver. We know that execution contends against delays such as
-the computational time in simply calling a function, to network latency, to robotic hardware that
-takes a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to
-preempt execution by dispatching events some small amount of time /before/ the clock time reaches
-the RTED execution window. We call this preemption time $\epsilon$, where $\epsilon \in
-\mathbb{R}^{\geq 0}$. Thus, we dispatch events, =dispatch-p=, when $\texttt{dispatch-p} =
-(t_{\text{RTED}} - t_{\text{clock}} \leq \epsilon)$. If $\epsilon = 0$, the dispatcher is not
-allowed to preemptively dispatch events before the RTED time. We allow the human operator to choose
-an $\epsilon$ that is consistent with the operational context for the driver.
+relationship between the scheduler, routine, and driver, we do not assume that dispatched events are
+executed instantaneously by the driver. We know that execution contends against delays such as the
+computational time in simply calling a function, to network latency, to robotic hardware that takes
+a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to preempt
+execution by dispatching events some small amount of time /before/ the clock time reaches the RTED
+execution window. We call this preemption time $\epsilon$, where $\epsilon \in \mathbb{R}^{\geq 0}$.
+Thus, we dispatch events, signaled by =dispatch-p=, when $\mathtt{dispatch-p} = (t_{\mathit{RTED}} -
+t_{\mathit{clock}} \leq \epsilon)$. If $\epsilon = 0$, the dispatcher is not allowed to preemptively
+dispatch events before the RTED time. We allow the human operator to choose an $\epsilon$ that is
+consistent with the operational context for the driver.
 
 If =dispatch-p= is =false=, we are too early to execute the RTED and so the loop returns =true=.
 Otherwise we continue.
@@ -846,16 +875,12 @@ Once we reach the third stage, we are guaranteed to be able to safely dispatch e
 have confirmed that the RTED we have in hand has unexecuted events that have never been dispatched,
 and (2) that we are in a time window that the scheduler has told us is consistent with the STNU's
 constraints. Going forward, we take advantage of the operational distinction we added to
-Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the $\mathit{noop}$ property of each
-$\eventnoop$ pair in the RTED, we filter the $\eventnoop$ pairs into a set of =noop= events and a
+Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the /no-op/ property of each
+$\eventnoop$ pair in the RTED, we filter the $\eventnoop$ pairs into a set of /no-op/ events and a
 set of real events. The real events are asynchronously sent to the driver. We then loop through the
-=noop= events and schedule them in turn.
+/no-op/ events and schedule them in turn.
 
-Finally, because events were dispatched, the inner loop returns =true=.
-
-# TODO is it really an inner /loop/ or the inner part of the loop?
-
-# TODO annotate the algo better. maybe comments? sections?
+Finally, because events were dispatched, the dispatching routine returns =true=.
 
 #+label: alg:dispatcher-outer
 #+begin_export tex
@@ -896,7 +921,7 @@ Finally, because events were dispatched, the inner loop returns =true=.
 \SetKwFunction{Return}{return}
 \SetKwInput{Input}{Input}
 \SetKwInput{Output}{Output}
-\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Inner Loop}}
+\SetKwInput{Algorithm}{\textsc{Dynamic Dispatching Routine}}
 \SetKwInput{Initialize}{Initialization}
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
@@ -950,17 +975,19 @@ Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver
 
 \Return $\mathtt{true}$\;
 
-\caption{The inner loop of the dynamic dispatching algorithm.}
+\caption{The dynamic dispatching routine.}
 \label{alg:dispatcher-inner}
 \end{algorithm}
 #+end_export
 
-The biggest contributor to the performance of the inner loop, Algorithm [[alg:dispatcher-inner]], is
-updating the schedule. Assuming the $\mathit{Scheduler}$ is the Delay Scheduler described in Section
-[[sec:delay-scheduler]], then performing an assignment of an event will trigger the FAST-EX update that
-runs in $O(N^{3})$ [cite:@Hunsberger2016 p144] with the number of events in the STNU. In the worst
-case, all events in the STNU arrive at the same time, whether as messages from the driver in the
-FIFO queue, or RTED =noop= events. Thus, the dynamic dispatcher's inner loop runs in $O(N^{4})$.
+The biggest contributor to the performance of the dispatching routine, Algorithm
+[[alg:dispatcher-inner]], is updating the schedule. Assuming the /Scheduler/ is the Delay Scheduler
+described in Section [[sec:delay-scheduler]], then performing an assignment of an event will trigger the
+FAST-EX update that runs in $O(N^{3})$ [cite:@Hunsberger2016 p144] with the number of events in the
+STNU. In the worst case, the dispatcher confirms that all events in the STNU have arrived at the
+same time, whether as messages from the driver in the FIFO queue, or RTED =noop= events. Each event
+would trigger a schedule update. Thus, the dynamic dispatching routine runs in $O(N^{4})$ in the
+worst case.
 
 *** Observing Contingent Events
 <<sec:event-observations>>
@@ -972,13 +999,10 @@ would end the section here. However, this interface is also where we implement a
 Rescheduling/ technique to address a problem inherent to the buffering performed by the Delay
 Scheduler.
 
-# Now that we have a complete picture of the relationship between the scheduler, dispatcher, and
-# driver,
-
 We describe Optimistic Rescheduling below and present the full contingent event
 observation algorithm.
 
-**** Optimistic Rescheduling
+*** Optimistic Rescheduling
 <<sec:optimistic-rescheduling>>
 
 We return to problem of potentially unnecessary wait time created by the buffering execution
@@ -1025,14 +1049,14 @@ future events earlier if possible.
 
 # TODO include a diagram used in group meeting that highlights the gaps at either end of the VDC->FDC translation
 
-At its core, Optimistic Rescheduling consists of copying the original variable-delay STNU then
+At its core, optimistic rescheduling consists of copying the original variable-delay STNU then
 rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
 STNU is narrowing the constraint and observation delay to match what was observed. We then
 re-perform controllability checks. If controllable, we have a new schedule that removes the need to
 buffer this contingent event. If not controllable, we do nothing, buffer the contingent event as
 planned, and continue dispatching against the original schedule.
 
-We now step through the Event Observations with Optimistic Rescheduling algorithm (Algorithm
+We now step through the Event Observations with optimistic rescheduling algorithm (Algorithm
 [[alg:optimistic-rescheduling]]) in detail.
 
 # TODO should be looping over observations in order!
@@ -1084,7 +1108,7 @@ $\mathtt{updateSchedule(\mathit{S^{\ast}, x, t)}$\;
 
 \Return $\mathtt{true}, S^{\ast}$\;
 
-\caption{An Algorithm for observing contingent events with Optimistic Rescheduling.}
+\caption{An Algorithm for observing contingent events with optimistic rescheduling.}
 \label{alg:optimistic-rescheduling}
 \end{algorithm}
 #+end_export
@@ -1195,13 +1219,13 @@ $$
 Let $t = 3$. We will step through the reasoning for narrowing the bounds of $x_{c}$ accordingly.
 
 \begin{align*}
-x_{c}^{\ast} &= [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
-x_{c}^{\ast} &= [\max(1, 3 - 3), \min(7, 3 - 1)] \\
-x_{c}^{\ast} &= [1, 2] \\
+x_{c}^{\ast} &\in [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
+x_{c}^{\ast} &\in [\max(1, 3 - 3), \min(7, 3 - 1)] \\
+x_{c}^{\ast} &\in [1, 2] \\
 \\
-\gammabar(x_{c}^{\ast}) &= [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)] \\
-\gammabar(x_{c}^{\ast}) &= [\max(1, 3 - 7), \min(3, 3 - 1)] \\
-\gammabar(x_{c}^{\ast}) &= [1, 2]
+\gammabar(x_{c}^{\ast}) &\in [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)] \\
+\gammabar(x_{c}^{\ast}) &\in [\max(1, 3 - 7), \min(3, 3 - 1)] \\
+\gammabar(x_{c}^{\ast}) &\in [1, 2]
 \end{align*}
 
 We find that $\assign(x_{c})$ must have fallen somewhere in the range of $[1, 2]$, while
@@ -1253,19 +1277,54 @@ $\gammabar(x_{c}) \in [1, 2]$ that would allow an observation at $t = 3$.
 The complexity of Algorithm [[alg:optimistic-rescheduling]] is dominated by the loop over
 =updateSchedule=. Each call to =updateSchedule= is $O(N^{3})$ in the number of events. In the worst
 case scenario, every event up to the last contingent event has been scheduled, giving us a
-complexity of $O(N^{4})$. We discuss potential means for improving Optimistic Rescheduling in
+complexity of $O(N^{4})$. We discuss potential means for improving optimistic rescheduling in
 Section [[sec:discussion-optimistic-rescheduling]].
+
 
 ** Experimental Analysis
 <<sec:scheduling-experimental>>
 
-Optimistic vs normal VDC scheduling
+We first introduce an example which models a construction task on the lunar surface that will be
+used to randomly generate STNUs with realistic constraints for benchmarking purposes. We then
+describe benchmarks against the performance of the real-time FAST-EX update with the variable-delay
+execution strategy, the dispatching routine, real-time observations, and optimistic rescheduling.
+All benchmark code can be found at [[https://gitlab.com/enterprise/enterprise]] in the
+=kirk-v2/benchmarks= directory.
 
 #+label: fig:dish-stnu
 #+attr_latex: :width 1\textwidth
-#+caption: An STNU representing the installation and test of repeater antennas. Each row represents a single astronaut. The episode durations are representative of the bounds used in simulation.
+#+caption: An STNU representing the installation and test of repeater antennas. Each row represents a single rover. The episode durations are representative of the bounds used in simulation.
 [[file:../images/dish-install-stnu.png]]
 
-we introduce an example which models a construction task on the lunar surface. This scenario depicted with the STNU in Figure \ref{fig:dish-stnu} represents an EVA wherein $i$ astronauts are each installing $j$ surface signal repeater antennas. During the activity, every astronaut is responsible for installing one repeater. %Each event, $X$, is represented for the $i$-th astronaut and $j$-th repeater as $X_{i,j}$.
+It is possible that, before NASA is ready to grow the population of a lunar base, there is a need to
+prepare a communications infrastructure near a habitat with a large grid of repeater antennas. This
+scenario depicted with the STNU in Figure [[fig:dish-stnu]] represents an installation task wherein $i$
+rovers (mobile robot) are each installing $j$ surface signal repeater antennas. During the activity,
+every rover is responsible for installing one repeater. Each event, $X$, is represented for the
+$i$-th rover and $j$-th repeater as $X_{i,j}$. All numbers in the figure are representative of the
+minimum and maximum of the randomly generated constraints in the benchmarks.
 
-The astronauts work in parallel, with a $[0, \infty)$ requirement link from the start of the STNU to each $A_{i,1}$ (not shown). The first episode, $\conedge{A_{i,j}}{B_{i,j}}{}$, represents traversing to the site of the installation. We model traverses as uncontrollable due to the fact that crews are embarking across unknown terrain. Once at the site, an antenna is installed as represented by $\edge{B_{i,j}}{C_{i,j}}{}$. Each repeater needs to have its configuration tested and confirmed working by $D_{i,j}$, represented by the edge $\conedge{C_{i,j}}{D_{i,j}}{}$. Confirmation takes the form of a request-response cycle to the ground. We model $D_{i,j}$ as uncontrolled and with variable delay because each antenna takes an unknown time to self-configure and the crew does not know when they will receive a response from MCC that the repeater installation has been verified due to uncertainty in communication. Bandwidth is limited, so we limit the number of repeaters simultaneously sending requests to their configuration. We use the $\edge{D_{i,j}}{C_{i+1,j}}{}$ links to enforce that the start of the confirmation of the next repeater does not begin until after the previous repeater's confirmation. Confirmations are required until we reach the last crew member or the last activity. Once testing is complete, the astronauts clean up their workstations, $\edge{D_{i,j}}{A_{i,j+1}}{}$ and then repeat the cycle until all antennas have been installed.
+The rovers work in parallel, with a $[0, \infty)$ requirement link from the start of the STNU to
+each $A_{i,1}$ (not shown). The first episode, $\conedge{A_{i,j}}{B_{i,j}}{}$, represents traversing
+to the site of the installation. We model traverses as uncontrollable due to the fact that crews are
+embarking across unknown terrain. Once at the site, an antenna is installed as represented by
+$\edge{B_{i,j}}{C_{i,j}}{}$. Each repeater needs to have its configuration tested and confirmed
+working by $D_{i,j}$, represented by the edge $\conedge{C_{i,j}}{D_{i,j}}{}$. Confirmation takes the
+form of a request-response cycle to the ground. We model $D_{i,j}$ as uncontrolled and with variable
+delay because each antenna takes an unknown time to self-configure and the crew does not know when
+they will receive a response from Earth that the repeater installation has been verified due to
+uncertainty in communication. Bandwidth is limited, so we limit the number of repeaters
+simultaneously sending requests to their configuration. We use the $\edge{D_{i,j}}{C_{i+1,j}}{}$
+links to enforce that the start of the confirmation of the next repeater does not begin until after
+the previous repeater's confirmation. Confirmations are required until we reach the last crew member
+or the last activity. Once testing is complete, the rovers clean up their workstations,
+$\edge{D_{i,j}}{A_{i,j+1}}{}$ and then repeat the cycle until all antennas have been installed.
+
+To perform the benchmarks, we generated variable-delay STNUs with randomly generated constraints as
+previously described of increasing sizes. We immediately checked VDC of each STNU, and would
+generate new STNUs of a given size until we found one that was confirmed to be VDC. We then
+simulated scheduling and dispatching of the STNU with a faster-than-realtime clock. No driver was
+present, so all real events were scheduled immediately.
+
+Our results for scheduling were as follows.
+

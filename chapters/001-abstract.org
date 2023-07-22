@@ -15,5 +15,8 @@
 #     3. quantify the benefit
 #  8. x for y. how we fulfill the need
 
-This is an abstract.
-
+As space exploration accelerates, we must develop a robust framework for multi-agent coordination in
+order to safely operate in space and on planetary surfaces, which are inherently hostile to
+communication. To the best of our knowledge, there are no autonomous executives capable of
+coordinating with other agents while reasoning over communication delay to decide when to act.
+Existing research has provided insights into

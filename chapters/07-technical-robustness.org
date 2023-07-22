@@ -9,7 +9,7 @@
 In this section, we propose an architecture for organizing and executing long-running tasks in an
 autonomous executive.
 
-As described in Section [[sec:event-dispatching]], the dispatching algorithm should loop uninterrupted
+As described in Section [[sec:dynamic-dispatching]], the dispatching algorithm should loop uninterrupted
 until all executable events have been scheduled. There are, however, other tasks that an executive
 needs to perform during execution, ranging from mission critical monitoring of contingent events, to
 more mundane logging of debug and info-level messages to a human operator. Naturally, modern CPUs
@@ -31,7 +31,7 @@ execution. At a minimum, one must,
 If we were to structure an executive based on these responsibilities, we may naturally start
 allocating each responsibility to its own thread. Monitoring progress might be a loop that
 constantly checks sensors or sensor-fused data. Deciding when to act would be the online dynamic
-dispatching algorithm described in Section [[sec:event-dispatching]]. We would not want hardware
+dispatching algorithm described in Section [[sec:dynamic-dispatching]]. We would not want hardware
 commands to block dispatching, so we once again create a new thread. Meanwhile, the last thread
 would collect information about the running executive, e.g. clock times, execution progress, and
 explanations of the actions taken, in order to pass it along to a human operator.
