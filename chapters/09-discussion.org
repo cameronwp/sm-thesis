@@ -6,6 +6,7 @@
 and an NTP server?
 
 * Discussion and Future Work
+<<ch:discussion>>
 
 ** Optimistic Rescheduling
 <<sec:discussion-optimistic-rescheduling>>
