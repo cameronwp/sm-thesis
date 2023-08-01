@@ -1,7 +1,8 @@
 #+title: Technical Distributed
 
 * COMMENT notes
-- we could have introduced a translation layer in comms such that events with different names were translated between executives
+- we could have introduced a translation layer in comms such that events with different names were
+  translated between executives
   - oh wait we tried it and it sucked
 
 * Coordinating Multiple Agents under Uncertain Communication
@@ -451,4 +452,198 @@ serves to keep the STNUs of the agents aligned.
       (robot-poweroff))))
 #+end_src
 
-*** Massively Multi-Agent Simulation
+TODO
+
+- pics of MA hardware demo
+- table showing when events were scheduled based on when (if ever) astronaut button was pushed
+
+*** Multi-Agent Simulation
+
+To demonstrate multi-agent communication, we built a simulation of an end-to-end mission with three
+independent Kirks, =agent0=, =agent1=, and =agent2=. We will show that distributed Kirks can
+successfully dispatch events within temporal bounds in the face of multiple sources of communication
+uncertainty. The Kirks are responsible for executing an installation procedure with the same
+randomly generated constraints as used in the validation of the delay scheduler in Section
+[[sec:scheduling-experimental]]. In this scenario, each agent is responsible for installing two
+satellite dishes with staggered confirmations so as to limit uplink bandwidth usage. As Kirks
+receive confirmation that installation has been completed, they then share the confirmations with
+their peers.
+
+To simplify comparing schedules, we used a standardized format for event names. Repeated event names
+are given as =Event:[agent]:[iteration]=, where =[agent]= and =[iteration]= are zero-indexed. For
+instance, =Install:4:3= would be the start of an installation episode for a hypothetical =agent4=
+(of at least five agents) in its fourth iteration.
+
+There is one modification from the original constraints from Section [[sec:scheduling-experimental]] in
+that we separate the communication delay inherent to the confirmation task with the observation
+delay inherent to sharing observations with peers. There may be a delay waiting for confirmation
+from ground, and the /in situ/ communication infrastructure may add an additional delay to
+communications between agents. We assume the sources of delay compound. For instance, =agent1= will
+need to know when =agent0= has confirmed its installation task, =Confirm:0:0= before beginning their
+own installation, =Install:1:0=. if =agent0= expects to receive =Confirm:0:0= with an observation
+delay of $\gammabar(\texttt{Confirm:0:0}) = [0, 10]$, we increase
+$\gammabar^+(\texttt{Confirm:0:0})$ by one for any peers that receive the observation broadcasted
+from =agent0=. In other words, from the perspective of =agent1= or =agent2=,
+$\gammabar(\texttt{Confirm:0:0}) = [0, 11]$ instead.
+
+#+label: fig:demo-centralized
+#+attr_latex: :width 3in
+#+caption: The Kirk architecture used to generate event assignments for the centralized delay STNU. A single Kirk receives the VDC STNU that includes constraints for all agents, as well as contingent event observations. Kirk then performs delay scheduling, resulting in an assignment to all events.
+[[file:../images/demo-centralized.png]]
+
+At a high-level, our procedure for creating this demonstration is as follows. We randomly generated
+a variable-delay STNU for three agents and two installation procedures (using the same generator
+code that was used in Section [[sec:scheduling-experimental]]) and confirmed it to be VDC. We call this
+STNU the /centralized delay STNU/ in that it includes all constraints for all three agents in a
+multi-agent mission with observation delay. We then acted like a mission planner in that we manually
+decoupled the centralized delay STNU into three single-agent RMPL control programs. Each control
+program contained the subset of the constraints from the centralized delay STNU required for a
+single agent to maintain the semantics of the original constraints. We call the variable-delay STNUs
+represented by the collection of the three RMPL control programs the /distributed variable-delay
+STNUs/. We finally pre-determined when observations would arrive for each agent to simplify running
+the demonstration. Both the centralized and distributed scenarios received observations of the same
+events at the same times.
+
+The architecture for the centralized scenario is shown in Figure [[fig:demo-centralized]], while the
+distributed scenario is represented in Figure [[fig:demo-distributed]]. Figure [[fig:demo-distributed]]
+presents a simplified view in order to keep the diagram readable. In reality, each Kirk broadcasts
+all events to all peers.
+
+#+label: fig:demo-distributed
+#+attr_latex: :width \textwidth
+#+caption: The distributed architecture for the demonstration. The original centralized delay STNU is manually decoupled to three separate RMPL control programs, which are then used to initialize three Kirks. The Kirks receive appropriate event observations, which they then share to their peers. After delay scheduling, each Kirk produces an assignment to events that were under their control.
+[[file:../images/demo-distributed.png]]
+
+Event observations were arranged as follows. In the centralized case, the single Kirk received all
+contingent event observations. Any observations that were not explicitly provided as an observation
+was assumed to be assigned at its upper bound. In the distributed case, Kirks were only given event
+observations for events that belong to them. For instance, only =agent0= received an observation of
+=Confirm:0:0=, the event signifying that they have completed installation of the first satellite. It
+was then the responsibility of =agent0= to broadcast the event observation to its peers.
+
+To evaluate the ability of a distributed Kirk architecture to perform scheduling with communication
+uncertainty, we focus on the schedules produced. To do so, we compare the schedule created by a Kirk
+running against centralized delay STNU (Table [[table:centralized-schedule]]) against the combined schedules
+of the three single agents (Tables [[table:agent0-schedule]]-[[table:agent2-schedule]]). If observations
+arrive at the same time, both scenarios should yield the same schedules. Importantly, the
+inter-agent constraint between overlapping installation tasks should hold in the distributed
+scenario. The confirmation events are highlighted in gray in each table for ease of identification.
+
+Running the demonstration was then a matter of running three networked instances of Kirk
+simultaneously against three different control programs. We did so using a =Makefile= with three
+targets, running =make= with the =-j3= flag, and setting up communications to take place over HTTP.
+
+From the root of the thesis repository, execute =make kirk && make -j3 demo= to run the
+demonstration. The resulting schedules will be written to =agent{0,1,2}.txt=. Note that the STNU was
+generated directly for the centralized delay STNU, but the STNUs were compiled from RMPL control
+programs for the distributed delay STNUs. There are naming differences between the events of the
+different schedules due to way control programs receive names in RMPL and the way RMPL control
+programs are compiled to STNUs. The event names in schedules in Tables
+[[table:centralized-schedule]]-[[table:agent2-schedule]] have been manually altered such that they match here.
+See Appendix [[appendix:rmpl]] for a description of the resulting STNUs from RMPL control programs.
+
+#+label: table:centralized-schedule
+#+caption: The schedule produced by a single Kirk against against the "multi-agent" variable-delay STNU.
+| *Event*                           | *Time (s)* |
+|-----------------------------------+------------|
+| ALL:START                         |          0 |
+| Start:0:0                         |          0 |
+| Start:1:0                         |          0 |
+| Normalized Lower for Traverse:0:0 |          1 |
+| Normalized Lower for Traverse:1:0 |          1 |
+| Traverse:0:0                      |         10 |
+| Install:0:0                       |         11 |
+| Normalized Lower for Confirm:0:0  |         15 |
+| Traverse:1:0                      |         15 |
+| \rowcolor{lightgray} Confirm:0:0  |         17 |
+| Install:1:0                       |         17 |
+| Start:2:0                         |         17 |
+| Normalized Lower for Traverse:2:0 |         18 |
+| Start:0:1                         |         19 |
+| Normalized Lower for Traverse:0:1 |         20 |
+| Normalized Lower for Confirm:1:0  |         22 |
+| \rowcolor{lightgray} Confirm:1:0  |         30 |
+| Start:1:1                         |         31 |
+| Normalized Lower for Traverse:1:1 |         32 |
+| Traverse:2:0                      |         32 |
+| Install:2:0                       |         33 |
+| Traverse:0:1                      |         38 |
+| Install:0:1                       |         39 |
+| Normalized Lower for Confirm:2:0  |         40 |
+| \rowcolor{lightgray} Confirm:2:0  |         41 |
+| Normalized Lower for Confirm:0:1  |         42 |
+| Start:2:1                         |         43 |
+| Normalized Lower for Traverse:2:1 |         44 |
+| Traverse:1:1                      |         44 |
+| Install:1:1                       |         45 |
+| \rowcolor{lightgray} Confirm:0:1  |         48 |
+| Normalized Lower for Confirm:1:1  |         52 |
+| \rowcolor{lightgray} Confirm:1:1  |         55 |
+| Traverse:2:1                      |         60 |
+| Install:2:1                       |         61 |
+| Normalized Lower for Confirm:2:1  |         62 |
+| \rowcolor{lightgray} Confirm:2:1  |         63 |
+| ALL:END                           |         63 |
+
+#+label: table:agent0-schedule
+#+caption: The single agent schedule produced by =agent0= in the demonstration.
+| *Event*                           | *Time (s)* |
+|-----------------------------------+------------|
+| Start:0:0                         |          0 |
+| Normalized Lower for Traverse:0:0 |          1 |
+| Traverse:0:0                      |         10 |
+| Install:0:0                       |         11 |
+| Normalized Lower for Confirm:0:0  |         15 |
+| \rowcolor{lightgray} Confirm:0:0  |         17 |
+| Start:0:1                         |         19 |
+| Normalized Lower for Traverse:0:1 |         20 |
+| Traverse:0:1                      |         38 |
+| Install:0:1                       |         39 |
+| Normalized Lower for Confirm:0:1  |         42 |
+| \rowcolor{lightgray} Confirm:0:1  |         48 |
+
+Here, we show =Confirm:0:1= as the last event, but In the RMPL control program, we used a
+=close-out= episode with bounds $[0, \infty]$ to end the mission. Given that it follows a =Confirm=
+episode, It is semantically the same as the confirmation (again, see Appendix [[appendix:rmpl]] for an
+explanation of how control programs translate to STNUs).
+
+#+label: table:agent1-schedule
+#+caption: The single agent schedule produced by =agent1= in the demonstration.
+| *Event*                           | *Time (s) |
+|-----------------------------------+-----------|
+| Start:1:0                         |         0 |
+| Start:0:0                         |         0 |
+| Normalized Lower for Confirm:0:0  |         6 |
+| \rowcolor{lightgray} Confirm:0:0  |        17 |
+| Traverse:1:0                      |        17 |
+| Install:1:0                       |        18 |
+| Normalized Lower for Confirm:1:0  |        23 |
+| \rowcolor{lightgray} Confirm:1:0  |        30 |
+| Start:1:1                         |        31 |
+| Normalized Lower for Traverse:1:1 |        32 |
+| Traverse:1:1                      |        44 |
+| Install:1:1                       |        45 |
+| Normalized Lower for Confirm:1:1  |        52 |
+| \rowcolor{lightgray} Confirm:1:1  |        55 |
+
+#+label: table:agent2-schedule
+#+caption: The single agent schedule produced by =agent0= in the demonstration. We added a =CLOSE-OUT= episode to end with a requirement event.
+| *Event*                           | *Time (s)* |
+|-----------------------------------+------------|
+| Start:2:0                         |         17 |
+| Normalized Lower for Confirm:1:1  |         22 |
+| \rowcolor{lightgray} Confirm:1:1  |         30 |
+| Traverse:2:0                      |         32 |
+| Install:2:0                       |         33 |
+| Normalized Lower for Confirm:2:1  |         40 |
+| \rowcolor{lightgray} Confirm:2:1  |         41 |
+| Start:2:1                         |         43 |
+| Normalized Lower for Traverse:2:1 |         44 |
+| Traverse:2:1                      |         60 |
+| Install:2:1                       |         61 |
+| Normalized Lower for Confirm:2:1  |         62 |
+| \rowcolor{lightgray} Confirm:2:1  |         63 |
+
+We can see in Tables [[table:centralized-schedule]]-[[table:agent2-schedule]] that the three Kirks are able
+to avoid overlapping installation tasks using a communication architecture that assume uncertain
+communication.
