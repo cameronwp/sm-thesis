@@ -12,7 +12,8 @@ might only be useful in the case of a gammabar with a finite lower bound and inf
 (Lemma 2). not useful for Lemma 3
 
 does the rewriting math actually work though with the infinity?
-* TODO did I use periods with bullet points correctly?
+* DONE did I use periods with bullet points correctly?
+- State "DONE"       from "TODO"       [2023-07-26 Wed 09:45]
 * TODO Something about the fact that we have a "least commitment" dispatcher
 [cite:@Stedl2004] references it on pg 49
 * TODO when do we reference VDC first? make sure there aren't a bunch of (VDC) introduction of acronyms
@@ -22,5 +23,7 @@ does the rewriting math actually work though with the infinity?
 - https://github.com/KevCui/mitm-scripts#mitm-delay-request
 - https://stackoverflow.com/questions/47827496/how-to-configure-docker-container-proxy
 - https://docs.docker.com/network/proxy/
-* TODO fix bug in optimistic rescheduling wrt re-assigning partial schedules
+* DONE fix bug in optimistic rescheduling wrt re-assigning partial schedules
+- State "DONE"       from "TODO"       [2023-07-26 Wed 09:44]
 maybe instead of using the partial history, we use observations
+* TODO remove "robust" chapter and its description in the approach chapter

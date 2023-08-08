@@ -7,7 +7,7 @@ I had always wanted to learn. Coding took over my life the first time I wrote a 
 projects were physics demos and websites, but soon I learned I loved helping systems make decisions.
 And there is absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and
 wondered, "I want to be a part of the next space race! What if I studied autonomy for human
-spaceflight? Where would I even go to learn autonomy?" (I admit I didn't know the field was called
+spaceflight? Where would I even go to learn autonomy?" (I didn't even know the field was called
 "autonomy" at the time.) Of course, MIT came up when I started searching. It took five more years of
 studying computer science, finding people to learn from, and integrating in the human spaceflight
 community, but eventually I found my way into AeroAstro and the MERS lab. It's been the journey of a
@@ -34,6 +34,6 @@ has had, so I'll be doing these chronological order of when we met.
 
 The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office hours
 even when I didn't have questions just because I wanted to hang out and talk autonomy with people.
-Simon, thank you for being a supportive TA (and introducing me to Aunty Donna). Sungkweon,
+Simon, thank you for being a supportive TA (and introducing me to /Aunty Donna/). Sungkweon, ...
 
 # Incl Matthew

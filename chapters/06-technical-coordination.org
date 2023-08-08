@@ -20,48 +20,34 @@ scheduled by peer agents and contingent events from any other source in Nature. 
 restrictions on inter-agent constraints, though they must avoid chained contingencies the same way
 that vanilla, single-agent STNUs do [cite:@MMV2001].
 
-We set forth the following requirements for the framework we contribute in this thesis.
 
-- Executives are /not/ required to have perfect knowledge of the complete state of the world, nor
-  are they required to even /agree/ on the state of the world. Rather, their knowledge should be
-  consistent with the temporal constraints and observation delay modeled in their individual STNUs.
-- Executives are allowed to ignore observations.
-- /All/ inter-agent communications must be explicitly modeled.
+# 2. Executives are allowed to ignore observations.
+Executives are /not/ required to have perfect knowledge of the complete state of the world with
+respect to event assignments, nor are they required to even /agree/ on the state of the world.
+Rather, their knowledge should be consistent with the temporal constraints and observation delay
+modeled in their individual delay STNUs. This requirement stands in opposition to the communication
+challenge that is commonly addressed in problems involving distributed agents, e.g. distributed
+consensus approaches [cite:@Ongaro2014;@Lamport1998], where it is crucial that all agents agree on
+the state of the world. In our framework, each agent acts according to their given constraints. Due
+to scheduling uncertainty from observation delay, it is impossible to expect agents to agree on
+partial histories, nor is it necessary because each agent is capable of scheduling events with
+observation uncertainty.
+# 2. /All/ inter-agent communications must be explicitly modeled.
 
-To our knowledge, no such online scheduler for MA coordination has been proposed. In this chapter,
-we first present a grounded Artemis-like scenario to motivate coordination. Next, we describe a
-modeling framework for MA control programs that is necessary for establishing coordination between
-agents. Next, we define an event propagation algorithm used to guarantee that event observations
-match individual agent STNUs. We finish by presenting experimental analysis of our event propagation
-algorithms, and the results of hardware demonstrations of Delay Kirk using a robotic arm and a
-simulated astronaut.
+# TODO not sure if this passes muster
+# The second requirement ensures that we do not make the assumption of instantaneous communication. If
+# there are inter-agent constraints in an agent's delay STNU, then those constraints must be
+# associated with observation delay. This provides a guarantee that, should the delay STNU be found to
+# be controllable, the schedule accounts for uncertain communication between agents. This requirement
+# also motivates defining a method for sharing observations between agents.
 
-** Motivating Scenario from EVAs
-
-We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
-astronaut is performing scientific exploration while the robot performs remote construction tasks.
-The concept of operations allows for the astronaut to use a rover to traverse away from the robot in
-search of promising scientific samples. Due to the position of surface relays and general
-uncertainty in lunar topology, there is an uncertain time delay between agents.
-
-Bandwidth between Mission Control on Earth and the Moon is limited. There are low and high bandwidth
-communications available to both agents. Low bandwidth is responsible for transmitting critical data
-(e.g. suit telemetry), while high bandwidth communications are reserved for purposes such as video
-calls and large dumps of scientific data. It is not possible for both the astronaut and the robot to
-use high bandwidth communications simultaneously. Thus, there is a need for the agents to coordinate
-such that they make effective use of high bandwidth communications without stepping on each others
-toes, so to speak.
-
-We hone in on a point in an EVA where there is substantial time delay between the astronaut and
-robot. The astronaut has set out far from the robot in search of scientifically interesting rock
-samples. Meanwhile, the robot is preparing to perform a drilling operation. The astronaut's sample
-collection work involves spectroscopy and video imagery, which is being sent to Mission Control
-using the high bandwidth connection. It will take between 15 and 30 minutes to downlink all the
-data. As soon as sample collection is over, the robot can use the high bandwidth connection to
-perform a drilling operation.
-
-We say that the astronaut "owns," or is responsible for sharing observations of, the start and end
-of the experiment, while the robot similarly owns the drilling operation.
+To our knowledge, no such online scheduler for MA coordination with this requirement has been
+proposed. In this chapter, we first present a grounded Artemis-like scenario to motivate
+coordination. Next, we describe a modeling framework for MA control programs that is necessary for
+establishing coordination between agents. Then we define an event propagation algorithm used to
+guarantee that event observations match individual agent STNUs. We finish by presenting experimental
+analysis of our event propagation algorithms, and the results of hardware demonstrations of Delay
+Kirk using a robotic arm and a simulated astronaut.
 
 # The astronaut and robot need to agree on the order of events relevant to coordination.
 
@@ -73,15 +59,12 @@ of the experiment, while the robot similarly owns the drilling operation.
 # TODO is what I'm describing here more of an RMPL restriction? why did (:slack t) not work?
 # TODO what this is describing is more of a problem with (:slack nil)?
 
-# TODO Something about =sync= episodes after observation delay
-# I think we basically say we had to work around limitations in RMPL here
-
 # TODO paragraph probably needs to be broken up. part of the claim needs to be moved into the chapter intro
 This thesis introduces challenges in writing control programs for multiple agents who need to
 coordinate. We do not claim to solve all aspects of coordination, rather we present a framework for
 simple scenarios with the key feature being that agents need to agree on the /order/ of a subset of
 events. We start by presenting an example of inter-agent temporal constraints, followed by defining
-a modeling framework for guaranteeing that agents agree about the order of events in their
+a modeling technique for guaranteeing that agents agree about the order of events in their
 respective partial histories. To the best of our knowledge, we are unaware of any other MA framework
 for coordinating the order of event histories.
 
@@ -89,13 +72,9 @@ for coordinating the order of event histories.
 Consider two agents, =agent1= and =agent2=, that are scheduling STNUs $S_{1}$ and $S_{2}$
 respectively. $S_{1}$ and $S_{2}$ share a subset of semantically similar episodes, $e_{1}$ and
 $e_{2}$. =agent1= "owns" $e_{1}$, meaning it is responsible for scheduling the free event
-$e_{1}$​-start and observing the contingent event $e_{1}$​-end, while =agent2= owns $e_{2}$.
-
-# TODO this is like the EVA scenario like so...
-
-# TODO do we need to add overall constraints for time pressure?
-
-A simplified MA view of the constraints is as follows.
+$e_{1}$​-start and observing the contingent event $e_{1}$​-end, while =agent2= owns $e_{2}$. It is the
+case that $e_{1}$ must precede $e_{2}$ in $S_{1}$ and $S_{2}$. A simplified MA view of the
+constraints is as follows.
 
 $$
 \conedge{e_{1}\text{-start}}{e_{1}\text{-end}}{[15, 30]}
@@ -104,7 +83,8 @@ $$
 $$
 
 From =agent1='s perspective, $S_{1}$ models the following constraints. We add a =noop= start event,
-$Z$, to simplify coordination.
+$Z$, to simplify coordination. For now, we allow chained contingencies, though in a moment they will
+need to be addressed.
 
 $$
 \edge{Z}{e_{1}\text{-start}}{[0, 0]}
@@ -113,7 +93,9 @@ $$
 \conedge{}{e_{2}\text{-end}}{[22, 26]}
 $$
 
-$S_{2}$ is then modeled as follows.
+We assume that =agent1= models $e_{2}$ in $S_{1}$ because other events under their control depend on
+$e_{2}$. $S_{2}$ is then modeled as follows. Note the change to the controllability of
+$\conedge{Z}{e_{1}\text{-start}}{[0, 0]}$.
 
 $$
 \conedge{Z}{e_{1}\text{-start}}{[0, 0]}
@@ -123,12 +105,14 @@ $$
 $$
 
 For the sake of controllability of $S_{1}$ and $S_{2}$, we would simply add $[0, 0]$ free
-constraints between consecutive contingent constraints.
+constraints between consecutive contingent constraints. Also note that from a scheduling standpoint,
+there is no difference between $\edge{a}{b}{[0, 0]}$ and $\conedge{a}{b}{[0, 0]}$ - both indicate
+$a$ and $b$ should be scheduled simultaneously.
 
 We will walk through scheduling this scenario from the perspective of both agents. First, we
-describe their actions in the case that there is no communication delay, then we introduce the need
-for communication, and finally we add delay to communications. This scenario will motivate our
-analysis of the challenges that arise in MA control programs.
+describe their actions in the case that there is no communication delay, then we introduce
+communication, and finally we add delay to communications. This scenario will motivate our analysis
+of the challenges that arise in MA control programs.
 
 # TODO maybe we don't even need to include the "instantaneous knowledge" version of events here
 If both agents have perfect knowledge of the world (instantaneous knowledge of events), scheduling
@@ -138,6 +122,7 @@ later, which again, both agents observe simultaneously. Now =agent2= is free to 
 $e_{2}$​-start, which =agent1= observes instantaneously. $e_{2}$​-end arrives $[22, 26]$ later and is
 observed simultaneously by both agents.
 
+# TODO check assumption of instantaneous execution
 Now, we enforce that =agent1= "owns" $e_{1}$ and is the only agent that can observe it directly.
 Likewise, =agent2= owns $e_{2}$. In order for an agent to learn about an episode they do not own,
 they must receive a communication from the agent who does. After =agent1= schedules $e_{1}$​-start,
@@ -145,25 +130,84 @@ it must send a message to =agent2=. =agent2= receives said message, which it int
 observation of $e_{1}$​-start. If communications are instantaneous, the partial histories of both
 agents agree on the assignment of $e_{1}$​-start. Later $e_{1}$​-end is observed by =agent1=, who is
 then responsible for relaying a communication to =agent2= indicating that it is safe to assign
-$e_{1}$​-end. =agent2= is now free to schedule $e_{2}$​-start, and follows the same pattern of sending
-messages that events have been scheduled to =agent1=. After all events have been scheduled, the
-histories of =agent1= and =agent2= still agree on the times assigned to each event.
+$e_{1}$​-end. =agent2= is now free to schedule $e_{2}$​-start, which it does instantaneously. The same
+pattern of sending messages that events have been scheduled repeats and =agent1= learns that
+$e_{2}$​-start was schedule simultaneously with $e_{1}$​-end. After all events have been scheduled,
+the histories of =agent1= and =agent2= still agree on the times assigned to each event.
 
-We now show that adding delay to the communications between agents forces us to add /synthetic/
-episodes to $S_{1}$ and $S_{2}$ to maintain event ownership. We now say that for $S_{2}$,
-$\gammabar(e_{2}\text{-end}) = [5, 15]$. In other words, =agent2= learns that =agent1= has finished
-$e_{2}$ some time in $[5, 15]$ after =agent1= has made the same assignment.
+We now show that adding delay to the communications between agents forces us to add
+/synchronization/ episodes to $S_{1}$ and $S_{2}$ to maintain event ownership. First, we must
+address the chained contingencies. Note that we have freedom in how we model the constraints of this
+scenario. The following example will motivate the need for a synchronization episode while remaining
+as close to the semantics of the original STNU as possible.
 
-Once again, =agent1= schedules $e_{1}$​-start and sends a message to =agent2=. Unlike before, their
-partial histories no longer match because =agent2= will assign $e_{1}$​-start to some time in $[5,
-15]$ after =agent1=.
+From the perspective of =agent1=, $S_{1}$, we cannot escape the fact that there are two
+uncontrollable events in sequence - the end of $e_{1}$ and the start of $e_{2}$, if we try to
+separate the events with a synthetic requirement episode, $\sigma$, with a $[0, \infty]$ constraint,
+the semantics no longer respect the original scenario.
 
-Adding communication introduces a coordination challenge, even when said communication is
-instantaneous. Once again, we assume both agents execute $Z$ simultaneously. When =agent1= schedules
-$e_{1}$​-start, it must take the additional
+$$
+\edge{Z}{e_{1}\text{-start}}{[0, 0]}
+\conedge{}{e_{1}\text{-end}}{[15, 30]}
+\edge{}{\sigma\text{-start}}{[0, 0]}
+\edge{}{\sigma\text{-end}}{[0, \infty]}
+\conedge{}{e_{2}\text{-start}}{[0, 0]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
 
-We define coordination as sharing an understanding of when their peers have scheduled a subset of
-events. To maintain consistency, we need to maintain the order of events. i.e.
+The delay scheduler will choose to schedule $\sigma$​-end simultaneously with $\sigma$​-start, also
+leading to $e_{2}$​-start being immediately scheduled. However, $e_{2}$ is not under =agent1='s
+control, and thus it has no authority to schedule $e_{2}$​-start. Instead, our synthetic constraint
+also needs to be contingent.
+
+$$
+\edge{Z}{e_{1}\text{-start}}{[0, 0]}
+\conedge{}{e_{1}\text{-end}}{[15, 30]}
+\edge{}{\sigma\text{-start}}{[0, 0]}
+\conedge{}{\sigma\text{-end}}{[0, \infty]}
+\edge{}{e_{2}\text{-start}}{[0, 0]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
+
+Now, the issue is that $S_{1}$ is uncontrollable due to
+$\conedge{\sigma\texttt{-start}}{\sigma\texttt{-end}}{[0, \infty]}$. We know the =agent2= will
+receive $e_{1}$​-end somewhere in $\gammabar'(e_{1}\texttt{-end})$, where the $\gammabar'$ function
+represents observation delay in $S_{2}$. =agent2= will then immediately schedule $e_{2}$​-start.
+Finally, $S_{1}$ becomes
+
+$$
+\edge{Z}{e_{1}\text{-start}}{[0, 0]}
+\conedge{}{e_{1}\text{-end}}{[15, 30]}
+\edge{}{\sigma\text{-start}}{[0, 0]}
+\conedge{}{\sigma\text{-end}}{[\gammabar'^-(e_{1}\texttt{-start}), \gammabar'^-(e_{1}\texttt{-end})]}
+\edge{}{e_{2}\text{-start}}{[0, 0]}
+\conedge{}{e_{2}\text{-end}}{[22, 26]}
+$$
+
+In practice, an agent may choose to schedule other events while waiting for $\sigma$​-end to arrive.
+
+In $S_{2}$, we may choose to give =agent2= the same synchronization episode without changing the
+execution semantics. We know that $e_{1}$​-end will be observed somewhere in
+$\gammabar'(e_{1}\texttt{-end})$. When $e_{1}$​-end arrives, we are guaranteed to have waited
+somewhere in the lower and upper bounds $\sigma$. Assuming =agent2= knows that $e_{1}$​-end and
+$\sigma$​-end semantically represent the same point in time, $\sigma$​-end can be safely scheduled as
+soon as $e_{1}$​-end arrives.
+
+# where, according to the way RMPL is compiled to STNUs (see Appendix [[appendix:rmpl]]), $[l, u]$ may
+# take on either $[0, 0]$ or $[0, \infty]$ bounds. Regardless, =robot-drilling:start= is a
+# controllable event, meaning the astronaut is allowed to choose when to schedule it. The envisioned
+# scenario does not allow the astronaut to decide when the robot is allowed to start drilling. Hence,
+# we added an uncontrollable =sync= episode to ensure that the astronaut must wait to receive
+# =robot-drilling:start= from the robot. The robot also has a =sync= episode, which ensures that both
+# agents agree on the naming of events. Finally, the last salient feature of =sync= to highlight is
+# that bounds of =sync= match the bounds of the observation delay for =human-downlink-science=
+# according to the robot. This correlation ensures that the robot can schedule =sync:end= immediately
+# upon observing =human-downlink-science:end= because any resolution of observation delay of
+# =human-downlink-science:end= also satisfies the constraint between =sync:start= and =sync:end=.
+
+Synchronization episodes allow inter-agent constraints with observation delay to be modeled without
+impacting the ordering of events. They are used to separate control programs in the hardware
+demonstration in Section [[sec:hw-demo]].
 
 ** Event Propagation
 <<sec:event-propagation>>
@@ -198,8 +242,8 @@ A /communication graph/ $C$ is a tuple $\langle V, E \rangle$, where:
 - Each edge $e_{i} \in E$ is a pair $(o, t)$, where $o, t \in V$ represent the origin and
   termination of the edge respectively.
 
-Loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, no single edge $e_{i} \in
-E$ may both originate and terminate at $v_{i}$.
+Self-loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, no single edge $e_{i}
+\in E$ may both originate and terminate at $v_{i}$.
 #+latex: \end{defn}
 
 # TODO insert sample graph here
@@ -327,7 +371,7 @@ loop, else we run the risk of incurring unnecessary delays in observing and disp
 
 $\texttt{peers} \gets \texttt{peers} - m_{i}[P]$\;
 
-$P \gets \{ m_{i}[P] \} \cup \{ v_{i} \} \cup \texttt{peers}$\;
+$P \gets m_{i}[P] \cup \{ v_{i} \} \cup \texttt{peers}$\;
 
 $x \gets x$ or $m_{i}[x]$\;
 
@@ -352,112 +396,13 @@ functions for any inter-agent temporal constraints.
 
 # TODO HTTP technically has more than one message passed. discuss other protocols and when you would want to use them here?
 
-We performed two analyses of the Event Propagation algorithm. The first was a hardware demonstration
-performed on a Barrett WAM manipulator in the MERS lab. The second is a massively multi-agent
-simulation. Both will be described below.
+# TODO improve generally. not quite right
+We performed two demonstrations of the Event Propagation algorithm. The first was a hardware
+demonstration performed on a Barrett WAM manipulator in the MERS lab. The second is a multi-agent
+simulation showcasing inter-agent constraints. Both will be described below.
 
-*** Hardware Demonstration
-
-# TODO need pics and such
-
-We built a demonstration of the motivating scenario of this thesis in our lab using a Barrett WAM
-manipulator representing the robot, and Valve Steam Deck representing the astronaut.
-
-Each agent has their own RMPL control program, which we include in Listings [[code:astronaut-rmpl]] and
-[[code:robot-rmpl]]. Note that each control program is nearly identical. The control programs related to
-the high bandwidth handoff, =human-downlink-science=, =sync=, and =robot-drilling=, are nearly
-identical, differing in observation delay and whether the =sync= event is controllable. Adding
-observation delay reflects uncertain communication between the agents, while the =sync= activity
-serves to keep the STNUs of the agents aligned.
-
-#+name: code:astronaut-rmpl
-#+caption: The control program the astronaut uses while collecting and downlinking scientific data.
-#+begin_src lisp
-;;;; -*- Mode: common-lisp; -*-
-
-(defpackage #:scenario1)
-
-(in-package #:scenario1)
-
-(define-control-program human-downlink-science ()
-  (declare (primitive)
-           (duration (simple :lower-bound 15 :upper-bound 30)
-                     :contingent t)))
-
-(define-control-program sync ()
-  (declare (primitive)
-           (duration (simple :lower-bound 5 :upper-bound 15
-                             :min-observation-delay 0
-                             :max-observation-delay 1)
-                     :contingent t)))
-
-(define-control-program robot-drilling ()
-  (declare (primitive)
-           (duration (simple :lower-bound 22 :upper-bound 26
-                             :min-observation-delay 0
-                             :max-observation-delay 2)
-                     :contingent t)))
-
-(define-control-program human-closeout ()
-  (declare (primitive)
-           (duration (simple :lower-bound 10 :upper-bound 30))))
-
-(define-control-program main ()
-  (with-temporal-constraint (simple-temporal :upper-bound 480)
-    (sequence (:slack nil)
-      (human-downlink-science)
-      (sync)
-      (robot-drilling)
-      (human-closeout))))
-#+end_src
-
-#+name: code:robot-rmpl
-#+caption: The control program the robot uses to decide when to act with respect to learning the astronaut has finished collecting scientific data.
-#+begin_src lisp
-;;;; -*- Mode: common-lisp; -*-
-
-(defpackage #:scenario1)
-
-(in-package #:scenario1)
-
-(define-control-program human-downlink-science ()
-  (declare (primitive)
-           (duration (simple :lower-bound 15 :upper-bound 30
-                             :min-observation-delay 5
-                             :max-observation-delay 15)
-                     :contingent t)))
-
-(define-control-program sync ()
-  (declare (primitive)
-           (duration (simple :lower-bound 5 :upper-bound 15))))
-
-(define-control-program robot-drilling ()
-  (declare (primitive)
-           (duration (simple :lower-bound 22 :upper-bound 26
-                             :min-observation-delay 0
-                             :max-observation-delay 1)
-                     :contingent t)))
-
-(define-control-program robot-poweroff ()
-  (declare (primitive)
-           (duration (simple :lower-bound 10 :upper-bound 30))))
-
-
-(define-control-program main ()
-  (with-temporal-constraint (simple-temporal :upper-bound 480)
-    (sequence (:slack nil)
-      (human-downlink-science)
-      (sync)
-      (robot-drilling)
-      (robot-poweroff))))
-#+end_src
-
-TODO
-
-- pics of MA hardware demo
-- table showing when events were scheduled based on when (if ever) astronaut button was pushed
-
-*** Multi-Agent Simulation
+*** Distributed Kirk Simulation
+<<sec:dkirk-simulation>>
 
 To demonstrate multi-agent communication, we built a simulation of an end-to-end mission with three
 independent Kirks, =agent0=, =agent1=, and =agent2=. We will show that distributed Kirks can
@@ -608,7 +553,7 @@ episode, It is semantically the same as the confirmation (again, see Appendix [[
 explanation of how control programs translate to STNUs).
 
 #+label: table:agent1-schedule
-#+caption: The single agent schedule produced by =agent1= in the demonstration.
+#+caption: The single agent schedule produced by =agent1= in the d  emonstration.
 | *Event*                           | *Time (s) |
 |-----------------------------------+-----------|
 | Start:1:0                         |         0 |
@@ -647,3 +592,294 @@ explanation of how control programs translate to STNUs).
 We can see in Tables [[table:centralized-schedule]]-[[table:agent2-schedule]] that the three Kirks are able
 to avoid overlapping installation tasks using a communication architecture that assume uncertain
 communication.
+
+*** Hardware Demonstration
+<<sec:hw-demo>>
+
+We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
+astronaut is performing scientific exploration while the robot performs remote construction tasks.
+The concept of operations allows for the astronaut to use a rover to traverse away from the robot in
+search of promising scientific samples. Due to the position of surface relays and general
+uncertainty in lunar topology, there is an uncertain time delay between agents.
+
+Bandwidth between Mission Control on Earth and the Moon is limited. There are low and high bandwidth
+communications available to both agents. Low bandwidth is responsible for transmitting critical data
+(e.g. suit telemetry), while high bandwidth communications are reserved for purposes such as video
+calls and large dumps of scientific data. It is not possible for both the astronaut and the robot to
+use high bandwidth communications simultaneously. Thus, there is a need for the agents to coordinate
+such that they make effective use of high bandwidth communications without stepping on each others
+toes, so to speak.
+
+We hone in on a point in an EVA where there is substantial time delay between the astronaut and
+robot. The astronaut has set out far from the robot in search of scientifically interesting rock
+samples. Meanwhile, the robot is preparing to perform a drilling operation. The astronaut's sample
+collection work involves spectroscopy and video imagery, which is being sent to Mission Control
+using the high bandwidth connection. It will take between 15 and 30 minutes to downlink all the
+data. As soon as sample collection is over, the robot can use the high bandwidth connection to
+stream video back to scientists and engineers on earth while performing a drilling operation.
+
+We say that the astronaut "owns," or is responsible for sharing observations of, the start and end
+of the experiment, while the robot similarly owns the drilling operation.
+
+We built a physical demonstration of this scenario of this thesis in our laboratory using a Barrett
+WAM manipulator and a simulated astronaut. In this scenario, the astronaut and robot are
+collaborating on the lunar surface with uncertain communication delay between them. Throughout this
+mission, agents must coordinate with respect to their usage of uplink bandwidth. We choose to focus
+on a moment in time where the robot is waiting for the human to finish their use of the uplink
+before beginning a bandwidth-heavy task of their own. We assume the agents are moving on the lunar
+surface during execution, and as such the observation delay between them changes as well. See Figure
+[[fig:hw-demo-overview]] for the laboratory setup.
+
+#+label: fig:hw-demo-overview
+#+attr_latex: :width \textwidth
+#+caption: The two Kirks and two agents of the hardware demonstration. The Kirk executive running on the laptop is controlling the Barrett WAM arm in the background. Cameron Pittman is the second agent (acting as the astronaut) and interacting with a Kirk executive running on the Steam Deck handheld PC. This image was taken in the MERS lab on 20 May 2023.
+file:../images/hw-demo-overview.png
+
+The architecture of the hardware demonstration is as shown in Figure [[fig:hw-demo-flowchart]]. We ran
+two Kirks on the same network. One Kirk was responsible for driving the Barrett WAM, while the other
+acted as the decision making logic behind an interface on the astronaut's person (say a tablet,
+heads-up-display, or portable computer of some kind).
+
+#+label: fig:hw-demo-flowchart
+#+attr_latex: :width 0.8\textwidth
+#+caption: The information flow between the two agents and two Kirks in the hardware demonstration. "SD" is short for Steam Deck.
+file:../images/hw-demo-flowchart.png
+
+The laptop ran the Kirk that controls the WAM. It did so by dispatching requirement events to a
+separate driver that could translate event names to pre-built trajectories for the WAM. The
+trajectories were then published to the WAM's controller as ROS messages. As trajectories were
+completed, ROS messages were received by the ROS driver layer, which then sent contingent event
+observations back to Kirk.
+
+#+label: fig:hw-demo-laptop-screen
+#+attr_latex: :width \textwidth
+#+caption: The laptop screen at the end of the second hardware demo scenario. On the left is Kirk's output, on the right is the ROS translation layer. Kirk is showing the schedule that it executed, while we can see logs from messages sent between Kirk and the ROS layer on the right.
+file:../images/hw-demo-laptop-screen.png
+
+The Valve Steam Deck (SD), a handheld PC, ran the astronaut's Kirk. The Kirk command line tool
+allows users to press a number to trigger the observation of a contingent event. We modified the
+output of the video game controller buttons of the Steam Deck such that they would automatically
+input the number corresponding to the observation of a contingent event. As the astronaut, Cameron
+only needed to press one button (mapped to left on the d-pad) during the run to trigger the
+observation.
+
+#+label: fig:hw-demo-sd-screen
+#+attr_latex: :width \textwidth
+#+caption: The Steam Deck screen at the end of the second hardware demo scenario. On the left is Kirk's output, on the right is the ROS translation layer. Kirk is showing the schedule that it executed, while we can see logs from messages sent between Kirk and the ROS layer on the right.
+file:../images/hw-demo-sd-screen.png
+
+The laptop and the Steam Deck were on the same local network. Note the cable dangling from the Steam
+Deck in Figure [[fig:hw-demo-overview]], which is a USB-C to Ethernet adapter. The Steam Deck was
+hardwired to the network for demonstration purposes. Communications occurred over HTTP. To simulate
+uncertain communication, a sleep call with a time in the range of $\gammabar(x_{c})$ was injected
+into Kirk's function responsible for broadcasting event observations to peers, where
+$\gammabar(x_{c})$ was drawn from any contingent event $x_{c} \in X_{c}$ of the receiving agent.
+
+To start a run of the demonstration, we would start both Kirks simultaneously. Each Kirk had their
+own RMPL control program, which we include in Listings [[code:astronaut-rmpl]] and [[code:robot-rmpl]]. Note
+that the control programs are nearly identical. The control programs related to the high bandwidth
+handoff, =human-downlink-science=, =sync=, and =robot-drilling=, differ only in observation delay
+and whether the =sync= event is controllable. Adding observation delay reflects uncertain
+communication between the agents.
+
+The =sync= control programs were included as synchronization episodes between
+=human-downlink-science= and =robot-drilling=. Note that the robot also has a =sync= episode, which
+ensures that both agents agree on the naming of events.
+
+#+name: code:astronaut-rmpl
+#+caption: The control program the astronaut uses while collecting and downlinking scientific data.
+#+begin_src lisp
+(defpackage #:scenario1)
+
+(in-package #:scenario1)
+
+(define-control-program human-downlink-science ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30)
+                     :contingent t)))
+
+(define-control-program sync ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 15
+                             :min-observation-delay 0
+                             :max-observation-delay 1)
+                     :contingent t)))
+
+(define-control-program robot-drilling ()
+  (declare (primitive)
+           (duration (simple :lower-bound 22 :upper-bound 26
+                             :min-observation-delay 0
+                             :max-observation-delay 2)
+                     :contingent t)))
+
+(define-control-program human-closeout ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 30))))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 480)
+    (sequence (:slack nil)
+      (human-downlink-science)
+      (sync)
+      (robot-drilling)
+      (human-closeout))))
+#+end_src
+
+#+name: code:robot-rmpl
+#+caption: The control program the robot uses to decide when to act with respect to learning the astronaut has finished collecting scientific data.
+#+begin_src lisp
+(defpackage #:scenario1)
+
+(in-package #:scenario1)
+
+(define-control-program human-downlink-science ()
+  (declare (primitive)
+           (duration (simple :lower-bound 15 :upper-bound 30
+                             :min-observation-delay 5
+                             :max-observation-delay 15)
+                     :contingent t)))
+
+(define-control-program sync ()
+  (declare (primitive)
+           (duration (simple :lower-bound 5 :upper-bound 15))))
+
+(define-control-program robot-drilling ()
+  (declare (primitive)
+           (duration (simple :lower-bound 22 :upper-bound 26
+                             :min-observation-delay 0
+                             :max-observation-delay 1)
+                     :contingent t)))
+
+(define-control-program robot-poweroff ()
+  (declare (primitive)
+           (duration (simple :lower-bound 10 :upper-bound 30))))
+
+(define-control-program main ()
+  (with-temporal-constraint (simple-temporal :upper-bound 480)
+    (sequence (:slack nil)
+      (human-downlink-science)
+      (sync)
+      (robot-drilling)
+      (robot-poweroff))))
+#+end_src
+
+We can see the modeling power of variable observation delay in Listings [[code:astronaut-rmpl]] and
+[[code:robot-rmpl]]. It is natural that the observation delay between agents may change due to the
+evolution of resources during a mission. The variable-delay modeling framework allows us to model
+uncertain delay for each temporal constraint independently. For instance, if we know that, say,
+agents will be distant during a given constraint, then we may add uncertain delay accordingly. If
+agents are collocated during other constraints, then we can safely decrease the observation delay
+(absent other sources of delay).
+
+According to the constraints and variable delay of the =human-downlink-science= control program from
+the perspective of the robot, the transformed fixed-delay STNU the robot is executing will reflect
+constraints of
+$\conedge{\texttt{human-downlink-science:start}}{\texttt{human-downlink-science:end}}{[30, 35]}$
+with $\gamma(\texttt{human-downlink-science:end}) = 0$ after applying Lemma [[lemma:main-tightening]].
+
+We performed two demonstrations. In the first, the astronaut would observe the end of the science
+downlink, the end event of =human-downlink-science:end=, which would trigger a delayed observation
+being passed to the robot. Once the robot received the command, it would begin its =robot-drilling=
+activity. It passed observations of its scheduled events back to the astronaut.
+
+#+label: fig:hw-demo-1-quad
+#+attr_latex: :width \textwidth
+#+caption: The first demonstration in four parts. (a) $t = 0$, when the two Kirks are started at the same time (unfortunately, the SD is below the image frame). (b) $t = 16$, when the astronaut observed that the science experiment was setup. (c) $t = 23$, when the robot received a delayed observation from the astronaut indicating they had completed science setup. (d) $t > 23$, as the robot performed the drilling task.
+file:../images/hw-demo-1-quad.png
+
+The second demonstration focused on the behavior of the delay scheduler when communications are not
+received in time. After starting both Kirks at the same time, we unplugged the astronaut's Kirk from
+the network. While, in reality, a disconnection should be modeled as $\gammabar^+(x_{c}) = \infty$,
+we did it to emphasize the fact that the robot's Kirk would not receive an observation within the
+fixed bounds it was expecting. The delay scheduler would then imagine =human-downlink-science:end=
+and dispatch its drilling activity accordingly.
+
+#+label: fig:hw-demo-2-quad
+#+attr_latex: :width \textwidth
+#+caption: The second demonstration in four parts. (a) $t = 0$, when the two Kirks are started at the same time (unfortunately, the SD is below the image frame again). (b) $t = 3$, when the SD is removed from the network. (c) $t = 38$, after the robot imagined an observation from the astronaut and began the drilling task. (d) $t = 60$, when Kirk has observed the end of the drilling task.
+file:../images/hw-demo-2-quad.png
+
+We present the schedules of the agents for both scenarios in Tables
+[[table:hw-demo-1-astronaut]]-[[table:hw-demo-2-robot]]. The schedule has been cleaned and the event names
+have been modified to better reflect the intent of the RMPL control programs. See Appendix
+[[appendix:rmpl]] for an explanation of how RMPL and the STNUs compiled from it are related. We also
+removed anonymous (non-named) events that were added in the process of translating RMPL to
+variable-delay STNU.
+
+#+label: table:hw-demo-1-astronaut
+#+caption: The complete history of the delay scheduler for the astronaut in the first hardware demo scenario.
+| *Event*                                      | *Time (s)* |
+|----------------------------------------------+------------|
+| Start Human Setup Science                    |          0 |
+| Normalized Lower for End Human Setup Science |         15 |
+| End Human Setup Science                      |         16 |
+| Start Sync                                   |         16 |
+| Normalized Lower for Sync                    |         22 |
+| End Sync                                     |         23 |
+| Start Robot Drilling                         |         23 |
+| Normalized Lower for Robot Drilling          |         47 |
+| End Robot Drilling                           |         49 |
+| Start Close Out                              |         49 |
+| End Close Out                                |         59 |
+
+#+label: table:hw-demo-1-robot
+#+caption: The complete history of the delay scheduler for the robot in the first hardware demo scenario.
+| *Event*                                  | *Time (s)* |
+|------------------------------------------+------------|
+| Start Human Setup Science                |          0 |
+| Normalized Lower for Human Setup Science |         15 |
+| End Human Setup Science                  |         22 |
+| Start Sync                               |         22 |
+| End Sync                                 |         22 |
+| Start Robot Drilling                     |         22 |
+| Normalized Lower for Robot Drilling      |         45 |
+| End Robot Drilling                       |         46 |
+| Start Robot Poweroff                     |         46 |
+| End Robot Poweroff                       |         56 |
+
+We can see variable observation delay at work by comparing the assigned end times for
+=human-setup-science= between the astronaut and robot in Tables [[table:hw-demo-1-astronaut]] and
+[[table:hw-demo-1-robot]]. The human knows that science setup was completed at $t = 16$, but the robot
+received an observation of the same event after an apparently delay of six seconds.
+
+Note that the robot was running an experimental /optimistic/ version of the delay scheduler in the
+demonstration. The difference between the delay scheduler as described in Chapter
+[[ch:delay-scheduling]] and the optimistic version is that the optimistic version will attempt to avoid
+buffering early contingent events by rewriting the delay STNU based on the early observation and
+checking VDC. It will be discussed in more depth in Section [[sec:optimistic-rescheduling]].
+
+#+label: table:hw-demo-2-astronaut
+#+caption: The complete history of the delay scheduler for the astronaut in the second hardware demo scenario.
+| *Event*                                      | *Time (s)* |
+|----------------------------------------------+------------|
+| Start Human Setup Science                    |          0 |
+| Normalized Lower for End Human Setup Science |         15 |
+| End Human Setup Science                      |         30 |
+| Start Sync                                   |         30 |
+| Normalized Lower for Sync                    |         36 |
+| End Sync                                     |         45 |
+| Start Robot Drilling (imagined)              |         45 |
+| Normalized Lower for Robot Drilling          |         69 |
+| End Robot Drilling (imagined)                |         71 |
+| Start Close Out                              |         71 |
+| End Close Out                                |         81 |
+
+#+label: table:hw-demo-2-robot
+#+caption: The complete history of the delay scheduler for the robot in the second hardware demo scenario.
+| *Event*                                  | *Time (s)* |
+|------------------------------------------+------------|
+| Start Human Setup Science                |          0 |
+| Normalized Lower for Human Setup Science |         30 |
+| End Human Setup Science (imagined)       |         35 |
+| Start Sync                               |         35 |
+| End Sync                                 |         35 |
+| Start Robot Drilling                     |         35 |
+| Normalized Lower for Robot Drilling      |         58 |
+| End Robot Drilling                       |         60 |
+| Start Robot Poweroff                     |         60 |
+| End Robot Poweroff                       |         70 |
+
+Finally, we see in the second experiment that the robot was forced to imagine contingent events due
+to communication delay. The robot was able to satisfy all constraints with its drilling episode
+despite not receiving communication from the astronaut about the end of the astronaut setting up the
+science experiment.

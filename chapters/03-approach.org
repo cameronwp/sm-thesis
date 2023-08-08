@@ -14,6 +14,42 @@
 I say they're at the end of the vdc chapter, but they currently aren't there.
 ** TODO we may not need to delineate between agent and executive. "multi-agent" is kind of a problem if we do
 ** IDEA does the discussion of what we could have done belong in the discussion section instead?
+** Robustness
+
+Autonomy research tends to focus on ideal, generic executives that behave perfectly. For instance,
+temporal reasoning research assumes that controllable events are executed instantaneously at the
+exact correct time without fail. Reality cannot conform to ideal conditions. At minimum, CPU cycles
+will tick by before a scheduled event is dispatched, causing the hands of precise clocks to move
+when our algorithms expect them to remain static. To run on hardware, executives and agents must
+communicate, which adds additional time that is unaccounted for in scheduling algorithms. And
+finally, we need to explicitly decide how to translate temporal events to messages that hardware can
+execute. Given our need to deploy Kirk on real hardware, we contribute a seemingly disparate set of
+algorithms removing expectations of idealized performance, that, when taken together, enable
+deployment of temporal reasoning algorithms in real agents.
+
+We include five contributions to dynamic scheduling and dispatching for enabling robust executives.
+
+1. A well defined architecture for event execution with distinct scheduler, dispatcher, and driver
+   responsibilities
+2. Tolerance in event scheduling
+3. Controllable event preemption
+4. The separation of real and =noop= controllable events in execution decisions
+5. A clock-synchronized approach for managing repeated tasks during online execution
+
+# There lacks research into the design of interfaces between executives and agents.
+
+TODO given the hardware experiments of this thesis...
+
+This thesis identifies addresses three core issues...
+
+We improve the delay scheduler by differentiating real and =noop= controllable events...
+
+We remove the assumption that controllable events are instantaneously executed...
+
+We identify drawbacks in naïve approaches to building executives using parallel and concurrent
+processes. We propose a clock-synchronized architecture that addresses challenges in simulating
+executives and better matches our expectations of order of operations behavior as programmers.
+
 
 * Approach
 <<ch:approach>>
@@ -33,11 +69,18 @@ outside world, e.g. robotic hardware.
 At a high-level, Kirk works by first taking a description of the problem domain as written by domain
 experts, which should include the constraints, agent dynamics, environment, and starting and goal
 states of the problem at hand. Kirk then generates and checks plans using an optimal satisfiability
-(OpSAT) solver [cite:@Williams2007], elaborates plans to sub-executives when it encounters
-constraints and goals it cannot plan against directly, and eventually dispatches event schedules and
-motion plans to hardware. For the purpose of this thesis, we primarily focus on Kirk's capability to
-dispatch events, though fully accounting for uncertain communication in a real agent requires that
-all of Kirk's aforementioned capabilities are addressed.
+(OpSAT) solver [cite:@Williams2007], elaborates temporal plan networks (TPNs) [cite:@Kim2001] to
+sub-executives when it encounters constraints and goals it cannot plan against directly, and
+eventually dispatches event schedules and motion plans to hardware. For the purpose of this thesis,
+we focus on Kirk's capability to dispatch events online after a plan has been generated.
+
+# TODO add this to above
+Kirk operates on qualitative state plans, which consist of episodes that organize the occurrance of
+events as activities. Also includes causal links (:effects and :requires ala STRIPS/PDDL planning).
+All passed to OpSAT, which is like an SMT solver. Makes choices through causal links to decompose
+state constraints into a SAT problem and then solve. Temporal constraints go to
+temporal-controllability. State plan gets turned into a SAT solver, with ordering from temporal
+constraints.
 
 # TODO this would be a good place for a diagram of Kirk's overall pipeline
 
@@ -53,13 +96,6 @@ areas, which were then implemented in Kirk:
 3. /Coordination/: during execution, peer executives must be able to share event assignments and
    observations
 
-We include an auxiliary fourth area for contributions as an engineering requirement.
-
-#+latex: \begin{enumerate} \setcounter{enumi}{3} \item
-/Robustness/: Kirk's algorithms must be based in realistic computing constraints, and Kirk must be
-easy to run, debug, integrate with existing autonomous systems
-#+latex: \end{enumerate}
-
 Our approach to each research focus will be described below.
 
 # TODO do we need to say something about evaluation here? how do we want to evaluate our approach?
@@ -70,15 +106,15 @@ We take a model-based approach to deploying autonomous systems, that is, prior t
 envision that engineers and domain experts work together to model the system at hand, then during
 the mission (though not necessarily online), the autonomous system then takes the models as input
 and decides how to act as output. There are three core challenges with modeling - the first being
-that we need formalisms that can be ingested by our algorithms and be used to guarantee the safe
+that we need formalisms that can be ingested by our algorithms and be used to guarantee safe
 execution. In other words, we need a data type to represent the phenomenon over which we want the
 algorithms comprising our system to reason. Next, the chosen formalism must allow us to guarantee
-the satisfiability of the system in that the autonomous system must be able to act in a safe manner
-respecting all constraints to go from the starting state to the goal state. Finally, the third
-challenge is that we need a human-friendly form of said formalisms such that human domain experts,
-who are unlikely to also be experts in autonomy, can still model their domains accurately enough
-such that the desired safe behavior is output by the autonomous system. We address both challenges
-in our approach to modeling.
+the satisfiability of the system, i.e. the autonomous system must be able to act in a safe manner
+respecting all constraints to go from the starting state to the goal state. The third challenge is
+that we need a human-friendly form of said formalisms such that human domain experts, who are
+unlikely to also be experts in autonomy, can still model their domains accurately enough such that
+the desired safe behavior is exhibited by the autonomous system. We address each challenge in our
+approach to modeling.
 
 States and constraints can take on arbitrary forms, and how they are modeled depends entirely on the
 problem domain. Classical planning problems use boolean predicates and actions to model the world
@@ -92,7 +128,7 @@ linear programs as demonstrated by Chen et al. [cite:@Chen2021a]).
 
 Given this thesis' emphasis on temporal scheduling, we choose to focus entirely on formalisms where
 states and constraints are temporal in nature. The starting state of the system is, by definition,
-one where time is set to 0 seconds, $t = 0$, and no events have been executed (i.e. no event
+one where time is set to $0$ seconds, $t = 0$, and no events have been executed (i.e. no event
 assignments have been made). We then define controlled and uncontrolled set-bounded constraints
 between events. The goal state is one where times have been assigned to each controllable event such
 that all constraints are satisfied. To do so, we build our formalisms representing temporal
@@ -106,15 +142,14 @@ property known as /controllability/, or that all controllable temporal constrain
 given the existing uncertainty in the STNU. There already exist a number of strategies for checking
 the controllability of STNUs. Examples of different strategies include the canonical work by Morris,
 Muscettola, and Vidal in checking for semi-reducible negative cycles (SRNCs)
-[cite:@MMV2001;@Morris2005;@Morris2006;@Morris2014], as well as more exotic approaches like
-reframing controllability as a Satisfiable Modulo Theory (SMT) problem [cite:@Cimatti2012;]. In our
-approach to controllability under observation uncertainty, we build on top of checks for SRNCs as
-will be shown in [[sec:vdc]].
+[cite:@MMV2001;@Morris2005;@Morris2006;@Morris2014], as well as reframing controllability as a
+Satisfiable Modulo Theory (SMT) problem [cite:@Cimatti2012;]. In our approach to controllability
+under observation uncertainty, we build on top of checks for SRNCs as will be shown in [[sec:vdc]].
 
 # TODO is there a better sentence to start this paragraph?
 For the third challenge, we choose to extend the Reactive Model-Based Programming Language (RMPL)
 [cite:@RMPL2002], which provides to domain experts a means for describing the constraints and goal
-states of their domain without requiring additional expert knowledge in autonomy. With RMPL, a human
+states of their domain without requiring additional expertise in autonomy. With RMPL, a human
 planner is capable of building control programs describing the constraints, agents, and states of
 the problem domain in a way that is human-readable yet highly programmable, and is independent of
 the underlying algorithms used by the autonomous system. As will be explained in Section [[sec:rmpl]]
@@ -594,38 +629,3 @@ are then naturally propagated through the graph. We assume that communication de
 system incorporates the time events spend propagating through the graph. Event propagation will be
 formally defined in Section [[sec:event-propagation]].
 
-** Robustness
-
-Autonomy research tends to focus on ideal, generic executives that behave perfectly. For instance,
-temporal reasoning research assumes that controllable events are executed instantaneously at the
-exact correct time without fail. Reality cannot conform to ideal conditions. At minimum, CPU cycles
-will tick by before a scheduled event is dispatched, causing the hands of precise clocks to move
-when our algorithms expect them to remain static. To run on hardware, executives and agents must
-communicate, which adds additional time that is unaccounted for in scheduling algorithms. And
-finally, we need to explicitly decide how to translate temporal events to messages that hardware can
-execute. Given our need to deploy Kirk on real hardware, we contribute a seemingly disparate set of
-algorithms removing expectations of idealized performance, that, when taken together, enable
-deployment of temporal reasoning algorithms in real agents.
-
-We include five contributions to dynamic scheduling and dispatching for enabling robust executives.
-
-1. A well defined architecture for event execution with distinct scheduler, dispatcher, and driver
-   responsibilities
-2. Tolerance in event scheduling
-3. Controllable event preemption
-4. The separation of real and =noop= controllable events in execution decisions
-5. A clock-synchronized approach for managing repeated tasks during online execution
-
-# There lacks research into the design of interfaces between executives and agents.
-
-TODO given the hardware experiments of this thesis...
-
-This thesis identifies addresses three core issues...
-
-We improve the delay scheduler by differentiating real and =noop= controllable events...
-
-We remove the assumption that controllable events are instantaneously executed...
-
-We identify drawbacks in naïve approaches to building executives using parallel and concurrent
-processes. We propose a clock-synchronized architecture that addresses challenges in simulating
-executives and better matches our expectations of order of operations behavior as programmers.

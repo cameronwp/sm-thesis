@@ -36,14 +36,26 @@ behind continuous online planning. Distributed, multi-agent decision making has 
 however, there has not been a look at how uncertain communications impact how a mixed-initiative
 team should dynamically adapt and solve problems in an evolving world.
 
+** SA vs MA
+...to implement the task scheduling and execution capabilities of a high-level executive that is
+capable of facilitating swarm-like coordination, where each agent independently decides how to act
+based on their knowledge of their peers' actions. In effect, this thesis describes an executive
+designed for single-agent task execution that can seamlessly engage in multi-agent execution when
+peers share scheduling knowledge.
+
 * Introduction
+
+# ABSTRACT
+# As space exploration accelerates and the number of robots and humans working in extreme
+# environments grows with it, we must enact autonomous multi-agent coordination in order to safely
+# operate in environments that are inherently hostile to communication.
 
 The United States, Europe, private companies, and new space agencies around the world are
 collectively urging humanity further into the cosmos with a never-before-seen zeal. We are witness
 to the great forces of political will, economics, and technological prowess launching our foothold
 beyond low Earth orbit and into planetary colonization. From every perspective, the scale of space
 exploration is staggering. It will take relentless effort from untold numbers of people, and our
-robot partners, to usher us into the era where living outside of Earth and interplanetary travel are
+robotic partners, to usher us into the era where interplanetary travel and living off-world are
 commonplace. In every envisioned scenario for deep space exploration, there is a need to coordinate
 between agents, whether human or robotic, who must find a way to safely work together in the face of
 the communication challenges inherent to extreme environments.
@@ -55,54 +67,191 @@ be easy for /everyone/ to communicate /everywhere/. The fact of the matter is th
 is far from a given when you leave civilization. Consider low Earth orbit. The largest artificial
 satellite, the International Space Station (ISS), has been in orbit since 1998. Despite that, it
 still loses communication with the ground regularly. Satellites with much less robust infrastructure
-lose contact with the ground even more often. When astronauts set foot on the south pole of the Moon
+lose contact with the ground even more often. When astronauts set foot on the South Pole of the Moon
 soon as part of the Artemis program [cite:@Coan2020a], they will find uncertain satellite coverage
 and the need to contend against local topology that is hostile to radio signals. Any robots working
-near a habitat or astronauts on Extravehicular Activity (EVA) may be reliant on complicated systems
-of relays to communicate with other /in situ/ agents, let alone the Earth. Communications may be
-delayed due to passing through multiple relays and the speed of light. Or communications may drop
-out altogether when agents accidentally walk behind a big boulder between them and the closest
-relay.
+near a habitat, or any astronauts on Extravehicular Activity (EVA), may be reliant on complicated
+systems of relays only to suffer unpredictable communications with other /in situ/ agents, let alone
+Mission Control on Earth. Communications may be delayed due to passing through multiple relays and
+the speed of light. Or communications may drop out altogether when agents accidentally walk behind a
+big boulder between them and the closest relay.
+
+# ABSTRACT
+# To the best of our knowledge, there are no autonomous executives capable of coordinating with
+# other agents while independently reasoning over communication delay to decide when to act.
 
 The gap in our understanding of distributed collaboration and coordination that this thesis proposes
-to address is deciding how to act when there is uncertainty about when, /if ever/, communications are
-received. To do so, we leverage and contribute to temporal reasoning research to implement the task
-scheduling and execution capabilities of a high-level executive that is capable of facilitating
-swarm-like coordination, where each agent independently decides how to act based on their knowledge
-of their peers' actions.
+to address is deciding how a collaborative agent should act, given a set of constraints between
+events, when there is uncertainty about when, /if ever/, communications and observations of
+exogenous events are received. To do so, we leverage and contribute to temporal reasoning research.
+We envision an executive capable of multi-agent coordination that can manage communication delay,
+which would be used by mission control to both plan and execute against a set of objectives. There
+are a range of multi-agent contexts that may realistically arise during near-term deep space
+missions. For instance, building a habitat on the lunar surface may require teams of astronauts and
+robots collaborating to construct facilities over a wide area. Spacewalks on the lunar surface for
+scientific exploration will inherently draw crews into locations with uncertain communication, such
+as craters.
 
-A mature corpus of research in the temporal reasoning community provides the foundation for this
-thesis, which largely based on the notion of events, which are discrete time points representing
-actions, and timing constraints between events. In English, these may take the form of "the sample
-collection event must be finished no more than eight minutes before samples are stowed." "Sample
-collection" and "sample stowing" would be two events, with a constraint of $< 5$ minutes between
-them. Constraints between events we can control [cite:@Dechter1991], events we cannot control
-[cite:@Vidal1999], between multiple agents [cite:@Casanova2016], and events that may not be observed
-[cite:@Moffitt2007] give mission planners a robust set of modeling tools for creating schedules and
-guaranteeing that all constraints are satisfied during a mission. However, these tools lack a notion
-of observation delay, meaning that they assume events are learned either instantaneously or never.
-This thesis proposes to address the following high-level gaps that are required in order to build a
-robust task scheduling executive that is ready to be deployed to real hardware.
+# ABSTRACT
+# A key gap that must be addressed is a single-agent executive capable of deciding when to act given
+# communication delay, which can the form the basis for a multi-agent execution context.
 
-1. Provide both a formalism and a human friendly modeling language for describing temporal
-   constraints with observation delay.
-2. Guarantee that all temporal constraints can be satisfied when event observations are made after a delay.
-3. Decide when to execute events to satisfy constraints.
-4. Coordinate observations with peer agents.
+An end-to-end approach would allow a human mission planner to construct a plan for all agents in the
+mission, separate actions for each agent, and then task agents to coordinate during the mission
+despite observation delay. An important stepping stone to the envisioned multi-agent planning and
+execution scenario is defining a single-agent executive that can decide when to act when the
+information it receives, i.e. observations or communications, has uncertain delay. Such a
+single-agent executive is useful in its own right, and can then form the basis for end-to-end
+multi-agent planning and coordination.
 
-Note that the first three gaps would be required whether we are building a single-agent or
-multi-agent executive. Thus, the executive of this thesis is effectively is a single-agent executive
-with the additional ability to reason over communications from peers. Thus, the structure of this
-thesis is as follows. A more detailed problem statement, include descriptions of the scenarios used
-for testing distributed collaboration and coordination with uncertain communication, will be
-provided in Chapter [[ch:problem-statement]]. Our approach to addressing the problem statement will be
-outlined in Chapter [[ch:approach]]. Chapter [[ch:modeling-tn]] will provide the first technical
-contributions of this thesis, first by addressing the issue of modeling observation delay, then by
-providing a procedure that can be used to guarantee that temporal constraints with observation delay
-are satisfiable. Chapter [[ch:delay-scheduling]] expands existing algorithms for deciding when to act
-given the resolution of constraints. There, we contribute a novel strategy for deciding when to act
-given observation delay. Additionally, we formalize and separate often confused components of
-scheduling, allowing us to design a more robust task scheduling executive that can be deployed to
-real hardware. Chapter [[ch:technical-coordination]] finally contributes a multi-agent coordination
-architecture for environments with uncertain communication. The discussion in Chapter [[ch:discussion]]
-concludes this thesis by providing additional context for the decisions made during this research.
+# ABSTRACT
+# Existing research has provided insights into temporal reasoning, namely modeling observation delay
+# and scheduling actions with temporal constraints, but there is both a need for deciding when to
+# schedule events when there is uncertain observation delay, and a need to robustly coordinate
+# between agents.
+
+A mature corpus of research in the temporal reasoning community provides the foundation for such a
+single-agent task scheduling executive. We base our research on the notion of events, which are
+discrete time points representing actions, and the timing constraints between events. Written in
+English, events and constraints might be stated as "samples must be stowed no more than five minutes
+after being collected." In this case, "sample collecting" and "sample stowing" would be two events,
+with a constraint of $< 5$ minutes between them. It is the case that constraints between events we
+can control [cite:@Dechter1991], events we cannot control [cite:@Vidal1999], constraints between
+multiple agents [cite:@Casanova2016], events that may not be observed [cite:@Moffitt2007], and
+events with variable observation delay [cite:@Bhargava2018] already give mission planners a robust
+set of modeling tools for creating schedules and guaranteeing that all constraints are satisfied
+during a mission.
+
+# Scheduling actions in the face of uncertainty is a challenge due to the compounding uncertainties
+# of uncontrollable exogenous events, unknown observation delay, and uncertain communication between
+# agents.
+
+What the state of the art lacks is an execution strategy when there is observation (or
+communication) delay. Existing execution strategies assume that events are either observed
+instantaneously as they happen or never. This is a challenge because, for events that are outside of
+our control, we no longer have a guarantee of knowing when they have occurred, yet the task
+scheduler must decide when to act such that all constraints are satisfied. To illustrate the
+challenge posed by uncertain communication on event scheduling, consider the following scenario.
+
+#+begin_quote
+There are two robots, =alpha= and =beta=, collaborating to perform a construction task on a
+planetary surface. The task involves uploading large video files documenting their progress back to
+engineers in Mission Control. There is limited bandwidth to the ground, so they need to coordinate
+their usage of the satellite uplink. At some point in the mission, there is a constraint that
+=alpha= should wait between three and five minutes after =beta= has finished uploading a video
+before uploading their own video. =alpha= knows exactly when =beta= started uploading because they
+were colocated at the time, but since then =alpha= has traversed to a distant location. The video
+will take eight to ten minutes to upload. =beta= will send a message to inform =alpha= the upload is
+complete, which =alpha= may receive instantaneously or after a delay of up to two minutes. Given
+when =alpha= learns that =beta= has finished their upload, how should =alpha= decide when to start
+their upload?
+#+end_quote
+
+There are two constraints and two sources of uncertainty in the scenario, which we can associate
+with three events.
+
+1. The event "=beta= finishes upload" will arrive in $[8, 10]$ (minutes) after "=beta= starts
+   upload." Neither =alpha= nor =beta= can control where in $[8, 10]$ the upload is finished.
+2. =alpha= will decide where the event "=alpha= starts upload" should be scheduled in $[3, 5]$
+   after "=beta= finishes upload."
+3. The event "=beta= finishes upload" will be observed by =alpha= in $[0, 2]$ after it occurs.
+   Neither =alpha= nor =beta= is guaranteed to know how long the delay is.
+
+We can study a few scenarios to uncover the impact of observation uncertainty on =alpha='s decision
+as to when to start uploading. We do so based on when =alpha= receives the observation that =beta=
+finished their upload. For simplicity's sake, we assume that $t = 0$ when "=beta= starts upload"
+occurs.
+
+- At $t = 8$, =alpha= knows there was no observation delay because the only way the observation
+  could have come at $t = 8$ is if the video finished uploading at $t = 8$ and they received the
+  message from =beta= instantaneously. They are safe to choose anywhere in $[3, 5]$ to start their
+  upload. =alpha= chooses to upload as soon as possible at $t = 11$.
+- At $t = 9$, the message from =beta= may have been delayed up to a minute (upload finishes at $t =
+  8$ + one minute delay), or it could have been sent as late as $t = 9$ and received
+  instantaneously. =alpha= then must choose a time in $[3, 5]$ that is consistent with =beta=
+  finishing anywhere in $[8, 9]$. =alpha= chooses to upload at $t = 12$.
+- At $t = 10$, =beta= could have finished uploading as early as $t = 8$ (upload finishes at $t =
+  8$ + two minute delay) or as late as $t = 10$ if there was no communication delay. =alpha= must
+  choose a time to start uploading that is consistent with the range of upload completion times in
+  $[8, 10]$. =alpha='s only option is to upload at $t = 13$.
+
+# TODO this EVA stuff here feels out of place
+# A real EVA timeline consists of more than six hours of events with constraints between them
+# [cite:@McBarron1994]. For any realistic mission, we can expect hundreds of events, with multiple
+# agents /in situ/ and on the ground. Human reasoning over temporal constraints is possible,
+This example demonstrates the type of online temporal reasoning over multiple sources of uncertainty
+required from the perspective of a single agent (=alpha= in this case). We could extend decision
+making to a multi-agent context by alternating our perspective to =beta=, who might then need to
+wait for =alpha= to send a message before its next action. With more constraints, compounding
+sources of uncertainty, and more agents cooperating, the decision as to when to act becomes
+increasingly difficult.
+
+This thesis proposes to address the following high-level gaps that are required in order to define a
+single-agent task scheduling executive that can participate in a multi-agent context.
+
+# ABSTRACT
+# This thesis puts forth a series of contributions that culminates in a robust single-agent
+# executive demonstrated to run on real hardware with the ability to coordinate in a multi-agent
+# context despite observation delay. We show that single agent online scheduler exhibits the
+# expected performance characteristics, and demonstrate multi-agent execution with uncertain
+# communication in the context of a simulated astronaut and robotic asset collaborating with
+# communication delay.
+
+# 2. Extending existing task scheduling algorithms to implement said execution strategy.
+
+1. Defining and implementing an execution strategy that is applicable to all outcomes of uncertainty
+   when there is variable observation delay.
+2. Enacting online, multi-agent coordination through communication.
+
+We take the view that the coordination of multiple agents with observation uncertainty requires that
+each agent must act independently without any assumption of a centralized authority dispatching
+plans. The first gap effectively defines a single-agent architecture that is useful in its own right
+for online scheduling in the face of observation delay. To do so, we build off existing temporal
+reasoning procedures for checking the controllability of temporal constraints to include uncertain
+observations of events. This procedure naturally informs the design of an execution strategy, or
+scheduling algorithm, for deciding when an agent should act given their knowledge of the history of
+events that have been scheduled so far. The second gap allows independent scheduling agents to
+coordinate their actions through communications, even when those communications may have uncertain
+delay. The result is a multi-agent execution architecture that is greater than the sum of its parts.
+
+** Summary of Contributions
+
+Here we present the specific contributions of this thesis that are required to address the gaps
+presented above.
+
++ Safe Execution Strategy for Temporal Networks with Uncertain Observation Delay :: Past work on the
+  study of temporal networks with variable observation delay has provided a sound and complete
+  method for proving the controllability given a set of constraints and uncertain observation delay
+  [cite:@Bhargava2018]. We contribute an execution strategy that builds off the controllability
+  checker and is valid for all resolutions of uncertainty realized during execution.
++ An Online Scheduler for Temporal Networks with Uncertain Observation Delay :: Past work in
+  temporal reasoning has provided a sound and complete online algorithm for dispatching controllable
+  events given all other event assignments up to the current time [cite:@Hunsberger2016]. We
+  contribute an extension to online scheduling that implements the execution strategy for uncertain
+  observation delay.
++ An Online Dispatcher for Dispatching Events to Hardware :: State of the art schedulers are limited
+  in that they output execution decisions, which act like instructions as to when to act rather than
+  actions themselves [cite:@Hunsberger2016]. We contribute a dispatching algorithm for enacting
+  execution decisions on robotic hardware in the face of uncertain observations.
++ Distributed, Multi-Agent Coordination through Uncertain Communications :: We contribute a
+  coordination algorithm that allows multiple agents, each using the scheduling and dispatching
+  contributions described above, to share knowledge of event observations. The result is a framework
+  that enables safe scheduling and dispatching events when there are inter-agent constraints with
+  uncertain communication.
+
+** Thesis Structure
+
+The structure of this thesis is as follows. A more detailed problem statement, including
+descriptions of the scenarios used for testing distributed collaboration and coordination with
+uncertain communication, will be provided in Chapter [[ch:problem-statement]]. Our approach to
+addressing the problem statement will be outlined in Chapter [[ch:approach]]. Chapter [[ch:modeling-tn]]
+will provide the first technical contributions of this thesis, first by addressing the issue of
+modeling observation delay, then by providing a procedure that can be used to guarantee that
+temporal constraints with observation delay are satisfiable. Chapter [[ch:delay-scheduling]] expands
+existing algorithms for deciding when to act given the resolution of constraints. There, we
+contribute a novel strategy for deciding when to act given observation delay. Additionally, we
+formalize and separate often confused components of scheduling, allowing us to design a more robust
+task scheduling executive that can be deployed to real hardware. Chapter [[ch:technical-coordination]]
+finally contributes a multi-agent coordination architecture for environments with uncertain
+communication. The discussion in Chapter [[ch:discussion]] concludes this thesis by providing additional
+context for the decisions made during this research.

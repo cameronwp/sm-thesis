@@ -875,10 +875,11 @@ Once we reach the third stage, we are guaranteed to be able to safely dispatch e
 have confirmed that the RTED we have in hand has unexecuted events that have never been dispatched,
 and (2) that we are in a time window that the scheduler has told us is consistent with the STNU's
 constraints. Going forward, we take advantage of the operational distinction we added to
-Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the /no-op/ property of each
-$\eventnoop$ pair in the RTED, we filter the $\eventnoop$ pairs into a set of /no-op/ events and a
-set of real events. The real events are asynchronously sent to the driver. We then loop through the
-/no-op/ events and schedule them in turn.
+Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the /no-op/ property of each $\eventnoop$ pair
+in the RTED, we filter the $\eventnoop$ pairs into a set of /no-op/ events and a set of real events.
+In the event that a contingent event and its normalized lower bound are to be scheduled at the same
+time, we schedule the /no-op/ events first. The real events are then asynchronously sent to the
+driver.
 
 Finally, because events were dispatched, the dispatching routine returns =true=.
 
@@ -967,11 +968,11 @@ $\mathit{RTED}_{\mathit{last}} \gets \mathit{RTED} = $\;
     }
 }
 
-Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver}$\;
-
 \For{$\mathit{event}$ in $\mathit{events}_{\mathbf{noop}}$} {
     Set $\assign(\mathit{event}) = t_{\mathit{RTED}}$ in $\mathit{Scheduler}$\;
 }
+
+Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver}$\;
 
 \Return $\mathtt{true}$\;
 
@@ -1328,3 +1329,7 @@ present, so all real events were scheduled immediately.
 
 Our results for scheduling were as follows.
 
+TODO
+- average, max (+ stdev) runtime of schedule updates by num of events
+- average, max (+ stdev) runtime of observations by num of events
+- average... of schedule updates mid-execution by num of executed and unexecuted events

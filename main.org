@@ -44,7 +44,7 @@
 #+end_export
 
 #+latex_class: mitthesis
-#+latex_class_options: [10pt,leftblank,twoside]
+#+latex_class_options: [12pt,vi,leftblank,twoside]
 
 #+latex_header: \usepackage{lgrind}
 

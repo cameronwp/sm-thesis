@@ -16,20 +16,21 @@
 #  8. x for y. how we fulfill the need
 
 As space exploration accelerates and the number of robots and humans working in extreme environments
-grows, we must enact autonomous multi-agent coordination in order to safely operate in environments
-that are inherently hostile to communication. To the best of our knowledge, there are no autonomous
-executives capable of coordinating with other agents while independently reasoning over
-communication delay to decide when to act. Existing research has provided insights into temporal
+grows with it, we must enact autonomous multi-agent coordination in order to safely operate in
+environments that are inherently hostile to communication. To the best of our knowledge, there are
+no autonomous executives capable of coordinating with other agents while independently reasoning
+over communication delay to decide when to act. A key gap that must be addressed is a single-agent
+executive capable of deciding when to act given communication delay, which can the form the basis
+for a multi-agent execution context. Existing research has provided insights into temporal
 reasoning, namely modeling observation delay and scheduling actions with temporal constraints, but
 there is both a need for deciding when to schedule events when there is uncertain observation delay,
 and a need to robustly coordinate between agents. Scheduling actions in the face of uncertainty is a
 challenge due to the compounding uncertainties of uncontrollable exogenous events, unknown
 observation delay, and uncertain communication between agents. This thesis puts forth a series of
-contributions that culminates in a robust executive demonstrated to run on real hardware and
-coordinate despite observation delay. Doing so required insights in modeling uncertain observation
-delay, checking variable-delay controllability, defining an execution strategy against temporal
-constraints with variable observation delay, architecting a robust single agent dispatcher, and
-online coordination for multiple agents. We show that single agent online scheduler exhibits the
-expected performance characteristics, and demonstrate multi-agent execution with uncertain
-communication in the context of a simulated astronaut and robotic asset collaborating with
-communication delay.
+contributions that culminates in a robust single-agent executive demonstrated to run on real
+hardware with the ability to coordinate in a multi-agent context despite observation delay. Doing so
+required insights in checking variable-delay controllability, defining an execution strategy against
+temporal constraints with variable observation delay, and online coordination for multiple agents.
+We show that single agent online scheduler exhibits the expected performance characteristics, and
+demonstrate multi-agent execution with uncertain communication in the context of a simulated
+astronaut and robotic asset collaborating with communication delay.

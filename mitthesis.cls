@@ -410,8 +410,9 @@ reserved.\par\permission}}
 %% \copyrightnotice{stuff} to copyright to someone else, or
 %% \copyrightnoticetext{stuff} to specify the exact text of the copyright
 %% notice.
-\ifodd\vithesis \copyrightnoticetext{\copyright\ \@author,
-\uppercase\expandafter{\romannumeral\@degreeyear}.  All rights reserved.\par\permission}
+% \ifodd\vithesis \copyrightnoticetext{\copyright\ \@author,
+% \uppercase\expandafter{\romannumeral\@degreeyear}.  All rights reserved.\par\permission}
+\ifodd\vithesis \copyrightnoticetext{\copyright\ \expandafter{\@degreeyear} \@author. License: CC BY-NC 4.0, https://creativecommons.org/licenses/by-nc/4.0.\par\permission}
 %% or just
 %%\@degreeyear}}
 \typeout{Copyright given to author,
@@ -526,6 +527,9 @@ requirements for the \@degreeword\ of \\
    distribute publicly paper and electronic copies of this thesis
    document in whole or in part in any medium now known or hereafter
    created.}\par}
+
+\def\permission{\par\noindent{\centering
+   The author hereby grants to MIT a nonexclusive, worldwide, irrevocable, royalty-free license to exercise any and all rights under copyright, including to reproduce, preserve, distribute and publicly display copies of the thesis, or release the thesis under an open-access license.}\par}
 
 \def\signature#1#2{\par\noindent#1\dotfill\null\\*
   {\raggedleft #2\par}}
