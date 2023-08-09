@@ -1,4 +1,4 @@
-% Created 2023-08-08 Tue 14:49
+% Created 2023-08-09 Wed 18:19
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt,vi,leftblank,twoside]{mitthesis}
 \usepackage[utf8]{inputenc}
@@ -28,10 +28,10 @@
 \def\all{all}
 \ifx\files\all \typeout{Including all files.} \else
 \date{}
-\title{Main SM Thesis Cover Abstract Acknowledgements Ch1 Introduction Problem Statement Approach Technical VDC Technical Scheduling Technical Distributed Discussion POSTNU to VDC Comparison Appendix - RMPL to STNUs}
+\title{Main SM Thesis Cover Abstract Acknowledgements Ch1 Introduction Problem Statement Approach Technical VDC Technical Scheduling Technical Distributed Conclusion POSTNU to VDC Comparison Appendix - RMPL to STNUs}
 \hypersetup{
  pdfauthor={Cameron W Pittman},
- pdftitle={Main SM Thesis Cover Abstract Acknowledgements Ch1 Introduction Problem Statement Approach Technical VDC Technical Scheduling Technical Distributed Discussion POSTNU to VDC Comparison Appendix - RMPL to STNUs},
+ pdftitle={Main SM Thesis Cover Abstract Acknowledgements Ch1 Introduction Problem Statement Approach Technical VDC Technical Scheduling Technical Distributed Conclusion POSTNU to VDC Comparison Appendix - RMPL to STNUs},
  pdfkeywords={},
  pdfsubject={},
  pdfcreator={Emacs 28.2 (Org mode 9.6)}, 
@@ -256,7 +256,7 @@ Simon, thank you for being a supportive TA (and introducing me to \emph{Aunty Do
 \begin{document}
 
 \chapter{Introduction}
-\label{sec:orgc3b5deb}
+\label{sec:org3bb9b93}
 
 The United States, Europe, private companies, and new space agencies around the world are
 collectively urging humanity further into the cosmos with a never-before-seen zeal. We are witness
@@ -397,7 +397,7 @@ coordinate their actions through communications, even when those communications 
 delay. The result is a multi-agent execution architecture that is greater than the sum of its parts.
 
 \section{Summary of Contributions}
-\label{sec:org3a002e9}
+\label{sec:org228d1b3}
 
 Here we present the specific contributions of this thesis that are required to address the gaps
 presented above.
@@ -425,7 +425,7 @@ uncertain communication.
 \end{description}
 
 \section{Thesis Structure}
-\label{sec:org876b587}
+\label{sec:orgced0202}
 
 The structure of this thesis is as follows. A more detailed problem statement, including
 descriptions of the scenarios used for testing distributed collaboration and coordination with
@@ -443,7 +443,7 @@ communication. The discussion in Chapter \ref{ch:discussion} concludes this thes
 context for the decisions made during this research.
 
 \chapter{Problem Statement}
-\label{sec:org67686ae}
+\label{sec:org5ae254d}
 \label{ch:problem-statement}
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
@@ -465,7 +465,7 @@ infrastructure, uncertain timing with respect to knowledge transfer between agen
 scientific equipment.
 
 \section{Extravehicular Activities as a Motivating Scenario}
-\label{sec:org3bf9f08}
+\label{sec:orgef1abaf}
 
 NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program\footnote{\url{https://www.nasa.gov/specials/artemis/}}. The Artemis astronauts will continue a longstanding
 tradition in the U.S. space program of performing EVAs \citeprocitem{8}{[8]}. Like the Apollo
@@ -518,7 +518,7 @@ limited bandwidth between space and ground, creating additional uncertainty betw
 product is ready and when it is available to the science team.
 
 \section{Motivating Scenario}
-\label{sec:org0fbada3}
+\label{sec:org707e90d}
 A human and a rover are working together to perform scientific exploration on the lunar surface. The
 human is performing exploration of targets of opportunity that were identified during descent. The
 rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
@@ -534,7 +534,7 @@ Both the human and the robot have their own schedules of events to perform and a
 other agent's events.
 
 \chapter{Approach}
-\label{sec:orgdfdc91d}
+\label{sec:org8cb79ad}
 \label{ch:approach}
 
 For addressing our problem statement, we envision that a high-level executive should take
@@ -579,7 +579,7 @@ observations
 Our approach to each research focus will be described below.
 
 \section{Modeling and Controllability}
-\label{sec:org8f6df84}
+\label{sec:org1cf01c1}
 
 We take a model-based approach to deploying autonomous systems, that is, prior to a mission, we
 envision that engineers and domain experts work together to model the system at hand, then during
@@ -635,7 +635,7 @@ below, our approach was to add the ability for planners to model observation del
 temporal constraints in RMPL.
 
 \subsection{Modeling Uncertain Observation Delay in STNUs}
-\label{sec:org1b56334}
+\label{sec:orgd18d476}
 \label{sec:obs-delay-in-stnus}
 
 In the case of observation delay, our model dictates that we reason over two time intervals. The
@@ -690,7 +690,7 @@ Chapter \label{ch:modeling-tn}.
 We formalize event observations and observation delay in Section \ref{sec:vdc}.
 
 \subsection{Modeling Observation Delay in RMPL}
-\label{sec:org5e090b7}
+\label{sec:org455d1c0}
 \label{sec:rmpl}
 
 RMPL is a key component of Kirk. This section steps through example RMPL control programs to
@@ -911,7 +911,7 @@ learn \emph{that} the contingent event occurred - is not guaranteed to learn whe
 contingent event was assigned, nor will it know how much observation delay was incurred.
 
 \subsection{Explicitly Modeling Agents in RMPL}
-\label{sec:org9ae5c77}
+\label{sec:orgb90737e}
 \label{sec:rmpl-agents}
 
 This section is included to expand on the features of RMPL, though note that none of these features
@@ -987,7 +987,7 @@ Kirk is able to take RMPL as input to perform classical planning, though further
 falls outside the scope of this thesis.
 
 \section{Scheduling Temporal Events}
-\label{sec:orgef9e1f1}
+\label{sec:org4fbf88d}
 \label{sec:approach-scheduling}
 
 The bulk of the technical chapters of this thesis, namely Chapters \ref{ch:modeling-tn} and
@@ -1009,7 +1009,7 @@ FAST-EX capable of applying the execution strategy defined in our first contribu
 We elaborate further on our approach to each contribution below.
 
 \subsection{Defining a Valid Execution Strategy for STNUs with Variable Observation Delay}
-\label{sec:org4f0c961}
+\label{sec:org0d9b099}
 
 We cannot execute an STNU without first demonstrating that it is controllable. Our approach to
 checking the controllability of STNUs with observation delay is to apply Bhargava's Variable-Delay
@@ -1038,7 +1038,7 @@ fixed-delay form. In Chapter \ref{ch:delay-scheduling}, we formally define the e
 variable-delay STNUs and prove its validity.
 
 \subsection{Online Dispatching for STNUs with Variable Observation Delay}
-\label{sec:orgf7b3ec3}
+\label{sec:org9dd991a}
 
 We chose to build the delay scheduler as a modified variant of Hunsberger's FAST-EX
 \citeprocitem{7}{[7]} because, to the best of our knowledge, FAST-EX is the fastest dynamic
@@ -1068,7 +1068,7 @@ special case from the variable-delay to fixed-delay transformation (see Section
 \ref{sec:delay-scheduling}).
 
 \section{Coordination}
-\label{sec:orge83be9a}
+\label{sec:org459497c}
 \label{sec:approach-coordination}
 
 To the best of our knowledge, this thesis contributes the first framework for, and demonstration of,
@@ -1115,7 +1115,7 @@ system incorporates the time events spend propagating through the graph. Event p
 formally defined in Section \ref{sec:event-propagation}.
 
 \chapter{Consistency Checking of Temporal Constraint Networks with Uncertain Observation Delay}
-\label{sec:org4c1cf0a}
+\label{sec:org86469bd}
 \label{ch:modeling-tn}
 
 Our overarching aim in this Chapter is to architect the offline portions of a single-agent pipeline
@@ -1147,7 +1147,7 @@ with experimental analysis of our chosen consistency checking procedure in Secti
 \ref{sec:vdc-experimental} using example temporal constraint networks inspired by lunar exploration.
 
 \section{Temporal Networks}
-\label{sec:orga68dded}
+\label{sec:org573807e}
 \label{sec:tn}
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
@@ -1309,7 +1309,7 @@ single theory. But first, we describe fixed-delay controllability, which introdu
 observation delay to STNUs.
 
 \section{Fixed-Delay Controllability}
-\label{sec:org2095bf6}
+\label{sec:orged916ca}
 \label{sec:fdc}
 
 Under fixed-delay controllability (FDC) \citeprocitem{37}{[37]}, we consider the problem of scheduling
@@ -1439,7 +1439,7 @@ before its immediate successor. More detail can be found in \citeprocitem{38}{[3
 We generalize fixed-delay to variable-delay controllability next.
 
 \section{Variable-Delay Controllability}
-\label{sec:orgb9d3fed}
+\label{sec:orgea219bf}
 \label{sec:vdc}
 
 While fixed-delay controllability is quite expressive, its fundamental limitation is that it assumes
@@ -1564,7 +1564,7 @@ following up with transformations to the requirement links to maintain the same 
 in \(S'\).
 
 \subsection{Variable-Delay to Fixed-Delay Transformations}
-\label{sec:orgdf89fc6}
+\label{sec:org018af38}
 \label{sec:vdc-to-fdc}
 
 We now show how we transform a variable-delay STNU to a fixed-delay STNU in order to perform
@@ -1911,7 +1911,7 @@ executed in \([16, 24]\). The execution semantics for both cases match the equiv
 \ref{fig:lemmas-combined}a described above.
 
 \section{Discussion}
-\label{sec:org84fcaab}
+\label{sec:orge1eef20}
 
 We have demonstrated a modeling formalism to describe temporal networks with uncertain observation
 delay, along with a sound and complete procedure for checking controllability of said temporal
@@ -1921,7 +1921,7 @@ is not controllable, then there exists a projection of \(S\) that is uncontrolla
 variable-delay controllable.
 
 \section{Experimental Analysis}
-\label{sec:org2e57d13}
+\label{sec:org19ad644}
 \label{sec:vdc-experimental}
 
 In this section, we provide empirical evaluations of our variable-delay controllability checking
@@ -2076,7 +2076,7 @@ adopted to prevent either false positives or false negatives; however, such a wi
 results strongly reinforces the value of modeling observational uncertainty directly.
 
 \chapter{Single-Agent Execution with Delayed Event Monitoring}
-\label{sec:org1bbdd8d}
+\label{sec:orgb9a0d08}
 \label{ch:delay-scheduling}
 
 Now that we have shown there exists a valid execution strategy for variable-delay controllable
@@ -2113,7 +2113,7 @@ Finally, Section \ref{sec:scheduling-experimental} provides a series of benchmar
 dispatching algorithms described in this Chapter.
 
 \section{Dynamic Scheduling through Real-Time Execution Decisions}
-\label{sec:orgb355afc}
+\label{sec:org8afad71}
 \label{sec:dynamic-scheduling}
 
 We first provide a necessary overview of dynamic scheduling of vanilla STNUs, which we will extend
@@ -2222,7 +2222,7 @@ t &= \cfrac{\texttt{now} + t^+}{2}
 So long as \(t^+ > \texttt{now}\), we know that the reassignment of \(t\) ensures \(t > \texttt{now}\).
 
 \section{Delay Scheduling as an Extension to Dynamic Scheduling}
-\label{sec:org7e55892}
+\label{sec:orgf71279f}
 \label{sec:delay-scheduling}
 
 \begin{figure}[htbp]
@@ -2250,7 +2250,7 @@ We start by providing an explanation of fixed-delay scheduling, before expanding
 execution strategies of variable-delay scheduling.
 
 \subsection{Fixed-Delay Scheduling}
-\label{sec:org5052136}
+\label{sec:orgca76b29}
 
 We first establish the algebra of receiving observations.
 
@@ -2338,7 +2338,7 @@ For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths
 No other modifications to FAST-EX are required to schedule a fixed-delay STNU.
 
 \subsection{Variable-Delay Scheduling}
-\label{sec:org823a0dc}
+\label{sec:orgbff9872}
 
 Our execution strategy must address each of the following special categories of contingent event
 observations:
@@ -2445,7 +2445,7 @@ We have addressed the key issue of reconciling observations from \(S\) with the 
 robustness for variable observation delay.
 
 \section{Dynamic Dispatching of STNUs with Observation Delay}
-\label{sec:orga125ea7}
+\label{sec:org08d9154}
 \label{sec:delay-scheduler}
 
 The terms ``scheduling'' and ``dispatching'' are often used interchangeably in temporal reasoning
@@ -2492,7 +2492,7 @@ events in Section \ref{sec:event-observations}. But first, we present a novel vi
 required for dispatching events to real hardware in Section \ref{sec:real-vs-noop-events}.
 
 \subsection{Guaranteeing Agents Receive Actionable Events}
-\label{sec:org28bfbc9}
+\label{sec:orgf3d4775}
 \label{sec:real-vs-noop-events}
 
 We take the view that events in an STNU may be interpreted as commands by the driver. It is improper
@@ -2558,7 +2558,7 @@ For convenience and simplicity, and given the similarities between RTED and RTED
 Distinction, future references to RTEDs will always refer to RTEDs with Operational Distinctions.
 
 \subsection{Dynamic Event Dispatching}
-\label{sec:org2679004}
+\label{sec:org65d2e48}
 \label{sec:dynamic-dispatching}
 
 The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. It consists
@@ -2747,294 +2747,25 @@ would trigger a schedule update. Thus, the dynamic dispatching routine runs in \
 worst case.
 
 \subsection{Observing Contingent Events}
-\label{sec:orgde0a37c}
+\label{sec:org655066a}
 \label{sec:event-observations}
 
 The dispatcher relays contingent event observations to the scheduler. In the base case, when a
 contingent event is observed, the dispatcher updates the schedule with the event and current clock
-time. If this were the only responsibility of the dispatcher when receiving a contingent event, we
-would end the section here. However, this interface is also where we implement an \emph{Optimistic
-Rescheduling} technique to address a problem inherent to the buffering performed by the Delay
-Scheduler.
+time.
 
-We describe Optimistic Rescheduling below and present the full contingent event
-observation algorithm.
-
-\subsection{Optimistic Rescheduling}
-\label{sec:orgc9e87ec}
-\label{sec:optimistic-rescheduling}
-
-We return to problem of potentially unnecessary wait time created by the buffering execution
-strategy described in Lemma \ref{lemma:buffering-imagining}. First, we use an example to demonstrate how
-buffering early contingent events results in a reduction of the execution space. Then we contribute
-a technique for managing event observations that circumvents the loss of execution space.
-
-Consider the following variable-delay controllable STNU, which we will refer to as
-\(\mathit{Bufferable}\).
-
-$$
-\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
-\edge{}{C}{[5, 9]}
-$$
-
-Following the semantics of the delay scheduler, we would first transform \(\mathit{Bufferable}\) to
-its fixed-delay equivalent, \(\mathit{Bufferable}'\) by applying Lemma \ref{lemma:main-tightening}.
-
-$$
-\fdelayedge{A'}{B'}{[4, 8]}{0}
-\edge{}{C'}{[4, 6]}
-$$
-
-If we assume \(A\) is executed at \(t = 0\), the only question is when to schedule \(C\) (or its
-fixed-delay equivalent, \(C'\)). According to the semantics of \(\mathit{Buffering}\), if \(B\) is
-observed at \(t = 2\), we know that \(B\) was assigned at \(t = 1\). Thus, we only need to wait until \(t =
-6\) to schedule \(C\). However, the delay scheduler would schedule according the constraints found in
-\(\mathit{Buffering}'\), wherein \(\assign(B') = 2\) falls earlier than the lower bound of
-\(\conedge{A'}{B'}{[4, 8]}\), triggering Lemma \ref{lemma:buffering-imagining}. As a result, we act as if
-\(\assign(B') = 4\) and then wait for the lower bound of \(\edge{B'}{C'}{[4, 6]}\). The end result is
-that \(C'\) is assigned to a later time of \(t = 8\).
-
-From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
-case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
-software is telling astronauts on Moon to just stand there doing nothing, responding that your
-algorithm \emph{does not know} if it is safe to act, would be unacceptable. Therefore, we contribute a
-generate-and-test approach that looks for opportunities to avoid buffering when contingent events
-arrive before their expected windows in the fixed-delay STNU. The goal of this method is to dispatch
-future events earlier if possible.
-
-At its core, optimistic rescheduling consists of copying the original variable-delay STNU then
-rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
-STNU is narrowing the constraint and observation delay to match what was observed. We then
-re-perform controllability checks. If controllable, we have a new schedule that removes the need to
-buffer this contingent event. If not controllable, we do nothing, buffer the contingent event as
-planned, and continue dispatching against the original schedule.
-
-We now step through the Event Observations with optimistic rescheduling algorithm (Algorithm
-\ref{alg:optimistic-rescheduling}) in detail.
-
-\begin{algorithm}
-\SetAlgoLined
-\SetKwComment{Comment}{//}{}
-\SetKwFunction{Return}{return}
-\SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
-\SetKwInput{Algorithm}{\textsc{Event Observations with Optimistic Rescheduling}}
-\SetKwInput{Initialize}{Initialization}
-\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
-
-\Indm
-\Input{Original VDC STNU $S$; Equivalent fixed-delay function $\gamma$\; Partial history $\xi$; Executed events map $\mathit{Ex}(S, x)$; Observed contingent event $x$; Normalized lower bound $\hat x$; Current time $t$;}
-\Output{Boolean whether $x$ was successfully scheduled, VDC STNU}
-
-\Indp
-\Algorithm{}
-\Indp
-
-$\mathit{successp}, \mathit{bufferedp} \gets \mathtt{updateSchedule(S, x, t)}$\;
-
-\If{$\neg \mathit{bufferedp}$} {
-    \Return $\mathit{successp}, S$\;
-}
-
-$S^{\ast} \gets \mathtt{rewriteSTNU(S, x, t)}$\;
-
-\If{$S^{\ast}$ is not variable-delay controllable} {
-    \Return $\mathit{successp}, S$\;
-}
-
-\For{$\mathit{a}$ in $\xi$ \Comment{$\mathit{a}$ is an assignment}} {
-    \If{$\gamma(\mathit{a[event]}) \neq \infty$} {
-        $\mathtt{updateSchedule(\mathit{S^{\ast}}, \mathit{a[event]}, \mathit{a[time]} + \gamma(\mathit{a[event]}))}$;
-    }
-}
-
-\For{$\mathit{event}$ in $\mathit{Ex(S)}$} {
-     $\mathit{Ex}(S^{\ast}, x) \gets \mathit{Ex}(S, x)$
-}
-
-$\mathtt{updateSchedule(\mathit{S^{\ast}}, \hat x, t)}$\;
-$\mathtt{updateSchedule(\mathit{S^{\ast}, x, t)}$\;
-
-\Return $\mathtt{true}, S^{\ast}$\;
-
-\caption{An Algorithm for observing contingent events with optimistic rescheduling.}
-\label{alg:optimistic-rescheduling}
-\end{algorithm}
-
-We cannot know if an event is buffered if we do not attempt to schedule it. Our first step is to
-schedule an event like normal. If scheduling is possible without buffering, we simply return whether
-scheduling was successful.
-
-If the event was buffered, then we begin to optimistically reschedule. We do so by tightening the
-bounds of the original VDC STNU, \(S_{\mathit{original}}\), based on the observation we received,
-which is the responsibility of Algorithm \ref{alg:rewrite-stnu}, implementing Lemma \ref{lemma:narrow-bounds}.
-
-If the rewritten STNU, \(S^{\ast}\), is found to be VDC, we prepare to schedule it. First we iterate
-through all the assignments in the partial schedule and make the same assignments against the new
-STNU. When assignments are made, we subtract out the fixed observation delay. In this loop, we add
-the observation delay back, lest it be subtracted from the original observation twice.
-
-If any contingent events with infinite delay were observed, they would have been marked executed but
-not assigned. We iterate through the executed events of \(S\) and mark the same events executed in
-\(S^{\ast}\).
-
-The distance graph, partial schedule, and executed events of \(S^{\ast}\) now match that of \(S\) before
-\(x_{c}\) was received. We are almost safe to record a new observation. Lastly, we must address the
-executable event representing the normalized lower bound of \(x_{c}\), \(\hat x_{c}\). During
-scheduling, we would have received an RTED consisting of \(\langle l + \gammabar^+(x_{c}), \hat x_{c}
-\rangle\). Given that \(x_{c}\) arrived before \(l + \gammabar^+(x_{c})\), we never would have assigned
-\(\hat x_{c}\), so we assign \(\assign(\hat x_{c}) = t\) now. We finally update the schedule with the
-contingent event that arrived.
-
-\begin{lemma}
-\label{lemma:narrow-bounds}
-If a contingent event, \(x_{c} \in X_{c}\), where \(u - l > \gammabar^+(x_{c}) - \gammabar^{-}(x_{c})\),
-is observed at time \(t\) and when \(t < l + \gammabar^+(x_{c})\), we may replace \(x_{c}\) and
-\(\gammabar(x_{c})\) with a constraint, \(x_{c}^{\ast}\), and variable-delay function,
-\(\gammabar(x_{c}^{\ast})\), with narrower bounds as follows.
-
-\begin{align*}
-x_{c}^{\ast} &= [l^{\ast}, u^{\ast}] \\
-x_{c}^{\ast} &= [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
-\gammabar(x_{c}^{\ast}) &= [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)]
-\end{align*}
-\end{lemma}
-
-\begin{proof}
-Buffering is only possible if the conditions of Lemmas \ref{lemma:main-tightening} and
-\ref{lemma:buffering-imagining} are triggered. By Lemma \ref{lemma:main-tightening}, we are guaranteed to be
-able to narrow where in the range \([l, u]\) \(x_{c}\) was scheduled. By Lemma
-\ref{lemma:buffering-imagining}, we know that rewritten bounds will lead to an assignment of \(x_{c}\) that
-is no later than \(l + \gammabar^{+}(x_{c})\). Our tool for narrowing the bounds is Equation
-\ref{eqn:fixed-recording}, which allows us to use the observation to reason over the assignment and
-observation delay. Our strategy is to look at the extreme cases leading to an observation.
-
-We start by reasoning over the earliest and latest assignments respectively. In order for \(x_{c}\) to
-be assigned as early as possible, \(l^{\ast}\), we assume the delay has taken on its maximum value,
-\(\gammabar^+(x_{c})\).
-
-\begin{align}
-\assign(x_{c}) &= \obs(x_{c}) - \gamma(x_{c}) \\
-l^\ast &= t - \gammabar^+(x_c) \label{eqn:l-ast}
-\end{align}
-
-Likewise, to find the last possible assignment leading to an observation, we subtract the smallest
-observation delay, \(\gammabar^{-}(x_{c})\).
-
-\begin{align}
-u^\ast = t - \gammabar^-(x_c) \label{eqn:u-ast}
-\end{align}
-
-Given that Nature will adhere to the constraints originally put forth in \(S\), the bounds of
-\(x_{c}^{\ast}\) must remain within the bounds of \(x_{c}\). Hence, we guarantee the lower bound is at
-least \(l\) while the upper bound is at most \(u\).
-
-\begin{align*}
-l^\ast &= \max(l, t - \gammabar^+(x_c)) \\
-u^\ast &= \min(u, t - \gammabar^-(x_c))
-\end{align*}
-
-We use the same logic for narrowing the observation delay. If \(x_{c}\) was assigned as late as
-possible, \(u\), then the observation delay would be minimized, \(\gammabar^-(x_{c}^{\ast})\). Likewise,
-if \(x_{c}\) was assigned as early as possible, \(l\), the observation delay would be maximized,
-\(\gammabar^+(x_{c}^{\ast})\). The narrowed lower and upper bounds of \(\gammabar(x_{c})^{\ast}\) are as
-follows.
-
-\begin{align*}
-\gamma &= \obs(x_{c}) - \assign(x_{c}) \\
-\gammabar^-(x_{c}^{\ast}) &= t - u \\
-\gammabar^+(x_{c}^{\ast}) &= t - l \\
-\end{align*}
-
-As before, the bounds of \(\gammabar(x_{c}^{\ast})\) must stay within the original bounds of
-\(\gammabar(x_{c})\), leaving us with the following narrowed observation delay.
-
-\begin{align}
-\gammabar^-(x_{c}^{\ast}) &= \max(\gammabar^{-}(x_{c}), t - u) \\
-\gammabar^+(x_{c}^{\ast}) &= \min(\gammabar^+(x_{c}), t - l)
-\end{align}
-\end{proof}
-
-We revisit the example from the beginning of this section to see Lemma \ref{lemma:narrow-bounds} in
-action. As we saw before, any \(\obs(B)\) before \(t = 4\) will result in buffered assignments.
-
-$$
-\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
-\edge{}{C}{[5, 9]}
-$$
-
-Let \(t = 3\). We will step through the reasoning for narrowing the bounds of \(x_{c}\) accordingly.
-
-\begin{align*}
-x_{c}^{\ast} &\in [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
-x_{c}^{\ast} &\in [\max(1, 3 - 3), \min(7, 3 - 1)] \\
-x_{c}^{\ast} &\in [1, 2] \\
-\\
-\gammabar(x_{c}^{\ast}) &\in [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)] \\
-\gammabar(x_{c}^{\ast}) &\in [\max(1, 3 - 7), \min(3, 3 - 1)] \\
-\gammabar(x_{c}^{\ast}) &\in [1, 2]
-\end{align*}
-
-We find that \(\assign(x_{c})\) must have fallen somewhere in the range of \([1, 2]\), while
-\(\gammabar(x_{c})\) was resolved somewhere in \([1, 2]\). Looking at the extremes, it is clear that
-there are multiple combinations of the assignment and observation delay that could lead to an
-observation at \(t = 3\). While the narrowed range allows for observations other than \(t = 3\), for
-instance, if \(\assign(x_{c}) = 2\) and \(\obs(x_{c}) = 2\) yielding an observation at \(t = 4\), there
-are no other ranges of assignments or observation delay outside of \(\assign(x_{c}) \in [1, 2]\) and
-\(\gammabar(x_{c}) \in [1, 2]\) that would allow an observation at \(t = 3\).
-
-\begin{algorithm}
-\SetAlgoLined
-\SetKwComment{Comment}{//}{}
-\SetKwFunction{Return}{return}
-\SetKwInput{Input}{Input}
-\SetKwInput{Output}{Output}
-\SetKwInput{Algorithm}{\textsc{Rewrite STNU}}
-\SetKwInput{Initialize}{Initialization}
-\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
-
-\Indm
-\Input{VDC STNU $S_{\mathit{original}}$; Variable-delay function $\gammabar$\; Observed contingent event $x$; Observation time $t$;}
-\Output{VDC STNU}
-
-\Initialize{$S_{\mathit{new}} \gets \mathtt{copy}(S_{\mathit{original}})$}
-
-\Indp
-\Algorithm{}
-\Indp
-
-\For{$\mathit{constraint}$ in $S_{\mathit{new}}$} {
-    \If{$\mathit{constraint}$ ends in $x$} {
-        $\mathit{constraint}[lower] \gets \max(\mathit{constraint}[lower], t - \gammabar^{+}(x))$\;
-        $\mathit{constraint}[upper] \gets \min(\mathit{constraint}[upper], t - \gammabar^{-}(x))$\;
-        $\gammabar^{-}(x) \gets \max(\gammabar^{-}(x), t - \mathit{constraint}[upper])$\;
-        $\gammabar^{+}(x) \gets \max(\gammabar^{+}(x), t - \mathit{constraint}[lower])$\;
-    }
-}
-
-\Return $S_{\mathit{new}}$\;
-
-\caption{An Algorithm for rewriting an STNU given the resolution of uncertainty of a contingent link.}
-\label{alg:rewrite-stnu}
-\end{algorithm}
-
-The complexity of Algorithm \ref{alg:optimistic-rescheduling} is dominated by the loop over
-\texttt{updateSchedule}. Each call to \texttt{updateSchedule} is \(O(N^{3})\) in the number of events. In the worst
-case scenario, every event up to the last contingent event has been scheduled, giving us a
-complexity of \(O(N^{4})\). We discuss potential means for improving optimistic rescheduling in
-Section \ref{sec:discussion-optimistic-rescheduling}.
-
+If the observed event is contingent and arrived earlier than its lower bound, then the dispatcher
+will save the event in a \texttt{buffered-events} hash-table for the lower bound.
 
 \section{Experimental Analysis}
-\label{sec:org686f805}
+\label{sec:orgcbb8e04}
 \label{sec:scheduling-experimental}
 
 We first introduce an example which models a construction task on the lunar surface that will be
 used to randomly generate STNUs with realistic constraints for benchmarking purposes. We then
 describe benchmarks against the performance of the real-time FAST-EX update with the variable-delay
-execution strategy, the dispatching routine, real-time observations, and optimistic rescheduling.
-All benchmark code can be found at \url{https://gitlab.com/enterprise/enterprise} in the
-\texttt{kirk-v2/benchmarks} directory.
+execution strategy, the dispatching routine, and observations. All benchmark code can be found at
+\url{https://gitlab.com/enterprise/enterprise} in the \texttt{kirk-v2/benchmarks} directory.
 
 \begin{figure}[htbp]
 \centering
@@ -3066,23 +2797,105 @@ the previous repeater's confirmation. Confirmations are required until we reach 
 or the last activity. Once testing is complete, the rovers clean up their workstations,
 \(\edge{D_{i,j}}{A_{i,j+1}}{}\) and then repeat the cycle until all antennas have been installed.
 
-To perform the benchmarks, we generated variable-delay STNUs with randomly generated constraints as
-previously described of increasing sizes. We immediately checked VDC of each STNU, and would
+To perform the benchmarks, we generated variable-delay STNUs of increasing sizes with randomly
+determined constraints as previously described. We immediately checked VDC of each STNU, and would
 generate new STNUs of a given size until we found one that was confirmed to be VDC. We then
 simulated scheduling and dispatching of the STNU with a faster-than-realtime clock. No driver was
 present, so all real events were scheduled immediately.
 
-Our results for scheduling were as follows.
+These data were collected on an Intel i7-10710U 6c/12t mobile processor with 16GB of RAM in a
+Thinkpad X1 Carbon Gen 7 laptop. All tests were run while the laptop was attached to wall power. The
+code was written in Common Lisp and all benchmarks were run with Steel Bank Common Lisp version
+2.0.1. To reduce the time spent running benchmarks, we scheduled multiple STNUs in parallel, with
+each STNU being scheduled in its own thread.
 
-TODO
-\begin{itemize}
-\item average, max (+ stdev) runtime of schedule updates by num of events
-\item average, max (+ stdev) runtime of observations by num of events
-\item average\ldots{} of schedule updates mid-execution by num of executed and unexecuted events
-\end{itemize}
+The regressions below were performed using the Python packages \texttt{scipy} \citeprocitem{41}{[41]} and
+\texttt{sklearn} \citeprocitem{42}{[42]}, then graphed with \texttt{matplotlib} \citeprocitem{43}{[43]}.
+
+The implementation of the delay scheduler from which these data were collected has a bug that we
+have been unable to identify. We have only seen the bug surface with STNUs with more than about 50
+events. The bug takes effect when observing a contingent event, \(x_{c}\), which has incoming
+contingent constraints \([l, u]\). If we observe \(x_{c}\) at some time \(t\), where \(l \leq t < u\), the
+Dijkstra SSSP subroutine unexpectedly finds a negative edge and an error is raised. We have been
+able to replicate the problem for specific STNUs with specific observations, and, as of the time of
+this writing, we are still investigating the cause. We do not believe it meaningfully impacts the
+validity of the benchmarks below.
+
+\subsection{Scheduling}
+\label{sec:org02cd57d}
+
+We start with the runtime performance of schedule updates. There can be runtime variance for each
+individual call to the scheduling update routine, so we focus on the total time spent scheduling all
+events in the STNU. According to the FAST-EX algorithm, the total runtime is dominated by the \(O(N
+\log N)\) runtime of Dijkstra SSSP, where \(N\) is the total number of events. Thus, the total runtime
+to schedule every event in an STNU is \(O(N^{2} \log N)\) \citeprocitem{7}{[7, p. 144]}. Given the
+changes we made to FAST-EX are also dominated by Dijkstra SSSP, we expect to see the same runtime
+performance here.
+
+Figure \ref{fig:runtime-scheduling-sub-300} clearly shows that the total time spent scheduling STNUs with
+\(N \leq 300\) follows \(O(N^{2} \log N)\) as expected, with a coefficient of determination for the
+regression of \(R^{2} = 0.995\).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/scheduling-total-runtime-sub-300.png}
+\caption{\label{fig:runtime-scheduling-sub-300}Total runtime data for scheduling all events in VDC STNUs where \(N \leq 300\).}
+\end{figure}
+
+If we expand the size of STNUs to \(N \leq 600\), then we see the total runtime correspond less
+closely with \(O(N^{2} \log N)\), as can be seen in Figure \ref{fig:runtime-scheduling-aggregate}. We
+believe the deviation is due to programming language features in lisp outside of our control, such
+as automated memory management.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/scheduling-total-runtime-all.png}
+\caption{\label{fig:runtime-scheduling-aggregate}Total runtime data for scheduling all events in VDC STNUs where \(N \leq 600\).}
+\end{figure}
+
+\subsection{Event Observations}
+\label{sec:org425afbc}
+
+Next, we examine the runtime characteristics of event observations. While generating VDC STNUs, we
+also collected possible ranges of time to observe the confirmation event. As scheduling progressed,
+we automatically triggered observations of the confirmation event at a time randomly selected within
+the range given.
+
+Contingent event observations are made much less frequently than scheduling. While we must schedule
+every event in an STNU, our benchmarking procedure will only observe a small fraction of the events.
+As a result, sample sizes are small. Given event observations are dominated by the call to FAST-EX
+for a scheduling update, we expect to see runtimes on the order of \(O(N \log N)\). However, the data
+in Figure \ref{fig:runtime-observations-aggregate} show significant deviation from it. Given that the
+method call to observe events is a thin wrapper around a FAST-EX update, we believe the error of
+this graph is due to small sample sizes.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/observations-avg-runtime.png}
+\caption{\label{fig:runtime-observations-aggregate}Average runtime data for observing events in VDC STNUs. Error bars represent standard deviation.}
+\end{figure}
+
+\subsection{Dispatching}
+\label{sec:orga66ce5f}
+
+Finally, we benchmark action dispatching. In our simulated environments for dispatching, we run the
+dispatcher function as described in Algorithm \ref{alg:dispatcher-inner} twice per simulated second. (We
+run it twice in the event that scheduling an event enables us to dispatch other actions immediately.
+If we ran Algorithm \ref{alg:dispatcher-inner} once per second, the newly enabled events would then be
+dispatched a second late.)
+
+Given every event will be scheduled once using the FAST-EX update, FAST-EX updates will dominate the
+total runtime of dispatching. As seen in Figure \ref{fig:runtime-tick-aggregate}, the total runtime of all
+calls to Algorithm \ref{alg:dispatcher-inner} indeed follows \(O(N^{2} \log N)\).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\textwidth]{images/tick-total-runtime.png}
+\caption{\label{fig:runtime-tick-aggregate}Average runtime data for running Algorithm \ref{alg:dispatcher-inner}.}
+\end{figure}
 
 \chapter{Coordinating Multiple Agents under Uncertain Communication}
-\label{sec:org7aa0bad}
+\label{sec:org1159025}
 \label{ch:technical-coordination}
 
 In this chapter, we present a novel MA framework for dynamic event scheduling with inter-agent
@@ -3103,7 +2916,7 @@ respect to event assignments, nor are they required to even \emph{agree} on the 
 Rather, their knowledge should be consistent with the temporal constraints and observation delay
 modeled in their individual delay STNUs. This requirement stands in opposition to the communication
 challenge that is commonly addressed in problems involving distributed agents, e.g. distributed
-consensus approaches \citeprocitem{41}{[41]}, \citeprocitem{42}{[42]}, where it is crucial that all agents agree on
+consensus approaches \citeprocitem{44}{[44]}, \citeprocitem{45}{[45]}, where it is crucial that all agents agree on
 the state of the world. In our framework, each agent acts according to their given constraints. Due
 to scheduling uncertainty from observation delay, it is impossible to expect agents to agree on
 partial histories, nor is it necessary because each agent is capable of scheduling events with
@@ -3118,7 +2931,7 @@ analysis of our event propagation algorithms, and the results of hardware demons
 Kirk using a robotic arm and a simulated astronaut.
 
 \section{Multi-Agent Control Programs}
-\label{sec:org9dba141}
+\label{sec:orgf53bd1a}
 \label{sec:ma-control-programs}
 
 This thesis introduces challenges in writing control programs for multiple agents who need to
@@ -3256,7 +3069,7 @@ impacting the ordering of events. They are used to separate control programs in 
 demonstration in Section \ref{sec:hw-demo}.
 
 \section{Event Propagation}
-\label{sec:org371bdc1}
+\label{sec:org8552378}
 \label{sec:event-propagation}
 
 At a high level, scheduled events propagate through a simple directed graph of connected executives.
@@ -3414,7 +3227,7 @@ it takes to transmit messages between agents, which, to reiterate, should be mod
 functions for any inter-agent temporal constraints.
 
 \section{Experimental Analysis}
-\label{sec:org435dfdb}
+\label{sec:org5b58968}
 \label{sec:ma-experimental}
 
 We performed two demonstrations of the Event Propagation algorithm. The first was a hardware
@@ -3422,7 +3235,7 @@ demonstration performed on a Barrett WAM manipulator in the MERS lab. The second
 simulation showcasing inter-agent constraints. Both will be described below.
 
 \subsection{Distributed Kirk Simulation}
-\label{sec:org47bdc2a}
+\label{sec:orgc2e111f}
 \label{sec:dkirk-simulation}
 
 To demonstrate multi-agent communication, we built a simulation of an end-to-end mission with three
@@ -3633,7 +3446,7 @@ to avoid overlapping installation tasks using a communication architecture that 
 communication.
 
 \subsection{Hardware Demonstration}
-\label{sec:org9ba7275}
+\label{sec:org2f23ecd}
 \label{sec:hw-demo}
 
 We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
@@ -3948,12 +3761,12 @@ to communication delay. The robot was able to satisfy all constraints with its d
 despite not receiving communication from the astronaut about the end of the astronaut setting up the
 science experiment.
 
-\chapter{Discussion and Future Work}
-\label{sec:orgc586040}
+\chapter{Conclusion and Future Work}
+\label{sec:orgc3ed7e4}
 \label{ch:discussion}
 
 \section{Optimistic Rescheduling}
-\label{sec:org72d24d3}
+\label{sec:org0181a9f}
 \label{sec:optimistic-rescheduling}
 
 We return to problem of potentially unnecessary wait time created by the buffering execution
@@ -4218,7 +4031,7 @@ Section \ref{sec:discussion-optimistic-rescheduling}.
 
 
 \subsection{Possible Improvements}
-\label{sec:org8467a17}
+\label{sec:org98ba1df}
 \label{sec:discussion-optimistic-rescheduling}
 
 What if we looked for conflicts? Could we possibly search for a time to dispatch early in the
@@ -4227,7 +4040,7 @@ buffered execution space?
 Smarter rewriting STNU. Could we update the existing d-graph directly and check it for SRNCs? maybe?
 
 \section{Coordination}
-\label{sec:org7cfa0af}
+\label{sec:org8092903}
 \label{sec:mastnus}
 
 We were focused on addressing the multi-agent (MA) online scheduling problem. Before scheduling, we
@@ -4246,7 +4059,7 @@ decoupling is sound but not complete, i.e. temporal decoupling may report failur
 MASTNU is dynamically controllable. This limits the utility of MASTNUs as a planning tool.
 
 The other approach to this problem we are aware of is Stedl's Hierarchical Reformulation (HR)
-algorithm \citeprocitem{43}{[43]}. HR begins with a MA temporal plan network (TPN), which is similar to a
+algorithm \citeprocitem{46}{[46]}. HR begins with a MA temporal plan network (TPN), which is similar to a
 MASTNU (though HR pre-dates MASTNUs). Stedl's key insight is to avoid inter-agent communication
 altogether by reformulating constraints between groups of agents such that they are strongly
 controllable. As such, no communication between agents is required. A centralized dispatcher is then
@@ -4267,7 +4080,7 @@ delay, though we leave that problem for future research.
 
 We considered framing our approach to inter-agent communication as a distributed consensus problem
 because we believed we needed a means for disparate agents to agree on the state of the world.
-Existing distributed consensus algorithms like Paxos \citeprocitem{42}{[42]} or Raft \citeprocitem{41}{[41]}
+Existing distributed consensus algorithms like Paxos \citeprocitem{45}{[45]} or Raft \citeprocitem{44}{[44]}
 would then be integrated into the communication layer of Kirk and take responsibility for ensuring
 that agents agree on which events have been scheduled.
 
@@ -4281,7 +4094,7 @@ consensus.
 \appendix
 
 \chapter{Comparison of Variable-Delay STNUs to Partially Observable STNUs}
-\label{sec:org1e4eace}
+\label{sec:org37ed8df}
 \label{appendix:postnus}
 
 The delay scheduler is flexible in that so long as it receives a variable-delay STNU, it is capable
@@ -4308,7 +4121,7 @@ there is a subset of POSTNUs that delay STNUs are able to model. It is advantage
 POSTNUs to delay STNUs when possible because we are guaranteed to finish controllability checks for
 delay STNUs in polynomial time, while evaluating the controllability of POSTNUs in general is harder
 \citeprocitem{5}{[5]}. Furthermore, the sub-class of POSTNUs that can be checked efficiently and
-accurately, those without chained contingent links \citeprocitem{44}{[44]}, are members of the
+accurately, those without chained contingent links \citeprocitem{47}{[47]}, are members of the
 subset of POSTNUs that can be expressed directly as STNUs with fixed-delay, and likewise
 variable-delay, functions , \citeprocitem{34}{[34, p. 59]}. The converse is also true - we may emulate
 STNUs with variable-delay functions as POSTNUs without chained contingent links. Below, we elaborate
@@ -4362,7 +4175,7 @@ A POSTNU with a chained contingency is defined as follows. Consider a chain of c
 \(\conedge{A}{B}{}\) and \(\conedge{B}{C}{}\). If \(B\) has one or more outgoing links to free or
 contingent events other than \(C\), it is a chained contingency. Lemma \ref{lemma:delay-stnu-to-postnu}
 results in a POSTNU without chained contingencies, hence variable-delay STNUs fall into the subclass
-of POSTNUs that can be checked efficiently \citeprocitem{44}{[44]}.
+of POSTNUs that can be checked efficiently \citeprocitem{47}{[47]}.
 
 In the other direction, to transform a POSTNU without chained contingencies into an STNU with
 variable-delay functions, we need to address three cases of contingent constraints: (1) unobservable
@@ -4432,19 +4245,19 @@ POSTNUs beyond those without chained contingencies. However, it is worth highlig
 variable-delay controllability can be leveraged to construct improved algorithms with respect to
 scheduling and controllability of POSTNUs. The model for observation delay proposed by
 variable-delay controllability can be expressed exactly as a POSTNU with a ``single-headed'' chained
-contingency\footnote{To borrow the term ``single-headed'' from \citeprocitem{45}{[45]}.} as shown
+contingency\footnote{To borrow the term ``single-headed'' from \citeprocitem{48}{[48]}.} as shown
 in Figure \ref{fig:postnu}b; the main difference is that we represent the contingent link between \(B\) and
 \(B'\) with our variable-delay function \(\gammabar(B)\). Hence, the algorithm we present for
 variable-delay controllability can be used to both solve POSTNUs without chained contingencies, as
 described above, as well as those POSTNUs with single-headed chained contingencies. Approaches
 inspired by variable-delay controllability have been used to further expand POSTNU dynamic
-controllability checking in more expressive chained instances \citeprocitem{45}{[45]}. We
+controllability checking in more expressive chained instances \citeprocitem{48}{[48]}. We
 hope that insights from variable-delay controllability will continue to expand the subset of POSTNUs
 that can be controllability checked, and as such we advocate for continued development of the theory
 of variable-delay controllability as a relevant framework for modelers.
 
 \chapter{RMPL Control Programs and STNUs}
-\label{sec:org9eb6511}
+\label{sec:org08c977f}
 \label{appendix:rmpl}
 
 Key to the challenge of being a mission planner is to understand the constraints between events.
@@ -4665,15 +4478,21 @@ NO\_ITEM\_DATA:Sehlke2019
 
 \hypertarget{citeproc_bib_item_40}{[40] L. Hunsberger, “Fixing the semantics for dynamic controllability and providing a more practical characterization of dynamic execution strategies,” \textit{Time 2009 - 16th international symposium on temporal representation and reasoning}, pp. 155–162, 2009, doi: \href{https://doi.org/10.1109/TIME.2009.25}{10.1109/TIME.2009.25}.\\}
 
-\hypertarget{citeproc_bib_item_41}{[41] D. Ongaro and J. Ousterhout, “In search of an understandable consensus algorithm,” \textit{Proceedings of the 2014 usenix annual technical conference, usenix atc 2014}, pp. 305–319, 2014.\\}
+\hypertarget{citeproc_bib_item_41}{[41] P. Virtanen \textit{et al.}, “SciPy 1.0: Fundamental algorithms for scientific computing in python,” \textit{Nature methods}, vol. 17, pp. 261–272, 2020, doi: \href{https://doi.org/10.1038/s41592-019-0686-2}{10.1038/s41592-019-0686-2}.\\}
 
-\hypertarget{citeproc_bib_item_42}{[42] L. Lamport \textit{et al.}, “The Part-Time Parliment,” \textit{Acm transactions on computer systems}, vol. 16, no. 2, pp. 373–386, 1998, doi: \href{https://doi.org/10.1145/568425.568433}{10.1145/568425.568433}.\\}
+\hypertarget{citeproc_bib_item_42}{[42] F. Pedregosa \textit{et al.}, “Scikit-learn: Machine learning in Python,” \textit{Journal of machine learning research}, vol. 12, pp. 2825–2830, 2011.\\}
 
-\hypertarget{citeproc_bib_item_43}{[43] J. L. Stedl, “Managing Temporal Uncertainty Under Limited Communication: A Formal Model of Tight and Loose Team Coordination,” Massachusetts Institute of Technology, 2004.\\}
+\hypertarget{citeproc_bib_item_43}{[43] J. D. Hunter, “Matplotlib: A 2D graphics environment,” \textit{Computing in science \& engineering}, vol. 9, no. 3, pp. 90–95, 2007, doi: \href{https://doi.org/10.1109/MCSE.2007.55}{10.1109/MCSE.2007.55}.\\}
 
-\hypertarget{citeproc_bib_item_44}{[44] A. Bit-Monnot, M. Ghallab, and F. Ingrand, “Which contingent events to observe for the dynamic controllability of a plan,” \textit{Ijcai international joint conference on artificial intelligence}, vol. IJCAI-16, no. July, pp. 3038–3044, 2016.\\}
+\hypertarget{citeproc_bib_item_44}{[44] D. Ongaro and J. Ousterhout, “In search of an understandable consensus algorithm,” \textit{Proceedings of the 2014 usenix annual technical conference, usenix atc 2014}, pp. 305–319, 2014.\\}
 
-\hypertarget{citeproc_bib_item_45}{[45] P. H. Morris and A. Bit-monnot, “Dynamic Controllability with Single and Multiple Indirect Observations,” in \textit{ICAPS 2019 - Proceedings of the 29th International Conference on Automated Planning and Scheduling}, 2019, p. 9.\\}\bigskip
+\hypertarget{citeproc_bib_item_45}{[45] L. Lamport \textit{et al.}, “The Part-Time Parliment,” \textit{Acm transactions on computer systems}, vol. 16, no. 2, pp. 373–386, 1998, doi: \href{https://doi.org/10.1145/568425.568433}{10.1145/568425.568433}.\\}
+
+\hypertarget{citeproc_bib_item_46}{[46] J. L. Stedl, “Managing Temporal Uncertainty Under Limited Communication: A Formal Model of Tight and Loose Team Coordination,” Massachusetts Institute of Technology, 2004.\\}
+
+\hypertarget{citeproc_bib_item_47}{[47] A. Bit-Monnot, M. Ghallab, and F. Ingrand, “Which contingent events to observe for the dynamic controllability of a plan,” \textit{Ijcai international joint conference on artificial intelligence}, vol. IJCAI-16, no. July, pp. 3038–3044, 2016.\\}
+
+\hypertarget{citeproc_bib_item_48}{[48] P. H. Morris and A. Bit-monnot, “Dynamic Controllability with Single and Multiple Indirect Observations,” in \textit{ICAPS 2019 - Proceedings of the 29th International Conference on Automated Planning and Scheduling}, 2019, p. 9.\\}\bigskip
 \end{hangparas}
 
 \end{thebibliography}

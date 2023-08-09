@@ -4,6 +4,29 @@ This repo builds my SM thesis PDF from ~.org~ files.
 
 Start with [[main.org][main.org]]. See comments for usage.
 
+** To submit
+
+https://libguides.mit.edu/mit-thesis-faq/instructions
+
+#+begin_quote
+What to submit to your Department/Program
+
+Submit the following:
+
+    A PDF/A-1 of your final thesis document (with no signatures)
+    Signature page (if required by your department; your department will provide specific guidance)
+    Source files (not required)
+
+File naming
+
+Files must be named according to this scheme: authorLastName-kerberos ID-degree-dept-year-type_other.ext
+
+Examples:
+
+    Thesis PDF: macdonald-mssimon-mcp-dusp-2023-thesis.pdf
+    Signature Page: macdonald-mssimon-mcp-dusp-2023-sig.pdf
+#+end_quote
+
 ** Exporting
 1. Write thesis in =.org= files
 2. Open [[main.org][main.org]]

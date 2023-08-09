@@ -27,3 +27,58 @@ does the rewriting math actually work though with the infinity?
 - State "DONE"       from "TODO"       [2023-07-26 Wed 09:44]
 maybe instead of using the partial history, we use observations
 * TODO remove "robust" chapter and its description in the approach chapter
+
+* TODO afterward, turn into an ICAPS paper on the executive
+* TODO Future work
+if making a state plan executive, designing motions, then how would the ideas here carry over. what are the open questions
+
+* bc
+dispatching needs to be clearer
+
+events are scheduled
+actions are dispatched
+
+language for executive is sketchy
+
+describe thesis as a delay scheduler for a delay executive
+- a key component of a delay executive is a delay scheduler
+
+extending executive to delay needs a delay scheduler
+
+move dispatcher to chapter 5.5 is just the executive
+- control programs
+- action model
+- dispatcher
+- execution architecture
+
+avoid saying too much about executive and dispatcher in problem statement and approach?
+
+avoid control program and domain models until ch 5.5
+
+approach focuses on scheduler
+
+intro chapter is executive summary with lots of pictures and examples
+subsection in intro for every chapter. take figures and examples and copy to intro
+
+problem statement
+inputs and outputs
+give a set of scenarios. need to formal problem statement
+
+approach
+50% architecture, 50% formal definitions of hybrid algorithms
+if arch is a planner and plan executive, then execution problem is decomposed into a planner and something that executes plan
+define input and output for subproblems. then give breakdowns of what it means for each subproblem to be correct
+define pseudocode for algo that calls both subproblems, with proof showing that algo will solve problem statement given subsolvers work correctly
+
+describe architecture for scheduling in approach. defer executive until later
+
+new story for MA
+- delivers single-agent and ma scheduling under communication delay
+- executive, while important, is a complicated thing to describe so mvoe to ch 5.5
+- for scheduling, we have ma who need to comm under comm delay. so we have approach fig 6-2
+- in approach chapter, explain what each agent scheduler does as a black box. coordinator
+  establishes comm pathways. and describe architecture of single agent scheduler
+
+approach - single and ma scheduling architecture
+
+ICAPS would be MA scheduling with delay building on SA scheduler

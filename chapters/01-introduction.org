@@ -42,6 +42,56 @@ capable of facilitating swarm-like coordination, where each agent independently 
 based on their knowledge of their peers' actions. In effect, this thesis describes an executive
 designed for single-agent task execution that can seamlessly engage in multi-agent execution when
 peers share scheduling knowledge.
+** BC
+- too much jargon
+- what will be produced?
+  - astronauts need to coordinate. have the problem of communication delay, how can we help them?
+  - compare what astronauts would normally do (eg. just using walkie talkies), but we want a digital
+    assistant to help them with communications
+  - need something to remind astronauts what to do along the way
+  - help coordinate with reminders. this is today's practice, this is what it could be
+  - what are the deficiencies with today's practice
+- Ames executive (PROPEL) (Robinson is a second author). TODO look up "NASA PROPEL"
+- need a notion of systems that help you stay on track with task plan
+- we're offering basically an advanced version of a smart calendar reminder system
+- careful with astronaut vs agent vs executive vs single-agent
+  - maybe just stick with astronauts
+- "... and same tech is useful for robots who are also doing tasks"
+- what claims
+
+need state of the art and the gap
+
+
+the audience is JSC
+
+*** instead of summary of contributions
+thesis
+- key contribution: same level of effectiveness of coordination and safety guarantees while being safety aware and being aware of comms
+- key insight: can use VDC as the foundation for the executive
+
+aka nikhil offers a theory, we offer an executive
+
+to instantiate it, we need to generalize dynamic execution under uncertainty to handle obs uncertainty and delay
+so we need to generalize these three pieces
+
+
+for some of these innovations, we need
+
+instantiate means adding algorithms, proving safe, benchmark, demonstrate on scenarios
+- dispatcher, etc are supporting the digital assistant
+
+
+
+problem statement can be more technical
+
+
+
+
+- we advance state of the art:
+  1. look at what astronaut currently do. here's something we can give them to do scheduling better.
+     if we use state of the art, then it will keep astronauts on track and decide what to do
+     dynamically and reason over comms
+  2.
 
 * Introduction
 

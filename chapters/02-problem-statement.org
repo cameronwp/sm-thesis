@@ -7,6 +7,11 @@ distant locations of operation, accurate timing and coordination despite increas
 delay is critical. Uncertainty in communication delay is an unavoidable factor of planetary EVA
 timelines, such as those for Lunar exploration.
 
+** Purpose
+- now that we know we want to have this agent
+- input, outputs of the agent. their relationship
+- trim down the stuff about artemis
+
 * Problem Statement
 <<ch:problem-statement>>
 

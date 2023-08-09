@@ -1,4 +1,4 @@
-#+title: Discussion
+#+title: Conclusion
 
 * COMMENT
 ** more work on sync constraints
@@ -15,7 +15,7 @@ Scheduler.
 We describe Optimistic Rescheduling below and present the full contingent event
 observation algorithm.
 
-* Discussion and Future Work
+* Conclusion and Future Work
 <<ch:discussion>>
 
 ** Optimistic Rescheduling
