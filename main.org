@@ -156,6 +156,7 @@
 #+include: "chapters/03-approach.org"
 #+include: "chapters/04-technical-vdc.org"
 #+include: "chapters/05-technical-scheduling.org"
+#+include: "chapters/05-1-technical-executive.org"
 #+include: "chapters/06-technical-coordination.org"
 #+include: "chapters/09-discussion.org"
 

@@ -11,6 +11,15 @@ timelines, such as those for Lunar exploration.
 - now that we know we want to have this agent
 - input, outputs of the agent. their relationship
 - trim down the stuff about artemis
+** More EVA stuff
+The relevant actors in an EVA include extravehicular (EV) crew members, who conduct all field
+activities outside the vehicles and habitats, and a ground-based Mission Control Center (MCC).
+Typically there are two EV crew members who often, but not always, work together to complete tasks.
+Life support imposes a temporal bound on the overall length of excursions. As an EVA progresses, EV
+crews consume four non-renewable resources, comprised of oxygen, battery power, water, and CO$_2$
+scrubbers [cite:@Campbell2012]. The duration of EVAs is limited by the consumable that is on track
+to be depleted first across the life support systems of both EV crew members, referred to as the
+limiting consumable.
 
 * Problem Statement
 <<ch:problem-statement>>
@@ -35,33 +44,7 @@ scientific equipment.
 
 ** Extravehicular Activities as a Motivating Scenario
 
-NASA is preparing to send astronauts back to the lunar surface as part of the Artemis program[fn::
-https://www.nasa.gov/specials/artemis/]. The Artemis astronauts will continue a longstanding
-tradition in the U.S. space program of performing EVAs [cite:@McBarron1994]. Like the Apollo
-astronauts of the 1960s and 1970s, Artemis astronauts will embark on EVAs wherein crews don
-spacesuits, egress landers, and conduct scientific expeditions on the lunar surface. There, they
-will survey surface features, collect samples, and in general perform field geology
-[cite:@Sonnett1963;@Hurtado2013;@Young2020]. A small number of astronauts are Ph.D. geologists by
-trade, and NASA is training others in the principles of field geology up to a notional masters level
-of understanding [cite:@Kanelakos2020]. NASA will support the lunar activities of these astronauts
-through a vast infrastructure of personnel on the ground, including teams of domain-relevant
-scientists. Together with flight controllers and engineers from various disciplines, a science team
-on the ground will provide real-time feedback to ensure that Artemis astronauts maximize the
-scientific return of their EVAs.
 
-The relevant actors in an EVA include extravehicular (EV) crew members, who conduct all field
-activities outside the vehicles and habitats, and a ground-based Mission Control Center (MCC).
-Typically there are two EV crew members who often, but not always, work together to complete tasks.
-Life support imposes a temporal bound on the overall length of excursions. As an EVA progresses, EV
-crews consume four non-renewable resources, comprised of oxygen, battery power, water, and CO$_2$
-scrubbers [cite:@Campbell2012]. The duration of EVAs is limited by the consumable that is on track
-to be depleted first across the life support systems of both EV crew members, referred to as the
-limiting consumable.
-
-Mission Control Center (MCC) is comprised of hundreds of flight controllers and engineers who
-monitor all aspects of EVAs. Its strict hierarchical structure ensures that all space-to-ground
-decisions pass through the Flight Director [cite:@Patterson2001]. For the purposes of this example,
-we treat MCC as a single actor.
 
 When astronauts perform field science, another actor comes into play, called the ground-based
 Science Backroom Team (SBT). The SBT is comprised of multidisciplinary scientists who help

@@ -349,7 +349,7 @@ execution time of future free events. We will build off of the scheduling work b
 [cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ online procedure, FAST-EX, for
 dynamic scheduling of STNUs. We chose FAST-EX because, to the best of our knowledge, this is the
 fastest dynamic scheduling algorithm in the literature today. At its core is the notion of
-/Real-Time Execution Decisions/ (RTEDs), which map a timepoint to a set of requirement events to be
+/Real-Time Execution Decisions/ (RTEDs), which map a time to a set of requirement events to be
 executed and are generated based on /partial schedules/ of STNUs being executed. =WAIT= decisions
 may also be produced, reflecting the need to wait for the assignment of a contingent event before
 continuing. RTED-based scheduling applies a dynamic programming paradigm in three steps:
@@ -360,8 +360,8 @@ continuing. RTED-based scheduling applies a dynamic programming paradigm in thre
    assignments, and
 3. querying the dispatchable form online to quickly find the next RTED [cite:@Hunsberger2009].
 
-The dispatchable form employed by FAST-EX is the /AllMax/ distance graph, which is produced by the
-Morris $O(N^{4})$ DC-checking procedure [cite:@Morris2006].
+The dispatchable form employed by FAST-EX is the /AllMax/ distance graph, which is first described
+in the Morris $O(N^{4})$ DC-checking procedure [cite:@Morris2006].
 
 #+latex: \begin{defn}
 *AllMax Distance Graph* [cite:@Morris2005]
@@ -376,6 +376,8 @@ in /AllMax/. As events are assigned, /AllMax/ performs update steps using Dijkst
 Source/Sink Shortest Path (SSSP) to maintain distances to unexecuted events, while also collapsing
 executed events to $Z$. We include pseudo-code of the real-time update step in Figure
 [[alg:fast-ex-update]].
+
+# TODO define replacement edge. maybe 1-3 sentences at most
 
 #+label: alg:fast-ex-update
 #+begin_export tex
@@ -478,6 +480,8 @@ execution strategies of variable-delay scheduling.
 # TODO wc algebra
 We first establish the algebra of receiving observations.
 
+# TODO remind people what the primes mean
+
 #+label: lemma:information-fixes-bounds
 #+latex: \begin{lemma}
 #+latex: \label{lemma:information-fixes-bounds}
@@ -574,8 +578,14 @@ No other modifications to FAST-EX are required to schedule a fixed-delay STNU.
 
 *** Variable-Delay Scheduling
 
+# TODO probably needs to say we're building off FDC
+
 Our execution strategy must address each of the following special categories of contingent event
 observations:
+
+# TODO remind $S'$, which lemmas. highlight that general strategy for VDC will do FDC transformation first and it creates these two problems... ref back to prev chapters
+
+# TODO num 1 is also a problem for fixed delay! move up
 
 1. contingent events with infinite observation delay,
 2. contingent events that are observed outside $[l^+(x_{c}), u^-(x_{c})]$ in $S'$.
@@ -627,6 +637,7 @@ to the fact that $\gamma(x'_{c}) = 0$ after applying Lemma [[lemma:main-tighteni
 Our execution strategy is to then make the following assignments during the FAST-EX real-time
 update.
 
+# TODO why is this not rendering!?
 #+begin_export tex
 \begin{equation}
 \assign(x'_c) = \begin{cases}
@@ -638,6 +649,7 @@ $u^-(x_{c})$  & \text{if } $\obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})]$ \textit{(i
 #+end_export
 
 # TODO or the assignment might fail altogether!
+# TODO make it clear that observing does not mean you can instantly assign. THIS IS PART OF THE DIFF BETWEEN REGULAR AND DELAY SCHEDULER
 In the first case, we cannot immediately schedule buffered events. It may be the case that there are
 other unexecuted timepoints between $\obs(x_{c})$ and $l^+(x_{c})$. If we make an assignment at
 $l^+(x_{c})$, we would be preempting later timepoints, which would cause us to later make
@@ -683,6 +695,8 @@ robustness for variable observation delay.
 <<sec:delay-scheduler>>
 
 # TODO architecture img
+
+# TODO "dispatching an action on hardware"
 
 The terms "scheduling" and "dispatching" are often used interchangeably in temporal reasoning
 literature. However, we distinguish the goals of a scheduler, as described above, and a dispatcher,
@@ -856,6 +870,7 @@ nothing to do so we return =true=.
 
 # TODO does it make sense to call it a "suggested" time?
 # TODO isn't this the second \epsilon in the chapter? what about the epsilon proof? maybe the proof gets a new variable because this one is baked into Kirk?
+# TODO check the dash on =dispatch-p=
 Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
 relationship between the scheduler, routine, and driver, we do not assume that dispatched events are
 executed instantaneously by the driver. We know that execution contends against delays such as the
@@ -955,7 +970,7 @@ $\mathit{RTED} \gets$ a new RTED from $\mathit{Scheduler}$; \Comment{Equations \
     \Return $\mathtt{true}$\;
 }
 
-$\mathit{RTED}_{\mathit{last}} \gets \mathit{RTED} = $\;
+$\mathit{RTED}_{\mathit{last}} \gets \mathit{RTED} $\;
 
 \If{$t_{\mathit{RTED}} - t_{\mathit{current}} > \epsilon$} {
     \Return $\mathtt{true}$\;
@@ -982,7 +997,7 @@ Asynchronously send all $\mathit{events}_{\mathit{real}}$ to the $\mathit{Driver
 \end{algorithm}
 #+end_export
 
-The biggest contributor to the performance of the dispatching routine, Algorithm
+The biggest factor for the performance of the dispatching routine, Algorithm
 [[alg:dispatcher-inner]], is updating the schedule. Assuming the /Scheduler/ is the Delay Scheduler
 described in Section [[sec:delay-scheduler]], then performing an assignment of an event will trigger the
 FAST-EX update that runs in $O(N^{3})$ [cite:@Hunsberger2016 p144] with the number of events in the
@@ -1046,7 +1061,7 @@ simulated scheduling and dispatching of the STNU with a faster-than-realtime clo
 present, so all real events were scheduled immediately.
 
 These data were collected on an Intel i7-10710U 6c/12t mobile processor with 16GB of RAM in a
-Thinkpad X1 Carbon Gen 7 laptop. All tests were run while the laptop was attached to wall power. The
+ThinkPad X1 Carbon Gen 7 laptop. All tests were run while the laptop was attached to wall power. The
 code was written in Common Lisp and all benchmarks were run with Steel Bank Common Lisp version
 2.0.1. To reduce the time spent running benchmarks, we scheduled multiple STNUs in parallel, with
 each STNU being scheduled in its own thread.
@@ -1057,8 +1072,8 @@ The regressions below were performed using the Python packages ~scipy~ [cite:@20
 The implementation of the delay scheduler from which these data were collected has a bug that we
 have been unable to identify. We have only seen the bug surface with STNUs with more than about 50
 events. The bug takes effect when observing a contingent event, $x_{c}$, which has incoming
-contingent constraints $[l, u]$. If we observe $x_{c}$ at some time $t$, where $l \leq t < u$, the
-Dijkstra SSSP subroutine unexpectedly finds a negative edge and an error is raised. We have been
+contingent constraint $[l, u]$. If we observe $x_{c}$ at some time $t$, where $l \leq t < u$, the
+Dijkstra SSSP subroutine may unexpectedly find a negative edge and raise an error. We have been
 able to replicate the problem for specific STNUs with specific observations, and, as of the time of
 this writing, we are still investigating the cause. We do not believe it meaningfully impacts the
 validity of the benchmarks below.

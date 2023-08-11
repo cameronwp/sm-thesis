@@ -1,0 +1,8 @@
+#+title: Technical - Executive
+
+* An Executive for Scheduling with Observation Delay
+
+** Architecture
+** Action Model
+** Constraint Programs
+** Dispatching

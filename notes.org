@@ -31,6 +31,8 @@ maybe instead of using the partial history, we use observations
 * TODO afterward, turn into an ICAPS paper on the executive
 * TODO Future work
 if making a state plan executive, designing motions, then how would the ideas here carry over. what are the open questions
+* TODO make sure all instances of contingent event are uncontrollable
+contingent constraint, uncontrollable event
 
 * bc
 dispatching needs to be clearer

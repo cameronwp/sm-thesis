@@ -525,7 +525,7 @@ We elaborate further on our approach to each contribution below.
 We cannot execute an STNU without first demonstrating that it is controllable. Our approach to
 checking the controllability of STNUs with observation delay is to apply Bhargava's Variable-Delay
 Controllability checker (VDC) [cite:@Bhargava2018]. VDC is a procedure that takes place in two
-stages and is $O(N^{5})$ in the number of events. In the first stage, we transform the STNU with
+stages and is $O(N^{3})$ in the number of events. In the first stage, we transform the STNU with
 variable observation delay to one with fixed observation delay in $O(N^{2})$. In the second stage,
 we check the controllability of the fixed-delay STNU using Bhargava's fixed-delay controllability
 checker (FDC) [cite:@Bhargava2018a;@Bhargava2020;], which is modified from Morris' $O(N^{3})$
@@ -543,9 +543,9 @@ events according to the /dispatchable form/ of the /fixed-delay/ STNU, while res
 constraints modeled in the /variable-delay/ STNU. Existing controllability checks, like FDC, and
 execution strategies, like FAST-EX, depend on a dispatchable form, i.e. a /distance graph/
 representation of the STNU. The key challenge in defining an execution strategy for a variable-delay
-STNU is that unlike vanilla STNUs and fixed-delay STNUs, there is no dispatchable form for
-variable-delay STNUs. Hence why the VDC check first transforms the variable-delay STNU to a
-fixed-delay form. In Chapter [[ch:delay-scheduling]], we formally define the execution strategy for
+STNU is that unlike vanilla STNUs and fixed-delay STNUs, a dispatchable form for variable-delay
+STNUs has not been investigated. Hence why the VDC check first transforms the variable-delay STNU to
+a fixed-delay form. In Chapter [[ch:delay-scheduling]], we formally define the execution strategy for
 variable-delay STNUs and prove its validity.
 
 *** Online Dispatching for STNUs with Variable Observation Delay
@@ -564,18 +564,19 @@ iteratively updating the distances to and from the remaining events by performin
 Sink and Single Source Shortest Paths algorithms to and from the zero point (start event) of the
 distance graph.
 
-The delay scheduler differs from FAST-EX in the way it (1) records partial histories and (2) how it
-generates RTEDs. For both changes, we must address special cases related to a change in the
-/execution space/ - the time ranges of possible event assignments - that result from the
-variable-delay to fixed-delay STNU transformation. We make two changes for (1). First, we remove the
-assumption that contingent events are instantaneously observed. Essentially, we use the known fixed
-observation delay to decide where in the past an observed contingent event was assigned. Second, to
-account for one special case due to the transformation, we use observations to optimistically
-rewrite the variable-delay STNU in an attempt to shorten the overall makespan (see Section
-[[sec:optimistic-rescheduling]]). Key to (2) is that we are allowed to /imagine/ that contingent events
-were assigned despite never observing them. Imagining contingent events is a result of the other
-special case from the variable-delay to fixed-delay transformation (see Section
-[[sec:delay-scheduling]]).
+The delay scheduler differs from FAST-EX because we no longer assume events are instantaneously observed....
+
+in the way it (1) records partial histories and (2) how it generates RTEDs. For both changes, we
+must address special cases related to a change in the /execution space/ - the time ranges of
+possible event assignments - that result from the variable-delay to fixed-delay STNU transformation.
+We make two changes for (1). First, we do not assume that contingent events are instantaneously
+observed. Essentially, we use the known fixed observation delay to decide where in the past an
+observed contingent event was assigned. Second, to account for one special case due to the
+transformation, we use observations to optimistically rewrite the variable-delay STNU in an attempt
+to shorten the overall makespan (see Section [[sec:optimistic-rescheduling]]). Key to (2) is that we are
+allowed to /imagine/ that contingent events were assigned despite never observing them. Imagining
+contingent events is a result of the other special case from the variable-delay to fixed-delay
+transformation (see Section [[sec:delay-scheduling]]).
 
 ** Coordination
 <<sec:approach-coordination>>

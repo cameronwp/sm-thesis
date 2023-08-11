@@ -36,14 +36,80 @@ behind continuous online planning. Distributed, multi-agent decision making has 
 however, there has not been a look at how uncertain communications impact how a mixed-initiative
 team should dynamically adapt and solve problems in an evolving world.
 
+** gaps
+The gap in our understanding of distributed collaboration and coordination that this thesis proposes
+to address is deciding how a collaborative agent should act, given a set of constraints between
+events, when there is uncertainty about when, /if ever/, communications and observations of
+exogenous events are received.
+
 ** SA vs MA
 ...to implement the task scheduling and execution capabilities of a high-level executive that is
 capable of facilitating swarm-like coordination, where each agent independently decides how to act
 based on their knowledge of their peers' actions. In effect, this thesis describes an executive
 designed for single-agent task execution that can seamlessly engage in multi-agent execution when
 peers share scheduling knowledge.
+** example scenario
+What the state of the art lacks is an execution strategy when there is observation (or
+communication) delay. Existing execution strategies assume that events are either observed
+instantaneously as they happen or never. This is a challenge because, for events that are outside of
+our control, we no longer have a guarantee of knowing when they have occurred, yet the task
+scheduler must decide when to act such that all constraints are satisfied. To illustrate the
+challenge posed by uncertain communication on event scheduling, consider the following scenario.
+
+#+begin_quote
+There are two robots, =alpha= and =beta=, collaborating to perform a construction task on a
+planetary surface. The task involves uploading large video files documenting their progress back to
+engineers in Mission Control. There is limited bandwidth to the ground, so they need to coordinate
+their usage of the satellite uplink. At some point in the mission, there is a constraint that
+=alpha= should wait between three and five minutes after =beta= has finished uploading a video
+before uploading their own video. =alpha= knows exactly when =beta= started uploading because they
+were colocated at the time, but since then =alpha= has traversed to a distant location. The video
+will take eight to ten minutes to upload. =beta= will send a message to inform =alpha= the upload is
+complete, which =alpha= may receive instantaneously or after a delay of up to two minutes. Given
+when =alpha= learns that =beta= has finished their upload, how should =alpha= decide when to start
+their upload?
+#+end_quote
+
+There are two constraints and two sources of uncertainty in the scenario, which we can associate
+with three events.
+
+1. The event "=beta= finishes upload" will arrive in $[8, 10]$ (minutes) after "=beta= starts
+   upload." Neither =alpha= nor =beta= can control where in $[8, 10]$ the upload is finished.
+2. =alpha= will decide where the event "=alpha= starts upload" should be scheduled in $[3, 5]$
+   after "=beta= finishes upload."
+3. The event "=beta= finishes upload" will be observed by =alpha= in $[0, 2]$ after it occurs.
+   Neither =alpha= nor =beta= is guaranteed to know how long the delay is.
+
+We can study a few scenarios to uncover the impact of observation uncertainty on =alpha='s decision
+as to when to start uploading. We do so based on when =alpha= receives the observation that =beta=
+finished their upload. For simplicity's sake, we assume that $t = 0$ when "=beta= starts upload"
+occurs.
+
+- At $t = 8$, =alpha= knows there was no observation delay because the only way the observation
+  could have come at $t = 8$ is if the video finished uploading at $t = 8$ and they received the
+  message from =beta= instantaneously. They are safe to choose anywhere in $[3, 5]$ to start their
+  upload. =alpha= chooses to upload as soon as possible at $t = 11$.
+- At $t = 9$, the message from =beta= may have been delayed up to a minute (upload finishes at $t =
+  8$ + one minute delay), or it could have been sent as late as $t = 9$ and received
+  instantaneously. =alpha= then must choose a time in $[3, 5]$ that is consistent with =beta=
+  finishing anywhere in $[8, 9]$. =alpha= chooses to upload at $t = 12$.
+- At $t = 10$, =beta= could have finished uploading as early as $t = 8$ (upload finishes at $t =
+  8$ + two minute delay) or as late as $t = 10$ if there was no communication delay. =alpha= must
+  choose a time to start uploading that is consistent with the range of upload completion times in
+  $[8, 10]$. =alpha='s only option is to upload at $t = 13$.
+** events
+A mature corpus of research in the temporal reasoning community provides the foundation for such a
+scheduler. We base our research on the notion of events, which are discrete time points representing
+actions, and the timing constraints between events. Written in English, events and constraints might
+be stated as "samples must be stowed no more than five minutes after being collected." In this case,
+"sample collecting" and "sample stowing" would be two events, with a constraint of $< 5$ minutes
+between them. It is the case that constraints between events we can control [cite:@Dechter1991],
+events we cannot control [cite:@Vidal1999], constraints between multiple agents
+[cite:@Casanova2016], events that may not be observed [cite:@Moffitt2007], and events with variable
+observation delay [cite:@Bhargava2018] already give mission planners a robust set of modeling tools
+for creating schedules and guaranteeing that all constraints are satisfied during a mission.
+
 ** BC
-- too much jargon
 - what will be produced?
   - astronauts need to coordinate. have the problem of communication delay, how can we help them?
   - compare what astronauts would normally do (eg. just using walkie talkies), but we want a digital
@@ -101,14 +167,15 @@ problem statement can be more technical
 # operate in environments that are inherently hostile to communication.
 
 The United States, Europe, private companies, and new space agencies around the world are
-collectively urging humanity further into the cosmos with a never-before-seen zeal. We are witness
-to the great forces of political will, economics, and technological prowess launching our foothold
-beyond low Earth orbit and into planetary colonization. From every perspective, the scale of space
-exploration is staggering. It will take relentless effort from untold numbers of people, and our
-robotic partners, to usher us into the era where interplanetary travel and living off-world are
-commonplace. In every envisioned scenario for deep space exploration, there is a need to coordinate
-between agents, whether human or robotic, who must find a way to safely work together in the face of
-the communication challenges inherent to extreme environments.
+collectively urging humanity further into the cosmos with a sense of urgency that has not been seen
+since Apollo. We are witness to the great forces of political will, economics, and technological
+prowess launching our foothold beyond low Earth orbit and into planetary colonization. From every
+perspective, the scale of space exploration is staggering. It will take relentless effort from
+untold numbers of people, and our robotic partners, to usher us into the era where interplanetary
+travel and living off-world are commonplace. In every envisioned scenario for deep space
+exploration, there is a need to coordinate between agents, whether human or robotic, who must find a
+way to safely work together in the face of the communication challenges inherent to extreme
+environments.
 
 There is good reason to design a system for coordination around the notion of uncertain
 communication. We take for granted that communication is easy in our civilized corners of the
@@ -118,41 +185,100 @@ is far from a given when you leave civilization. Consider low Earth orbit. The l
 satellite, the International Space Station (ISS), has been in orbit since 1998. Despite that, it
 still loses communication with the ground regularly. Satellites with much less robust infrastructure
 lose contact with the ground even more often. When astronauts set foot on the South Pole of the Moon
-soon as part of the Artemis program [cite:@Coan2020a], they will find uncertain satellite coverage
-and the need to contend against local topology that is hostile to radio signals. Any robots working
-near a habitat, or any astronauts on Extravehicular Activity (EVA), may be reliant on complicated
-systems of relays only to suffer unpredictable communications with other /in situ/ agents, let alone
-Mission Control on Earth. Communications may be delayed due to passing through multiple relays and
-the speed of light. Or communications may drop out altogether when agents accidentally walk behind a
-big boulder between them and the closest relay.
+soon as part of the Artemis program,[fn:: https://www.nasa.gov/specials/artemis/] they will find
+uncertain satellite coverage and the need to contend against local topology that is hostile to radio
+signals [cite:@Coan2020a]. Any robots working near a habitat, or any astronauts collecting samples
+nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
+communications with nearby /in situ/ agents, let alone Mission Control on Earth. Communications may
+be delayed due to passing through multiple relays and the speed of light. Or communications may drop
+out altogether when agents accidentally walk behind a big boulder between them and the closest
+relay.
+
+The Artemis astronauts will continue a longstanding tradition in the U.S. space program of
+performing Extravehicular Activities (EVAs) [cite:@McBarron1994]. Like the Apollo astronauts of the
+1960s and 1970s, Artemis astronauts will embark on EVAs wherein crews don spacesuits, egress
+landers, and conduct scientific expeditions on the lunar surface. There, they will survey surface
+features, collect samples, and in general perform field geology
+[cite:@Sonnett1963;@Hurtado2013;@Young2020]. A small number of astronauts are Ph.D. geologists by
+trade, and NASA is training others in the principles of field geology up to a notional masters level
+of understanding [cite:@Kanelakos2020]. NASA will support the lunar activities of these astronauts
+through a vast infrastructure of personnel on the ground, including teams of domain-relevant
+scientists. Together with flight controllers and engineers from various disciplines, a science team
+on the ground will provide real-time feedback to ensure that Artemis astronauts maximize the
+scientific return of their EVAs.
+
+Throughout an EVA, the crew (astronauts with spacesuits on), need to know what to do. Currently,
+Mission Control Center (MCC or simply "ground"), a vast infrastructure with hundreds of personnel,
+monitors all aspects of EVAs and provides timely guidance to the crew. A key role MCC plays is
+keeping the crew on schedule by informing them as to what actions need to be taken and when to take
+them [cite:@Miller2017]. Current operations use a mix of manual processes and automated tools[fn::
+E.g. [[https://github.com/nasa/maestro]]] for tracking a crew's progress on an EVA timeline. Crews then
+rely on verbal communications with MCC, as well as written notes kept on their suits (e.g. Figures
+[[fig:bean]] and [[fig:whitson]]), to perform the right actions at the right times. It is not a stretch to
+imagine that future spacewalkers will don new spacesuits that feature digital assistants designed to
+walk them through procedures. Astronauts may interact with digital assistants through heads up
+displays, over voice, or on wrist mounted screens. If communications with MCC are challenged, then
+behind a digital assistant will need to be a system capable of providing the same timely advice that
+MCC provides today. To do so, it will need to reason over all the actions in an EVA timeline, while
+taking into account the current state of what has been done and what needs to be done, in order to
+help the crew decide when actions should be performed. We call such a system a /scheduler/.
+
+#+label: fig:bean
+#+attr_latex: :width 0.8\textwidth
+#+caption: Astronaut Alan Bean on a lunar EVA during Apollo 12. The photographer, astronaut Pete Conrad, can be seen in Bean's helmet. Note Bean's left wrist, which sports a printed EVA timeline with notes about the tasks the crew needed to perform. /Credit: Charles "Pete" Conrad, Apollo 12, NASA/.
+[[file:../images/bean_conrad_full.jpg]]
+
+#+label: fig:whitson
+#+attr_latex: :width 0.8\textwidth
+#+caption: Astronaut Peggy Whitson on an ISS EVA in 2017. Note her left wrist, which sports a printed EVA timeline with notes about the tasks the crew needed to perform. /Credit: NASA ([[https://www.nasa.gov/image-feature/astronaut-peggy-whitson-during-a-spacewalk][source]])/.
+file:../images/whitson_full.jpg
+
+#+label: fig:eva-timeline
+#+attr_latex: :width \textwidth
+#+caption: The summary page from US EVA 22 on ISS. Each column represents a different agent with time increasing from top to bottom. "PET" is the Phased Elapsed Time, or time since the EVA began. Each activity has a time in HH:MM seconds associated with it. SSRMS is the Canadarm. EV1 and EV2 are the two spacewalkers. /Credit: NASA ([[https://www.nasa.gov/sites/default/files/files/US%5fEVA%5f22%5fTimeline.pdf][source]])/
+[[file:../images/eva-timeline.png]]
+
+Of course, astronauts never work alone. In addition to communicating with MCC, crews perform EVAs on
+a buddy system, meaning two crew members egress and ingress at the same time. At any given moment,
+they may be collocated, distant, working independently, or in tight cooperation. Robotic assets also
+play a role. On ISS, crews work with manipulators like the Canadarm [cite:@Hiltz]. Rovers and
+robotic systems will almost certainly be present on the Moon. They may /collaborate/ in many ways.
+Fundamentally, collaboration is a process of deciding when to perform actions based on when other
+agents acted. For instance, taking a picture is a form of collaboration. In Figure [[fig:bean]], Pete
+Conrad clearly decided when to snap a photo by observing when Alan Bean held up the sample
+container. Maybe Conrad saw Bean getting ready and knew when to act. Or, more likely, Bean told
+Conrad over the radio that he was ready for a picture, so Conrad should get the camera ready. We
+envision that future digital assistants must facilitate similar collaboration. To do so, each agent
+will have their own assistant, each running a scheduler that can reason over timing constraints
+between their actions and the actions of their peers.
 
 # ABSTRACT
 # To the best of our knowledge, there are no autonomous executives capable of coordinating with
 # other agents while independently reasoning over communication delay to decide when to act.
 
-The gap in our understanding of distributed collaboration and coordination that this thesis proposes
-to address is deciding how a collaborative agent should act, given a set of constraints between
-events, when there is uncertainty about when, /if ever/, communications and observations of
-exogenous events are received. To do so, we leverage and contribute to temporal reasoning research.
-We envision an executive capable of multi-agent coordination that can manage communication delay,
-which would be used by mission control to both plan and execute against a set of objectives. There
-are a range of multi-agent contexts that may realistically arise during near-term deep space
-missions. For instance, building a habitat on the lunar surface may require teams of astronauts and
-robots collaborating to construct facilities over a wide area. Spacewalks on the lunar surface for
-scientific exploration will inherently draw crews into locations with uncertain communication, such
-as craters.
+The gap in the current state of the art is that, to the best of our knowledge, there is no such
+scheduler that is capable of reasoning over the sources of uncertain communication and observation
+delay. Existing schedulers assume instantaneous communications, which is unreasonable on the lunar
+surface, or indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
+collaborative capabilities that allow multiple agents to work together, especially in the presence
+of uncertain communication. This thesis leverages and contributes to temporal reasoning research to
+implement such a scheduler for multi-agent (MA) collaboration with uncertain communication, which we
+refer to as a /delay scheduler/.
+
+# Thus, the envisioned scheduler is one that works for collaborative, distributed agents in the
+# presence of uncertain communication.
 
 # ABSTRACT
 # A key gap that must be addressed is a single-agent executive capable of deciding when to act given
 # communication delay, which can the form the basis for a multi-agent execution context.
 
-An end-to-end approach would allow a human mission planner to construct a plan for all agents in the
-mission, separate actions for each agent, and then task agents to coordinate during the mission
-despite observation delay. An important stepping stone to the envisioned multi-agent planning and
-execution scenario is defining a single-agent executive that can decide when to act when the
-information it receives, i.e. observations or communications, has uncertain delay. Such a
-single-agent executive is useful in its own right, and can then form the basis for end-to-end
-multi-agent planning and coordination.
+# An end-to-end approach would allow a human mission planner to construct a plan for all agents in the
+# mission, separate actions for each agent, and then task agents to coordinate during the mission
+# despite observation delay. An important stepping stone to the envisioned multi-agent planning and
+# execution scenario is defining a single-agent executive that can decide when to act when the
+# information it receives, i.e. observations or communications, has uncertain delay. Such a
+# single-agent executive is useful in its own right, and can then form the basis for end-to-end
+# multi-agent planning and coordination.
 
 # ABSTRACT
 # Existing research has provided insights into temporal reasoning, namely modeling observation delay
@@ -160,84 +286,27 @@ multi-agent planning and coordination.
 # schedule events when there is uncertain observation delay, and a need to robustly coordinate
 # between agents.
 
-A mature corpus of research in the temporal reasoning community provides the foundation for such a
-single-agent task scheduling executive. We base our research on the notion of events, which are
-discrete time points representing actions, and the timing constraints between events. Written in
-English, events and constraints might be stated as "samples must be stowed no more than five minutes
-after being collected." In this case, "sample collecting" and "sample stowing" would be two events,
-with a constraint of $< 5$ minutes between them. It is the case that constraints between events we
-can control [cite:@Dechter1991], events we cannot control [cite:@Vidal1999], constraints between
-multiple agents [cite:@Casanova2016], events that may not be observed [cite:@Moffitt2007], and
-events with variable observation delay [cite:@Bhargava2018] already give mission planners a robust
-set of modeling tools for creating schedules and guaranteeing that all constraints are satisfied
-during a mission.
 
 # Scheduling actions in the face of uncertainty is a challenge due to the compounding uncertainties
 # of uncontrollable exogenous events, unknown observation delay, and uncertain communication between
 # agents.
 
-What the state of the art lacks is an execution strategy when there is observation (or
-communication) delay. Existing execution strategies assume that events are either observed
-instantaneously as they happen or never. This is a challenge because, for events that are outside of
-our control, we no longer have a guarantee of knowing when they have occurred, yet the task
-scheduler must decide when to act such that all constraints are satisfied. To illustrate the
-challenge posed by uncertain communication on event scheduling, consider the following scenario.
 
-#+begin_quote
-There are two robots, =alpha= and =beta=, collaborating to perform a construction task on a
-planetary surface. The task involves uploading large video files documenting their progress back to
-engineers in Mission Control. There is limited bandwidth to the ground, so they need to coordinate
-their usage of the satellite uplink. At some point in the mission, there is a constraint that
-=alpha= should wait between three and five minutes after =beta= has finished uploading a video
-before uploading their own video. =alpha= knows exactly when =beta= started uploading because they
-were colocated at the time, but since then =alpha= has traversed to a distant location. The video
-will take eight to ten minutes to upload. =beta= will send a message to inform =alpha= the upload is
-complete, which =alpha= may receive instantaneously or after a delay of up to two minutes. Given
-when =alpha= learns that =beta= has finished their upload, how should =alpha= decide when to start
-their upload?
-#+end_quote
 
-There are two constraints and two sources of uncertainty in the scenario, which we can associate
-with three events.
-
-1. The event "=beta= finishes upload" will arrive in $[8, 10]$ (minutes) after "=beta= starts
-   upload." Neither =alpha= nor =beta= can control where in $[8, 10]$ the upload is finished.
-2. =alpha= will decide where the event "=alpha= starts upload" should be scheduled in $[3, 5]$
-   after "=beta= finishes upload."
-3. The event "=beta= finishes upload" will be observed by =alpha= in $[0, 2]$ after it occurs.
-   Neither =alpha= nor =beta= is guaranteed to know how long the delay is.
-
-We can study a few scenarios to uncover the impact of observation uncertainty on =alpha='s decision
-as to when to start uploading. We do so based on when =alpha= receives the observation that =beta=
-finished their upload. For simplicity's sake, we assume that $t = 0$ when "=beta= starts upload"
-occurs.
-
-- At $t = 8$, =alpha= knows there was no observation delay because the only way the observation
-  could have come at $t = 8$ is if the video finished uploading at $t = 8$ and they received the
-  message from =beta= instantaneously. They are safe to choose anywhere in $[3, 5]$ to start their
-  upload. =alpha= chooses to upload as soon as possible at $t = 11$.
-- At $t = 9$, the message from =beta= may have been delayed up to a minute (upload finishes at $t =
-  8$ + one minute delay), or it could have been sent as late as $t = 9$ and received
-  instantaneously. =alpha= then must choose a time in $[3, 5]$ that is consistent with =beta=
-  finishing anywhere in $[8, 9]$. =alpha= chooses to upload at $t = 12$.
-- At $t = 10$, =beta= could have finished uploading as early as $t = 8$ (upload finishes at $t =
-  8$ + two minute delay) or as late as $t = 10$ if there was no communication delay. =alpha= must
-  choose a time to start uploading that is consistent with the range of upload completion times in
-  $[8, 10]$. =alpha='s only option is to upload at $t = 13$.
 
 # TODO this EVA stuff here feels out of place
 # A real EVA timeline consists of more than six hours of events with constraints between them
 # [cite:@McBarron1994]. For any realistic mission, we can expect hundreds of events, with multiple
 # agents /in situ/ and on the ground. Human reasoning over temporal constraints is possible,
-This example demonstrates the type of online temporal reasoning over multiple sources of uncertainty
-required from the perspective of a single agent (=alpha= in this case). We could extend decision
-making to a multi-agent context by alternating our perspective to =beta=, who might then need to
-wait for =alpha= to send a message before its next action. With more constraints, compounding
-sources of uncertainty, and more agents cooperating, the decision as to when to act becomes
-increasingly difficult.
+# This example demonstrates the type of online temporal reasoning over multiple sources of uncertainty
+# required from the perspective of a single agent (=alpha= in this case). We could extend decision
+# making to a multi-agent context by alternating our perspective to =beta=, who might then need to
+# wait for =alpha= to send a message before its next action. With more constraints, compounding
+# sources of uncertainty, and more agents cooperating, the decision as to when to act becomes
+# increasingly difficult.
 
-This thesis proposes to address the following high-level gaps that are required in order to define a
-single-agent task scheduling executive that can participate in a multi-agent context.
+# This thesis proposes to address the following high-level gaps that are required in order to define a
+# single-agent task scheduling executive that can participate in a multi-agent context.
 
 # ABSTRACT
 # This thesis puts forth a series of contributions that culminates in a robust single-agent
@@ -248,6 +317,107 @@ single-agent task scheduling executive that can participate in a multi-agent con
 # communication delay.
 
 # 2. Extending existing task scheduling algorithms to implement said execution strategy.
+
+** Problem Statement
+
+A delay scheduler can be used in the case of both one agent (e.g. a single astronaut or a robot)
+working individually, as well as when multiple agents are collaborating. We start by defining the
+problem statement for the single-agent case, before identifying the features that are necessary for
+the MA case.
+
+Consider a spacewalker who is installing an array of satellite dishes on the Moon. The procedure for
+installing a single satellite dish is well defined. The procedure involves, say, firmly inserting a
+tripod into the lunar regolith, putting a dish on top, bolting the dish in, attaching a few wires,
+and waiting to get confirmation from ground that the dish is operational. Sometimes the tripod is
+easy to burrow into the regolith, other times it takes a few tries. Sometimes the confirmation comes
+quickly, other times it takes time. Some dishes are to be placed close to one another, yet others
+should be far apart. Once one dish is done, the astronaut can move on to the next. All the while,
+the astronaut's life support system is slowly draining its consumable resources (e.g. oxygen and
+battery). Ground wants one dish tested at a time, so the astronaut must wait for the confirmation
+before proceeding. But the astronaut also knows the confirmation will come /eventually/. They can
+continue to the next dish before receiving the confirmation if they are confident that doing so
+still guarantees that the next installation will not happen before the ground is ready. Another way
+of looking at it is that the astronaut knows ground confirmed the installation, but the
+communication saying as much was delayed. The challenge then is to wait as little time as necessary
+before moving on to the next dish. To decide when to act, the astronaut relies on advice from the
+delay scheduler built in to their digital assistant.
+
+Broadly speaking in this scenario, we have two types of inputs and one type of output. The first
+input is decided before the astronaut egresses the habitat. MCC writes an EVA timeline, which
+describes the events that need to take place and the relationship between events, such as their
+ordering, the time between them, or how much delay there may be between when an event occurs and
+when it is observed. Once the astronaut starts the EVA, we have a second input, which is the time
+when events are observed. Taken together, we are tasked with finding an output of deciding which
+future events should be executed at what time.
+
+We use temporal networks [cite:@Dechter1991] to model EVA timelines as constraints (relationships)
+between a finite set of events. Some events may have associated uncertain observation delay. Let a
+temporal network be represented by $S$, with events $X$, and uncertain observation delay
+$\gammabar$.
+
+At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$, $\obs(x <
+t)$. When an event has been recorded at a given time $t$, we say that it has been /assigned/. The
+set of events that were assigned a time before $t$ is $\assign(x < t)$. If there is no associated
+observation delay with an event $x_{c}$, then $\obs(x_{c}) = \assign(x_{c})$. If there is associated
+observation delay, then it is possible that $\obs(x_{c}) < \assign(x_{c})$.
+
+We want a /Real-Time Execution Decision/ (RTED), which consists of unexecuted events and when they
+should be performed. Each RTED is a tuple of a set of unexecuted events, $x_{u} \subseteq X$ and
+future time, $t'$, $\langle x_{u}, t' \rangle$.
+
+Our specific problem statement for the delay scheduler is as follows. The delay scheduler should
+take 6-tuple $\langle S, X, \gammabar, \obs(x < t), \assign(x < t) \rangle$ of the offline and online
+components of scheduling as input and output an RTED $\langle x_{u}, t' \rangle$.
+
+We can expand the scenario from above to include multiple astronauts installing multiple satellite
+dishes in parallel. MCC wants to minimize the number of dishes that are being confirmed at any given
+moment, so we add a new constraint that dictates that, given astronauts 1 and 2, astronaut 2 may not
+start installing a dish until they receive confirmation that astronaut 1 is complete. Likewise,
+astronaut 3 must wait for 2 to finish their confirmation, 4 must wait for 3, and so on in a round
+robin fashion. Like communication with MCC, communications between astronauts is spotty (hence why
+they need to install communication infrastructure!) Sometimes, astronauts may easily communicate,
+other times communications may be significantly delayed or drop out altogether.
+
+Naturally, the astronauts must be able to share events with each other. We expand the previous
+problem statement to the multi-agent case by adding the notion of agents, $A$. Each agent has their
+own $S$ with a subset of events, $x \subset X$, they expect to receive from their peers in the form
+of observations or communications. From the perspective of an agent, $a \in A$, at time $t$, their
+peers simply need to be aware of what events $a$ has assigned, $\assign_{a}(x < t)$. Events that $a$
+receives from peers are no different than observations.
+
+Thus, the multi-agent addition to the problem statement is as follows. Given tuple $\langle
+\assign(x_{t}), A$, all assignments $\assign_{a}(x < t)$ should be communicated to all agents $a \in
+A$.
+
+** Approach
+
+The interface of the delay scheduler is designed around the notion of taking everything we know
+about set of temporal constraints and when events have been assigned and distilling it down to a
+single RTED. There are three key processes in the delay scheduler.
+
+1. an offline process that prepares the scheduler with a given $S$,
+2. an online process that records event assignments and shares them with peers, and
+3. an online process that generates RTEDs when the scheduler is queried.
+
+#+label: fig:approach-ma-schedulers
+#+attr_latex: :width 0.7\textwidth
+#+caption: A sample architecture with two delay schedulers collaborating. Each agent receives a single temporal network as input. Observations of the outside world are recorded. Communications relay event assignments to peers. Each agent outputs its own RTED.
+[[file:../images/approach-ma-schedulers.png]]
+
+** Modeling Temporal Constraints with Uncertain Observations
+
+
+** Scheduling Events with Uncertain Observations
+
+
+** An Envisioned Executive for Dispatching Actions with Uncertain Observations
+
+
+** Multi-Agent Scheduling with Uncertain Observations
+
+
+
+
 
 1. Defining and implementing an execution strategy that is applicable to all outcomes of uncertainty
    when there is variable observation delay.
