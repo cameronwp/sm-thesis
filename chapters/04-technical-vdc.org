@@ -57,7 +57,7 @@ assignments in $S'$ that map to the entire $\omega_{v}(x_{c})$ in $S$.
 ** DONE copy in parts of the VDC experimental section!
 
 - State "DONE"       from "TODO"       [2023-07-16 Sun 22:57]
-* Consistency Checking of Temporal Constraint Networks with Uncertain Observation Delay
+* Modeling Temporal Constraints with Uncertain Observation Delay
 <<ch:modeling-tn>>
 
 Our overarching aim in this Chapter is to architect the offline portions of a single-agent pipeline
@@ -130,7 +130,7 @@ events in $X$.
 An STN is consistent if and only if there is no negative cycle in its equivalent distance graph
 [cite:@Dechter1991]. Let $n$ be the number of events in a temporal network and $m$ to be the number
 of constraints. Then consistency of an STN can be checked in $O(mn)$ time using the Bellman-Ford
-Algorithm to check for negative cycles.
+Algorithm [cite:@Bellman] to check for negative cycles.
 
 While an STN is useful for modeling problems in which an agent can control the exact time of all
 events, it does not let us model actions whose durations are uncertain. A Simple Temporal Network

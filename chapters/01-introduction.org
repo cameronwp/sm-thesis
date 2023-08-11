@@ -97,17 +97,6 @@ occurs.
   8$ + two minute delay) or as late as $t = 10$ if there was no communication delay. =alpha= must
   choose a time to start uploading that is consistent with the range of upload completion times in
   $[8, 10]$. =alpha='s only option is to upload at $t = 13$.
-** events
-A mature corpus of research in the temporal reasoning community provides the foundation for such a
-scheduler. We base our research on the notion of events, which are discrete time points representing
-actions, and the timing constraints between events. Written in English, events and constraints might
-be stated as "samples must be stowed no more than five minutes after being collected." In this case,
-"sample collecting" and "sample stowing" would be two events, with a constraint of $< 5$ minutes
-between them. It is the case that constraints between events we can control [cite:@Dechter1991],
-events we cannot control [cite:@Vidal1999], constraints between multiple agents
-[cite:@Casanova2016], events that may not be observed [cite:@Moffitt2007], and events with variable
-observation delay [cite:@Bhargava2018] already give mission planners a robust set of modeling tools
-for creating schedules and guaranteeing that all constraints are satisfied during a mission.
 
 ** BC
 - what will be produced?
@@ -318,6 +307,8 @@ refer to as a /delay scheduler/.
 
 # 2. Extending existing task scheduling algorithms to implement said execution strategy.
 
+For the remainder of the introduction, we present a short summary of each chapter.
+
 ** Problem Statement
 
 A delay scheduler can be used in the case of both one agent (e.g. a single astronaut or a robot)
@@ -331,16 +322,16 @@ tripod into the lunar regolith, putting a dish on top, bolting the dish in, atta
 and waiting to get confirmation from ground that the dish is operational. Sometimes the tripod is
 easy to burrow into the regolith, other times it takes a few tries. Sometimes the confirmation comes
 quickly, other times it takes time. Some dishes are to be placed close to one another, yet others
-should be far apart. Once one dish is done, the astronaut can move on to the next. All the while,
-the astronaut's life support system is slowly draining its consumable resources (e.g. oxygen and
-battery). Ground wants one dish tested at a time, so the astronaut must wait for the confirmation
-before proceeding. But the astronaut also knows the confirmation will come /eventually/. They can
-continue to the next dish before receiving the confirmation if they are confident that doing so
-still guarantees that the next installation will not happen before the ground is ready. Another way
-of looking at it is that the astronaut knows ground confirmed the installation, but the
-communication saying as much was delayed. The challenge then is to wait as little time as necessary
-before moving on to the next dish. To decide when to act, the astronaut relies on advice from the
-delay scheduler built in to their digital assistant.
+should be far apart and across difficult to traverse terrain. Once one dish is done, the astronaut
+can move on to the next. All the while, the astronaut's life support system is slowly draining its
+consumable resources (e.g. oxygen and battery). Ground wants one dish tested at a time, so the
+astronaut must wait for the confirmation before proceeding. But the astronaut also knows the
+confirmation will come /eventually/. They can continue to the next dish before receiving the
+confirmation if they are confident that doing so still guarantees that the next installation will
+not happen before the ground is ready. Another way of looking at it is that the astronaut knows
+ground confirmed the installation, but the communication saying as much was delayed. The challenge
+then is to wait as little time as necessary before moving on to the next dish. To decide when to
+act, the astronaut relies on advice from the delay scheduler built in to their digital assistant.
 
 Broadly speaking in this scenario, we have two types of inputs and one type of output. The first
 input is decided before the astronaut egresses the habitat. MCC writes an EVA timeline, which
@@ -352,8 +343,9 @@ future events should be executed at what time.
 
 We use temporal networks [cite:@Dechter1991] to model EVA timelines as constraints (relationships)
 between a finite set of events. Some events may have associated uncertain observation delay. Let a
-temporal network be represented by $S$, with events $X$, and uncertain observation delay
-$\gammabar$.
+temporal network be represented by $S$, which is a tuple of events $X$ and constraints $R$, $\langle
+X, R \rangle$. Some events in a temporal network may be associated with an uncertain observation
+delay $\gammabar$.
 
 At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$, $\obs(x <
 t)$. When an event has been recorded at a given time $t$, we say that it has been /assigned/. The
@@ -366,8 +358,9 @@ should be performed. Each RTED is a tuple of a set of unexecuted events, $x_{u} 
 future time, $t'$, $\langle x_{u}, t' \rangle$.
 
 Our specific problem statement for the delay scheduler is as follows. The delay scheduler should
-take 6-tuple $\langle S, X, \gammabar, \obs(x < t), \assign(x < t) \rangle$ of the offline and online
-components of scheduling as input and output an RTED $\langle x_{u}, t' \rangle$.
+take 5-tuple $\langle S, \gammabar, \obs(x < t), \assign(x < t) \rangle$ of the offline (before
+scheduling) and online (during scheduling) components of scheduling as input and output an RTED
+$\langle x_{u}, t' \rangle$.
 
 We can expand the scenario from above to include multiple astronauts installing multiple satellite
 dishes in parallel. MCC wants to minimize the number of dishes that are being confirmed at any given
@@ -385,17 +378,24 @@ of observations or communications. From the perspective of an agent, $a \in A$, 
 peers simply need to be aware of what events $a$ has assigned, $\assign_{a}(x < t)$. Events that $a$
 receives from peers are no different than observations.
 
+To be clear, each agent needs their own $S$. In the EVA domain, we see the same separation in Figure
+[[fig:eva-timeline]] where each agent in the EVA has its own set of actions to perform. While some
+actions are aligned between agents, there is no assumption that all agents are working against the
+same events with the same constraints.
+
+# TODO should this be explicitly online? like say each agent needs to broadcast each assignment as
+# it happens?
 Thus, the multi-agent addition to the problem statement is as follows. Given tuple $\langle
 \assign(x_{t}), A$, all assignments $\assign_{a}(x < t)$ should be communicated to all agents $a \in
 A$.
 
 ** Approach
 
-The interface of the delay scheduler is designed around the notion of taking everything we know
+The architecture of the delay scheduler is designed around the notion of taking everything we know
 about set of temporal constraints and when events have been assigned and distilling it down to a
 single RTED. There are three key processes in the delay scheduler.
 
-1. an offline process that prepares the scheduler with a given $S$,
+1. an offline process that prepares the scheduler with a given model, including $S$ and $\gammabar$,
 2. an online process that records event assignments and shares them with peers, and
 3. an online process that generates RTEDs when the scheduler is queried.
 
@@ -404,14 +404,190 @@ single RTED. There are three key processes in the delay scheduler.
 #+caption: A sample architecture with two delay schedulers collaborating. Each agent receives a single temporal network as input. Observations of the outside world are recorded. Communications relay event assignments to peers. Each agent outputs its own RTED.
 [[file:../images/approach-ma-schedulers.png]]
 
+# TODO maybe tie an example of relative communication delay back to satellite dish installation? or is
+# that too much detail here? we might have gone off the rails for the approach and touched on problem
+# statement instead...
+Much like how a flight controller cannot provide guidance on an EVA timeline without an accurate
+copy of the EVA timeline, before scheduling begins, the scheduler must be given a model of the
+schedule. Such a model will be unique to a given agent and must include all events, the constraints
+between events, and the observation delay associated with events. Figure [[fig:approach-ma-schedulers]]
+represents this input as a separate model given to each scheduler offline.
+
+During scheduling, schedulers receive observations of events. For a given agent, $a$, observations
+come from three sources: actions $a$ has sensed but not controlled ("I reached the installation
+location at $t = 5$"), actions $a$ has performed ("I put the tripod down at $t = 6$"), and actions
+that have been communicated to $a$ ("It is $t = 15$ and my peer told me their confirmation
+arrived"). Figure [[fig:approach-ma-schedulers]] shows observations coming from outside the two
+schedulers while communications are passed between them.
+
+As scheduling progress, a digital assistant will want to ask the scheduler for guidance as to when
+to act. We represent the delay scheduler's output as an RTED, which can also be seen in Figure
+[[fig:approach-ma-schedulers]].
+
+#+label: fig:approach-interfaces
+#+attr_latex: :width 0.7\textwidth
+#+caption: The three interfaces of a delay scheduler. The first is for initialization, the second is for schedule updates, and the third is for generating RTEDs. The dispatchable form is ultimately the source of truth for when events should be scheduled.
+file:../images/approach-interfaces.png
+
+With three distinct processes involved in scheduling, we naturally define three explicit interfaces
+on the delay scheduler. Figure [[fig:approach-interfaces]] shows the flow of information between the
+interfaces and introduces a new data structure called the /dispatchable form/. In the context of
+scheduling, the dispatchable form is a graph structure that acts like a database. Event assignments
+are recorded to the dispatchable form, and the dispatchable form can be queried to find the next
+RTED. Note that Figure [[fig:approach-interfaces]] is a simplification. The dispatchable form is the key
+data structure that make scheduling possible, but an implementation of a scheduler will store forms
+of data other than the dispatchable form when events are recorded.
+
+Importantly, the second interface in Figure [[fig:approach-interfaces]], recording, takes both
+observations and communications as input. A key idea for the delay dispatcher is that communications
+from agents are no different than event observations. Peer schedulers communicate when they have
+assigned events, which then received as observations. We shall see that equating communications and
+observations allows us to define a single-agent delay scheduler that can be seamlessly integrated in
+a multi-agent context.
+
+To enable communications between agents, delay schedulers are networked such that there is a
+communication pathway between all agents. We do not assume every agent can communicate with ever
+peer, rather when communications are received, they are relayed to all known peers.
+
 ** Modeling Temporal Constraints with Uncertain Observations
 
+As stated before, our choice for modeling the "what" and "when" of scheduling is a temporal network,
+also called a temporal constraint network [cite:@Dechter1991].
 
-** Scheduling Events with Uncertain Observations
+Temporal networks consist of events and constraints. Written in English, events and constraints
+might be stated as "samples must be stowed no more than five minutes after being collected." In this
+case, =sample-collecting= and =sample-stowing= would be two events. It is the case that mission
+planners have a robust set of modeling tools for creating schedules. In the literature, there are
+constraints between events we can control [cite:@Dechter1991], events we cannot control
+[cite:@Vidal1999], constraints between multiple agents [cite:@Casanova2016], events that may not be
+observed [cite:@Moffitt2007], and events with variable observation delay [cite:@Bhargava2018]. We
+highlight key components of our chosen modeling framework below.
 
+Our choice of modeling constraints is set-bounded ranges. That is, a constraint between two events,
+"sample collecting" and "sample stowing" is represented as
+$\edge{\texttt{sample-collecting}}{\texttt{sample-stowing}}{[0, 5]}$. =sample-stowing= must be
+scheduled no earlier than $0$ time units beforee and no later than $5$ time units after
+=sample-collecting=. This constraint assumes both =sample-collecting= and =sample-stowing= are under
+the astronaut's full control. Perhaps the astronauts are working separately with one sample
+collection bag shared between them. In that case, an astronaut might need to wait for their buddy to
+finish using the bag before stowing samples. If so, then =sample-stowing= is outside their control.
+We would then model the constraint as, say,
+$\conedge{\texttt{sample-collecting}}{\texttt{sample-stowing}}{[0, 5]}$. Now, the constraint
+dictates that =sample-stowing= will happen no later than five minutes after sample collection, but
+the astronaut cannot choose (control) when in the next five minutes =sample-stowing= is
+scheduled.
+
+Our choice of model for uncertain communication is variable observation delay [cite:@Bhargava2018].
+Say there is uncertain communication between the astronauts. Now the communication indicating that
+=sample-stowing= can be begin may arrive either immediately, or a minute after it was sent. We model
+the delay using a /variable-delay function/, $\gammabar(\texttt{sample-stowing}) = [0, 1]$.
+Altogether, the astronaut may receive the communication indicating that =sample-stowing= may begin
+instantaneously, or with up to a minute of delay. Key to our model is that the receiver /does not
+know how much a message was delayed/. If the message is received at $t = 4$, then the communication
+may have been sent at $t = 4$ and received immediately. Or it is possible that it was sent as early
+as $t = 3$ and received after a minute delay.
+
+Temporal networks play two key roles in scheduling. First, they allow a modeler to represent the
+events and constraints between events of a schedule in a form that a scheduler can ingest. Second,
+they can be checked for /controllability/ (also called /consistency/). In order for it to be
+possible for a temporal network to be scheduled, there must be a set of assignments for all events
+under the agents control that satisfies all constraints in spite of the fact that some events may
+arrive late or never at all.
+
+With our choice of modeling constraints with variable observation delay, we perform a
+/variable-delay controllablity/ check on temporal networks passed to the delay scheduler. A key
+aspect of checking controllability is that we must the temporal network to one with less uncertainty
+that is equivalent with respect to controllability. It is this less uncertain form of the temporal
+network that we then schedule.
+
+# TODO what experiments?
+
+** Scheduling Events Despite Uncertain Observations
+
+From this point forward, we assume that the scheduler has been given a controllable temporal
+network that accurately models the world.
+
+Other researchers have presented single-agent scheduling algorithms for temporal networks with
+uncontrollable events [cite:@Hunsberger2013;@Hunsberger2016;], the fastest being FAST-EX
+[cite:@Hunsberger2016]. An underlying assumption of existing schedulers is that events are observed
+instantaneously, that is $\obs(x_{c}) = \assign(x_{c})$ for some uncontrollable event $x_{c}$.
+Events with uncertain observations are incompatible with this assumption, necessitating a change to
+the way observations are recorded. The delay scheduler is a modified version of FAST-EX.
+
+In fact, there are broadly two key differences between a delay scheduler and a scheduler that
+implements FAST-EX. First, we must account for observation delay when events are observed. For
+instance, if we know an observation at time $t$ was delayed by $\gamma$ time units, the assigned
+time is then $t - \gamma$. Second, we introduce a new variable to RTEDs, a /no-operation/, or
+=no-op=, boolean. Some events in an RTED may be =no-op= for reasons explained below.
+
+When we transform the original temporal network with uncertain observations to one with less
+uncertainty, we artificially shrink some of the constraints in the original temporal network. Some
+uncontrollable events may arrive earlier or later than expected. We address these situations with
+/buffering/ and /imagining/ uncontrollable events. We use the =no-op= addition to RTEDs to simplify
+the handling of events that must be buffered or imagined.
+
+#+label: fig:intro-runtime-scheduling
+#+attr_latex: :width 0.8\textwidth
+#+caption: Total runtime data for scheduling all events in temporal networks with uncertain observations with less than 300 events.
+file:../images/scheduling-total-runtime-sub-300.png
+
+We demonstrate that the delay scheduler exhibits the performance characteristics of FAST-EX. At the
+core of FAST-EX is a Dijkstra Single Sink/Source Shortest Paths subroutine, which limits the runtime
+performance. Each call to the subroutine should have a runtime performance of $O(N \log N)$, where
+$N$ is the number of events in the temporal network. Thus, we expect the total runtime to schedule
+all events in a temporal network to be $O(N^{2} \log N)$. To evaluate the performance of the delay
+scheduler, we scheduled randomly generated temporal networks with a structure inspired by a
+satellite dish installation procedure. In the experiments, we model multiple astronauts (up to
+eight) working in parallel with inter-agent temporal constraints. Figure
+[[fig:intro-runtime-scheduling]] shows that the delay scheduler demonstrates the expected performance
+characteristics against said temporal networks.
 
 ** An Envisioned Executive for Dispatching Actions with Uncertain Observations
 
+We need a means to connect the RTEDs of a delay scheduler with the actions an agent performs. We
+envision that the delay scheduler can serve as the scheduling logic behind an astronaut's digital
+assistant, or in the case of a robot, a /task executive/. A task executive should allow a human
+modeler to provide constraints as input. The task executive is then charged with generating a plan
+and dispatching actions as output.
+
+We integrate the delay scheduler into a high-level task planner known as /Kirk/. We call our variant
+of Kirk, /Delay Kirk/. A simplified overview of Delay Kirk's architecture can be found in Figure
+[[fig:intro-kirk-architecture]]. Delay Kirk takes the Reactive Model-Based Programming Language (RMPL)
+[cite:@RMPL2002], a high-level language for modeling hybrid automata and constraints, as input. It
+then creates a temporal plan network and chooses timed actions to execute to satisfy all the goals
+as specified in RMPL. It is at this point that the delay scheduler can be integrated into delay
+Kirk. With events and temporal constraints between them, the delay scheduler can produce RTEDs and
+tell Delay Kirk when to act.
+
+#+label: fig:intro-kirk-architecture
+#+attr_latex: :width 0.6\textwidth
+#+caption: A high-level overview of the Delay Kirk task executive architecture with respect to dispatching actions.
+file:../images/executive-architecture.png
+
+For the purpose of this thesis, planning is out of scope. Instead, we focus on the /delay
+dispatcher/ a component that enables an executive to impact an environment by taking actions based
+on the RTEDs the delay scheduler produces.
+
+#+label: fig:intro-dispatching-architecture
+#+attr_latex: :width 0.6\textwidth
+#+caption: A more detailed view of the delay dispatcher architecture.
+file:../images/architecture.png
+
+In Figure [[fig:intro-dispatching-architecture]], we introduce a new component, the /driver/. We also
+define new variables in order to paint a complete picture of the role the delay dispatcher plays.
+$x_{r}$ represents a controllable event. $\obs(x_{r})$ and $\obs(x_{c})$ represent the times that
+controllable and uncontrollable events are observed respectively. The actions that the dispatcher
+dispatches are mediated through the driver. Essentially, it translates events to commands that cause
+actions to happen in the real-world. For a digital assistant, a driver might send a command to
+update the heads-up-display in the crew's helmet. For a robot, the driver might publish a ROS
+message [cite:@ros].
+
+Figure [[fig:intro-dispatching-architecture]] shows a modified relationship between the scheduler and
+dispatcher. Instead of observations being received by the scheduler, the dispatcher receives them
+instead. In effect, the dispatcher takes responsibility for interacting with the environment. For
+incoming events, it receives observations and calls the scheduler's interface for recording events
+at the appropriate time. Not all events are scheduled immediately - if an event should be buffered
+to a later time, then the dispatcher has the responsibility actually performing the buffering.
 
 ** Multi-Agent Scheduling with Uncertain Observations
 

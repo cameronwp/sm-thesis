@@ -34,7 +34,7 @@ if making a state plan executive, designing motions, then how would the ideas he
 * TODO make sure all instances of contingent event are uncontrollable
 contingent constraint, uncontrollable event
 
-* bc
+* bcw
 dispatching needs to be clearer
 
 events are scheduled

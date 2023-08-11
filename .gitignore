@@ -9,3 +9,5 @@ chapters/*.pdf
 chapters/*.tex
 
 **/.venv
+
+reviews/**

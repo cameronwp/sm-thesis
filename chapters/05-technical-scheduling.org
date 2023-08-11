@@ -299,8 +299,9 @@ events in $S'$. Hash-tables are keyed on event names, vastly simplifying lookups
 graph, delay function, and elsewhere.
 ** TODO fix dish install diagram
 - [ ] doesn't need lambda
+- [ ] the dashed circles need to be swapped! wrong events are highlighted as contingent!!!
 
-* Single-Agent Execution with Delayed Event Monitoring
+* Scheduling Events Despite Uncertain Observations
 <<ch:delay-scheduling>>
 
 Now that we have shown there exists a valid execution strategy for variable-delay controllable
@@ -870,7 +871,6 @@ nothing to do so we return =true=.
 
 # TODO does it make sense to call it a "suggested" time?
 # TODO isn't this the second \epsilon in the chapter? what about the epsilon proof? maybe the proof gets a new variable because this one is baked into Kirk?
-# TODO check the dash on =dispatch-p=
 Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
 relationship between the scheduler, routine, and driver, we do not assume that dispatched events are
 executed instantaneously by the driver. We know that execution contends against delays such as the
@@ -878,7 +878,7 @@ computational time in simply calling a function, to network latency, to robotic 
 a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to preempt
 execution by dispatching events some small amount of time /before/ the clock time reaches the RTED
 execution window. We call this preemption time $\epsilon$, where $\epsilon \in \mathbb{R}^{\geq 0}$.
-Thus, we dispatch events, signaled by =dispatch-p=, when $\mathtt{dispatch-p} = (t_{\mathit{RTED}} -
+Thus, we dispatch events, signaled by =dispatch-p=, when $\texttt{dispatch-p} = (t_{\mathit{RTED}} -
 t_{\mathit{clock}} \leq \epsilon)$. If $\epsilon = 0$, the dispatcher is not allowed to preemptively
 dispatch events before the RTED time. We allow the human operator to choose an $\epsilon$ that is
 consistent with the operational context for the driver.
