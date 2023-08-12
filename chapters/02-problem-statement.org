@@ -15,36 +15,8 @@ timelines, such as those for Lunar exploration.
 The relevant actors in an EVA include extravehicular (EV) crew members, who conduct all field
 activities outside the vehicles and habitats, and a ground-based Mission Control Center (MCC).
 Typically there are two EV crew members who often, but not always, work together to complete tasks.
-Life support imposes a temporal bound on the overall length of excursions. As an EVA progresses, EV
-crews consume four non-renewable resources, comprised of oxygen, battery power, water, and CO$_2$
-scrubbers [cite:@Campbell2012]. The duration of EVAs is limited by the consumable that is on track
-to be depleted first across the life support systems of both EV crew members, referred to as the
-limiting consumable.
-
-* Problem Statement
-<<ch:problem-statement>>
-
-There is a real-world need for coordinating multiple agents that are collaborating while facing
-uncertain inter-agent communication in uncertain environments. This thesis will focus on two
-motivating scenarios drawn from collaborative space operations, though this section will include a
-third example from the domain of military operations to further motivate the need for modeling
-uncertain delay in observations. The first scenario is based on an Artemis-like extravehicular
-activity (EVA), where an astronaut and a rover on the lunar surface are required to coordinate to
-share limited downlink bandwidth. The second scenario comes from the domain of satellite swarms,
-where many homogeneous agents coordinate operations with tight temporal constraints. The third
-scenario (which will not be modeled in experiments) is one where cooperative military agents are
-moving into and out of regions where immediate communication is purposefully halted in order to
-avoid detection by an enemy.
-
-Delay temporal networks are essential to modeling space operations, where uncertainty is systemic to
-all aspects of planning, scheduling, and execution. As will be described in more detail for each
-motivating scenario below, uncertain observation delay is unavoidable due to imperfect communication
-infrastructure, uncertain timing with respect to knowledge transfer between agents, and finicky
-scientific equipment.
 
 ** Extravehicular Activities as a Motivating Scenario
-
-
 
 When astronauts perform field science, another actor comes into play, called the ground-based
 Science Backroom Team (SBT). The SBT is comprised of multidisciplinary scientists who help
@@ -53,35 +25,100 @@ The science team reports their priorities to MCC, who then passes them along to 
 behaves as a separate actor with limited communication, in that their messages may only pass
 directly to MCC, not the crew.
 
-For EVAs, delay is manifested across three distinct categories: signal transmission, human
-operational delays, and instrument processing. Each category presents a source of delay that varies
-with uncertainty. For signal transmission, delay is sourced from the speed of light between
-planetary bodies and infrastructural deficiencies. Communication infrastructure outside of low-Earth
-orbit, including satellites and planetary surface signal repeaters [cite:@Coan2020], is not robust,
-and as such unpredictable delays and signal dropouts will be common [cite:@Seibert2019b]. For human
-operational delays, note that the primary goal of Mission Control is keeping the crew safe
-[cite:@Miller2019b]. As such, communications from the science team to the crew may be delayed or
-dropped because Mission Control needs to prioritize communications and actions related to crew
-health and safety at the expense of science [cite:@Miller2015;@Miller2017c]. Lastly, for instrument
-processing, there is uncertainty in the temporal relationships between the activation of complex
-scientific instruments and the return of useful information [cite:@Sehlke2019]. Scientific packages
-may generate high and low bandwidth data products, the uplink of which will be bottlenecked by
-limited bandwidth between space and ground, creating additional uncertainty between when a data
-product is ready and when it is available to the science team.
 
-** Motivating Scenario
-A human and a rover are working together to perform scientific exploration on the lunar surface. The
-human is performing exploration of targets of opportunity that were identified during descent. The
-rover has a robotic arm, which it is using to perform sampling tasks collecting rocks in a
-predetermined location.
+* Problem Statement
+<<ch:problem-statement>>
 
+There is a real-world need for coordinating multiple agents that are collaborating while facing
+uncertain inter-agent communication in uncertain environments. EVAs must be performed in a timely
+manner. Life support imposes an upper bound on the total duration of an EVA. As an EVA progresses,
+EV crews consume four non-renewable resources, comprised of oxygen, battery power, water, and CO$_2$
+scrubbers [cite:@Campbell2012]. The duration of EVAs is limited by the consumable that is on track
+to be depleted first across the life support systems of both EV crew members, referred to as the
+limiting consumable. Absent any other more pressing constraint, it is this limiting consumable that
+forces EVA crews and ground support to stay on timeline.
 
-Both are in communication with mission control and scientists on Earth. Importantly, they share
-bandwidth on the relays and satellites used to transmit data between the Moon and Earth. CONOPS says
-only one agent may be using the bandwidth at a time (including uploads from Earth)
+Meanwhile, uncertain observations are manifested across three distinct categories: signal
+transmission, human operational delays, and instrument processing. Each category presents a source
+of delay that varies with uncertainty. For signal transmission, delay is sourced from the speed of
+light between planetary bodies and infrastructural deficiencies. Communication infrastructure
+outside of low-Earth orbit, including satellites and planetary surface signal repeaters
+[cite:@Coan2020], is not robust, and as such unpredictable delays and signal dropouts will be common
+[cite:@Seibert2019b]. For human operational delays, note that the primary goal of Mission Control is
+keeping the crew safe [cite:@Miller2019b]. As such, communications from the science team to the crew
+may be delayed or dropped because Mission Control needs to prioritize communications and actions
+related to crew health and safety at the expense of science [cite:@Miller2015;@Miller2017c]. Lastly,
+for instrument processing, there is uncertainty in the temporal relationships between the activation
+of complex scientific instruments and the return of useful information [cite:@Sehlke2019].
+Scientific packages may generate high and low bandwidth data products, the uplink of which will be
+bottlenecked by limited bandwidth between space and ground.
 
+Consider a spacewalker who is installing an array of satellite dishes on the Moon. The procedure for
+installing a single satellite dish is well defined. The procedure involves, say, firmly inserting a
+tripod into the lunar regolith, putting a dish on top, bolting the dish in, attaching a few wires,
+and waiting to get confirmation from ground that the dish is operational. Sometimes the tripod is
+easy to burrow into the regolith, other times it takes a few tries. Sometimes the confirmation comes
+quickly, other times it takes time. Some dishes are to be placed close to one another, yet others
+should be far apart and across difficult to traverse terrain. Once one dish is done, the astronaut
+can move on to the next. All the while, the astronaut's life support system is slowly draining its
+consumable resources (e.g. oxygen and battery). Ground wants one dish tested at a time, so the
+astronaut must wait for the confirmation before proceeding. But the astronaut also knows the
+confirmation will come /eventually/. They can continue to the next dish before receiving the
+confirmation if they are confident that doing so still guarantees that the next installation will
+not happen before the ground is ready. Another way of looking at it is that the astronaut knows
+ground confirmed the installation, but the communication saying as much was delayed. The challenge
+then is to wait as little time as necessary before moving on to the next dish. To decide when to
+act, the astronaut relies on advice from the delay scheduler built in to their digital assistant.
 
-Both the human and the robot have their own schedules of events to perform and are aware of the
-other agent's events.
+Broadly speaking in this scenario, we have two types of input and one type of output. The first
+input is decided before the astronaut egresses the habitat. MCC writes an EVA timeline, which
+describes the events that need to take place and the relationship between events, such as their
+ordering, the time between them, or how much delay there may be between when an event occurs and
+when it is observed. Once the astronaut starts the EVA, we have a second input, which is the time
+when events are observed. Taken together, we are tasked with finding an output of deciding which
+future events should be executed at what time.
 
+We use temporal networks [cite:@Dechter1991] to model EVA timelines as constraints (relationships)
+between a finite set of events. Some events may have associated uncertain observation delay. Let a
+temporal network be represented by $S$, which is a tuple of events $X$ and constraints $R$, $\langle
+X, R \rangle$. Some events in a temporal network may be associated with an uncertain observation
+delay $\gammabar$.
 
+At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$, $\obs(x <
+t)$. When an event has been recorded at a given time $t$, we say that it has been /assigned/. The
+set of events that were assigned a time before $t$ is $\assign(x < t)$. If there is no associated
+observation delay with an event $x_{c}$, then $\obs(x_{c}) = \assign(x_{c})$. If there is associated
+observation delay, then it is possible that $\obs(x_{c}) < \assign(x_{c})$.
+
+We want a /Real-Time Execution Decision/ (RTED), which consists of unexecuted events and when they
+should be performed. Each RTED is a tuple of a set of unexecuted events, $x_{u} \subseteq X$ and
+future time, $t'$, $\langle x_{u}, t' \rangle$.
+
+Our specific problem statement for the delay scheduler is as follows. The delay scheduler should
+take triple $\langle S, \gammabar, \obs(x < t) \rangle$ of the offline (before scheduling) and
+online (during scheduling) components of scheduling as input and output an RTED $\langle x_{u}, t'
+\rangle$.
+
+We can expand the scenario from above to include multiple astronauts installing multiple satellite
+dishes in parallel. MCC wants to minimize the number of dishes that are being confirmed at any given
+moment, so we add a new constraint dictating that, given astronauts 1 and 2, astronaut 2 may not
+start installing a dish until they receive confirmation that astronaut 1 is complete. Likewise,
+astronaut 3 must wait for 2 to finish their confirmation, 4 must wait for 3, and so on in a round
+robin fashion. Like communication with MCC, communications between astronauts is spotty (hence why
+they need to install communication infrastructure!) Sometimes, astronauts may easily communicate,
+other times, communications may be significantly delayed or drop out altogether.
+
+Naturally, the astronauts must be able to share events with each other. We expand the previous
+problem statement to the multi-agent case by adding the notion of agents, $A$. Each agent has their
+own $S$ with a subset of events, $x \subset X$, they expect to receive from their peers in the form
+of observations or communications. From the perspective of an agent, $a \in A$, at time $t$, their
+peers simply need to be aware of what events $a$ has assigned up to $t$, $\assign_{a}(x \leq t)$.
+Events that $a$ receives from peers are no different than observations.
+
+To be clear, each agent needs their own $S$. While some actions are aligned between agents, there is
+no assumption that all agents are working against the same events with the same constraints.
+
+Thus, the multi-agent addition to the problem statement is as follows. Given tuple $\langle
+\assign(x_{t}), A$, all assignments $\assign_{a}(x_{t})$ should be communicated immediately to all
+agents $a \in A$. In other words, all event assignments should be broadcasted to all peers as soon
+as the assignments are made.

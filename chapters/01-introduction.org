@@ -147,6 +147,22 @@ problem statement can be more technical
      if we use state of the art, then it will keep astronauts on track and decide what to do
      dynamically and reason over comms
   2.
+** more extra
+1. Defining and implementing an execution strategy that is applicable to all outcomes of uncertainty
+   when there is variable observation delay.
+2. Enacting online, multi-agent coordination through communication.
+
+We take the view that the coordination of multiple agents with observation uncertainty requires that
+each agent must act independently without any assumption of a centralized authority dispatching
+plans. The first gap effectively defines a single-agent architecture that is useful in its own right
+for online scheduling in the face of observation delay. To do so, we build off existing temporal
+reasoning procedures for checking the controllability of temporal constraints to include uncertain
+observations of events. This procedure naturally informs the design of an execution strategy, or
+scheduling algorithm, for deciding when an agent should act given their knowledge of the history of
+events that have been scheduled so far. The second gap allows independent scheduling agents to
+coordinate their actions through communications, even when those communications may have uncertain
+delay. The result is a multi-agent execution architecture that is greater than the sum of its parts.
+
 
 * Introduction
 
@@ -316,78 +332,36 @@ working individually, as well as when multiple agents are collaborating. We star
 problem statement for the single-agent case, before identifying the features that are necessary for
 the MA case.
 
-Consider a spacewalker who is installing an array of satellite dishes on the Moon. The procedure for
-installing a single satellite dish is well defined. The procedure involves, say, firmly inserting a
-tripod into the lunar regolith, putting a dish on top, bolting the dish in, attaching a few wires,
-and waiting to get confirmation from ground that the dish is operational. Sometimes the tripod is
-easy to burrow into the regolith, other times it takes a few tries. Sometimes the confirmation comes
-quickly, other times it takes time. Some dishes are to be placed close to one another, yet others
-should be far apart and across difficult to traverse terrain. Once one dish is done, the astronaut
-can move on to the next. All the while, the astronaut's life support system is slowly draining its
-consumable resources (e.g. oxygen and battery). Ground wants one dish tested at a time, so the
-astronaut must wait for the confirmation before proceeding. But the astronaut also knows the
-confirmation will come /eventually/. They can continue to the next dish before receiving the
-confirmation if they are confident that doing so still guarantees that the next installation will
-not happen before the ground is ready. Another way of looking at it is that the astronaut knows
-ground confirmed the installation, but the communication saying as much was delayed. The challenge
-then is to wait as little time as necessary before moving on to the next dish. To decide when to
-act, the astronaut relies on advice from the delay scheduler built in to their digital assistant.
+We use tools from temporal reasoning, namely temporal networks [cite:@Dechter1991], to model EVA
+timelines as constraints (relationships) between a finite set of events. Some events are under an
+agent's control, while others are not. Some events may have associated uncertain observation delay.
 
-Broadly speaking in this scenario, we have two types of inputs and one type of output. The first
-input is decided before the astronaut egresses the habitat. MCC writes an EVA timeline, which
-describes the events that need to take place and the relationship between events, such as their
-ordering, the time between them, or how much delay there may be between when an event occurs and
-when it is observed. Once the astronaut starts the EVA, we have a second input, which is the time
-when events are observed. Taken together, we are tasked with finding an output of deciding which
-future events should be executed at what time.
-
-We use temporal networks [cite:@Dechter1991] to model EVA timelines as constraints (relationships)
-between a finite set of events. Some events may have associated uncertain observation delay. Let a
-temporal network be represented by $S$, which is a tuple of events $X$ and constraints $R$, $\langle
-X, R \rangle$. Some events in a temporal network may be associated with an uncertain observation
-delay $\gammabar$.
-
-At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$, $\obs(x <
-t)$. When an event has been recorded at a given time $t$, we say that it has been /assigned/. The
-set of events that were assigned a time before $t$ is $\assign(x < t)$. If there is no associated
-observation delay with an event $x_{c}$, then $\obs(x_{c}) = \assign(x_{c})$. If there is associated
-observation delay, then it is possible that $\obs(x_{c}) < \assign(x_{c})$.
+At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$. When an
+event has been recorded at $t$, we say that it has been /assigned/. If there is no associated
+observation delay with an event, then the time of an observation is the same as assignment. If there
+is associated observation delay, then it is possible that assignment times are earlier than their
+respective observations.
 
 We want a /Real-Time Execution Decision/ (RTED), which consists of unexecuted events and when they
-should be performed. Each RTED is a tuple of a set of unexecuted events, $x_{u} \subseteq X$ and
-future time, $t'$, $\langle x_{u}, t' \rangle$.
+should be performed. Each RTED consists of a set of unexecuted events to be scheduled at a future time.
 
-Our specific problem statement for the delay scheduler is as follows. The delay scheduler should
-take 5-tuple $\langle S, \gammabar, \obs(x < t), \assign(x < t) \rangle$ of the offline (before
-scheduling) and online (during scheduling) components of scheduling as input and output an RTED
-$\langle x_{u}, t' \rangle$.
+Our problem statement for the delay scheduler is as follows. For some time $t$ during scheduling,
+the delay scheduler should take a temporal network, observation delay, observations thus far, and
+assignments so far as input. It should output an RTED.
 
-We can expand the scenario from above to include multiple astronauts installing multiple satellite
-dishes in parallel. MCC wants to minimize the number of dishes that are being confirmed at any given
-moment, so we add a new constraint that dictates that, given astronauts 1 and 2, astronaut 2 may not
-start installing a dish until they receive confirmation that astronaut 1 is complete. Likewise,
-astronaut 3 must wait for 2 to finish their confirmation, 4 must wait for 3, and so on in a round
-robin fashion. Like communication with MCC, communications between astronauts is spotty (hence why
-they need to install communication infrastructure!) Sometimes, astronauts may easily communicate,
-other times communications may be significantly delayed or drop out altogether.
+We expand the previous problem statement to the multi-agent case by adding the notion of agents.
+Each agent has their own delay scheduler. As such, each delay scheduler receives a temporal network.
+A subset of all events in their temporal network will be received from their peers in the form of
+communications. From the perspective of an agent, their peers simply need to be aware of what events
+have been assigned. Events that an agent receives from peers are no different than observations.
 
-Naturally, the astronauts must be able to share events with each other. We expand the previous
-problem statement to the multi-agent case by adding the notion of agents, $A$. Each agent has their
-own $S$ with a subset of events, $x \subset X$, they expect to receive from their peers in the form
-of observations or communications. From the perspective of an agent, $a \in A$, at time $t$, their
-peers simply need to be aware of what events $a$ has assigned, $\assign_{a}(x < t)$. Events that $a$
-receives from peers are no different than observations.
+To be clear, each agent needs their own temporal network. In the EVA domain, we see the same
+separation in Figure [[fig:eva-timeline]] where each agent in the EVA has its own set of actions to
+perform. While some actions are aligned between agents, there is no assumption that all agents are
+working against the same events with the same constraints.
 
-To be clear, each agent needs their own $S$. In the EVA domain, we see the same separation in Figure
-[[fig:eva-timeline]] where each agent in the EVA has its own set of actions to perform. While some
-actions are aligned between agents, there is no assumption that all agents are working against the
-same events with the same constraints.
-
-# TODO should this be explicitly online? like say each agent needs to broadcast each assignment as
-# it happens?
-Thus, the multi-agent addition to the problem statement is as follows. Given tuple $\langle
-\assign(x_{t}), A$, all assignments $\assign_{a}(x < t)$ should be communicated to all agents $a \in
-A$.
+Thus, the multi-agent addition to the problem statement follows. Given event assignments and a set
+of peers, all assignments made at $t$ should be immediately communicated to all peers.
 
 ** Approach
 
@@ -582,35 +556,57 @@ actions to happen in the real-world. For a digital assistant, a driver might sen
 update the heads-up-display in the crew's helmet. For a robot, the driver might publish a ROS
 message [cite:@ros].
 
-Figure [[fig:intro-dispatching-architecture]] shows a modified relationship between the scheduler and
-dispatcher. Instead of observations being received by the scheduler, the dispatcher receives them
-instead. In effect, the dispatcher takes responsibility for interacting with the environment. For
-incoming events, it receives observations and calls the scheduler's interface for recording events
-at the appropriate time. Not all events are scheduled immediately - if an event should be buffered
-to a later time, then the dispatcher has the responsibility actually performing the buffering.
+Note also that Figure [[fig:intro-dispatching-architecture]] presents a different relationship between
+the scheduler and observations, which are now passed to the scheduler through the dispatcher. We do
+so because in our architecture the dispatcher, not the scheduler, has access to a clock. The
+dispatcher takes the responsibility of comparing RTEDs to the clock time and deciding when to act.
+Likewise, when events are observed, the dispatcher tells the scheduler when they were observed. This
+change has the cumulative effect of giving the dispatcher responsibility for interacting with the
+environment.
+
+A key distinction between a normal dispatcher and the delay dispatcher is that not all observed
+events are scheduled immediately. if an event should be buffered to a later time, then the
+dispatcher has the responsibility of actually waiting until the correct clock time to record the
+time in the scheduler.
+
+#+label: fig:intro-tick-runtime
+#+attr_latex: :width 0.8\textwidth
+#+caption: A comparison of the total runtime to run the dispatcher against the number of events in a temporal network.
+file:../images/tick-total-runtime.png
+
+We evaluate the dispatcher's interface that loops and compares the clock time to an RTED to decide
+when to act. For this tests, we use the same randomly generated temporal networks as were used when
+evaluating the scheduler. Figure [[fig:intro-tick-runtime]] shows the total runtime for all calls to the
+dispatcher while scheduling all events in a temporal network. The Dijkstra updates that are
+performed when recording events dominates the runtime performance. Given every event is recorded
+inside this loop, we see the same $O(N^{2} \log N)$ performance we saw when looking at the total
+time to run all schedule updates.
 
 ** Multi-Agent Scheduling with Uncertain Observations
 
+Collaboration between agents is enabled by enforcing that communications between agents are treated
+the same as uncontrollable event observations. Thus, we are only challenged to define communication
+pathways between agents that guarantee agents receive relevant observations. We do so by networking
+delay schedulers in a /communication graph/. A communication graph is a simple directed graph that
+is used to broadcast event propagation messages between peers.
 
+We evaluate the multi-agent delay scheduler in two simulations. In the first simulation, we run
+three instances of Delay Kirk with inter-agent constraints between them. We compare their schedules
+to the same schedule that would be produced if one delay scheduler tried to schedule all events for
+all three agents. We found that the multi-agent delay dispatchers were able to schedule events while
+respecting all inter-agent constraints.
 
+#+label: fig:intro-hw-demo
+#+attr_latex: :width \textwidth
+#+caption: A hardware demonstration in four parts. (a) $t = 0$, when the two Kirks are started at the same time. (b) $t = 16$, when the astronaut observed that the science experiment was setup. (c) $t = 23$, when the robot received a delayed observation from the astronaut indicating they had completed science setup. (d) $t > 23$, as the robot performed the drilling task.
+file:../images/hw-demo-1-quad.png
 
+We finally present a hardware demonstration with a Barrett WAM manipulator being controlled by one
+Delay Kirk, with another Delay Kirk representing an astronaut's digital assistant. We demonstrate
+that Delay Kirk is able to dispatch actions to the Barrett WAM while receiving communications
+representing inter-agent constraints over HTTP.
 
-1. Defining and implementing an execution strategy that is applicable to all outcomes of uncertainty
-   when there is variable observation delay.
-2. Enacting online, multi-agent coordination through communication.
-
-We take the view that the coordination of multiple agents with observation uncertainty requires that
-each agent must act independently without any assumption of a centralized authority dispatching
-plans. The first gap effectively defines a single-agent architecture that is useful in its own right
-for online scheduling in the face of observation delay. To do so, we build off existing temporal
-reasoning procedures for checking the controllability of temporal constraints to include uncertain
-observations of events. This procedure naturally informs the design of an execution strategy, or
-scheduling algorithm, for deciding when an agent should act given their knowledge of the history of
-events that have been scheduled so far. The second gap allows independent scheduling agents to
-coordinate their actions through communications, even when those communications may have uncertain
-delay. The result is a multi-agent execution architecture that is greater than the sum of its parts.
-
-** Summary of Contributions
+** COMMENT Summary of Contributions
 
 Here we present the specific contributions of this thesis that are required to address the gaps
 presented above.
@@ -645,9 +641,9 @@ will provide the first technical contributions of this thesis, first by addressi
 modeling observation delay, then by providing a procedure that can be used to guarantee that
 temporal constraints with observation delay are satisfiable. Chapter [[ch:delay-scheduling]] expands
 existing algorithms for deciding when to act given the resolution of constraints. There, we
-contribute a novel strategy for deciding when to act given observation delay. Additionally, we
-formalize and separate often confused components of scheduling, allowing us to design a more robust
-task scheduling executive that can be deployed to real hardware. Chapter [[ch:technical-coordination]]
-finally contributes a multi-agent coordination architecture for environments with uncertain
-communication. The discussion in Chapter [[ch:discussion]] concludes this thesis by providing additional
-context for the decisions made during this research.
+contribute a novel strategy for deciding when to act given observation delay. In Chapter
+[[ch:technical-executive]], we formalize the components of task scheduling executive that can be
+deployed to real hardware. Chapter [[ch:technical-coordination]] finally contributes a multi-agent
+coordination architecture for environments with uncertain communication. The discussion in Chapter
+[[ch:discussion]] concludes this thesis by providing additional context for the decisions made during
+this research.
