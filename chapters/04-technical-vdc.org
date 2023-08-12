@@ -57,6 +57,7 @@ assignments in $S'$ that map to the entire $\omega_{v}(x_{c})$ in $S$.
 ** DONE copy in parts of the VDC experimental section!
 
 - State "DONE"       from "TODO"       [2023-07-16 Sun 22:57]
+** TODO s/safe/valid
 * Modeling Temporal Constraints with Uncertain Observation Delay
 <<ch:modeling-tn>>
 

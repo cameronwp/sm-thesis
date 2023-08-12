@@ -11,13 +11,13 @@ this thesis, we chose to extend an existing high-level task and motion planner, 
 [cite:@Williams2003]. Kirk is a complete, end-to-end executive in that it can take human-friendly
 problem specifications as input and send commands to hardware as output.
 
-To clarify terminology in this thesis, the term /executive/ refers to Kirk and its subsystems, while
-/agent/ refers to the combination of an executive and the system it controls that interacts with the
-outside world, e.g. robotic hardware.
-
 At a high-level, Kirk works by first taking a description of the problem domain as written by domain
 experts, which should include the constraints, agent dynamics, environment, and starting and goal
-states of the problem at hand. Kirk then generates and checks plans using an optimal satisfiability
+states of the problem at hand. Kirk then generates state plans, which consist of episodes that
+organize the occurrence of events as activities. State plans may temporal constraints and
+non-temporal constraints, such as classical planning preconditions and effects....
+
+checks using an optimal satisfiability
 (OpSAT) solver [cite:@Williams2007], elaborates temporal plan networks (TPNs) [cite:@Kim2001] to
 sub-executives when it encounters constraints and goals it cannot plan against directly, and
 eventually dispatches event schedules and motion plans to hardware. For the purpose of this thesis,
@@ -222,7 +222,7 @@ passes, we may only choose to schedule controllable events based on the /partial
 contingent event assignments so far, or, in other words, perform /dynamic scheduling/. Thus, we can
 no longer simulate a schedule with Kirk. We must connect Kirk to a source for receiving contingent
 event assignments in order to make valid controllable event assignments. Our approach to dynamic
-scheduling is the focus of Section [[sec:approach-scheduling]].
+scheduling is the focus of Chapter [[ch:delay-scheduling]].
 
 As a contribution of this thesis, our existing approach to specifying durations in RMPL was expanded
 to model observation delay. An example follows in Listing [[code:rmpl-obs-delay]] modeling a sample

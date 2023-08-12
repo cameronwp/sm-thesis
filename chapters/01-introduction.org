@@ -369,11 +369,13 @@ The architecture of the delay scheduler is designed around the notion of taking 
 about set of temporal constraints and when events have been assigned and distilling it down to a
 single RTED. There are three key processes in the delay scheduler.
 
-1. an offline process that prepares the scheduler with a given model, including $S$ and $\gammabar$,
-2. an online process that records event assignments and shares them with peers, and
-3. an online process that generates RTEDs when the scheduler is queried.
+1. an offline process that initializes the scheduler with a given model, including the temporal network
+   and observation uncertainty,
+2. an online process that updates the scheduler with event assignments,
+3. an online process that broadcasts event assignments with peers, and
+4. an online process that queries for RTEDs.
 
-#+label: fig:approach-ma-schedulers
+#+label: fig:intro-ma-schedulers
 #+attr_latex: :width 0.7\textwidth
 #+caption: A sample architecture with two delay schedulers collaborating. Each agent receives a single temporal network as input. Observations of the outside world are recorded. Communications relay event assignments to peers. Each agent outputs its own RTED.
 [[file:../images/approach-ma-schedulers.png]]
@@ -384,35 +386,36 @@ single RTED. There are three key processes in the delay scheduler.
 Much like how a flight controller cannot provide guidance on an EVA timeline without an accurate
 copy of the EVA timeline, before scheduling begins, the scheduler must be given a model of the
 schedule. Such a model will be unique to a given agent and must include all events, the constraints
-between events, and the observation delay associated with events. Figure [[fig:approach-ma-schedulers]]
+between events, and the observation delay associated with events. Figure [[fig:intro-ma-schedulers]]
 represents this input as a separate model given to each scheduler offline.
 
 During scheduling, schedulers receive observations of events. For a given agent, $a$, observations
-come from three sources: actions $a$ has sensed but not controlled ("I reached the installation
-location at $t = 5$"), actions $a$ has performed ("I put the tripod down at $t = 6$"), and actions
-that have been communicated to $a$ ("It is $t = 15$ and my peer told me their confirmation
-arrived"). Figure [[fig:approach-ma-schedulers]] shows observations coming from outside the two
-schedulers while communications are passed between them.
+come from three sources: actions $a$ has sensed but not controlled ("I traversed difficult terrain
+and reached the installation location at $t = 5$"), actions $a$ has performed ("I put the tripod
+down at $t = 6$"), and actions that have been communicated to $a$ ("It is $t = 15$ and my peer told
+me their confirmation arrived"). Figure [[fig:intro-ma-schedulers]] shows observations coming from
+outside the two schedulers while communications are passed between them.
 
 As scheduling progress, a digital assistant will want to ask the scheduler for guidance as to when
 to act. We represent the delay scheduler's output as an RTED, which can also be seen in Figure
-[[fig:approach-ma-schedulers]].
+[[fig:intro-ma-schedulers]].
 
-#+label: fig:approach-interfaces
+#+label: fig:intro-interfaces
 #+attr_latex: :width 0.7\textwidth
-#+caption: The three interfaces of a delay scheduler. The first is for initialization, the second is for schedule updates, and the third is for generating RTEDs. The dispatchable form is ultimately the source of truth for when events should be scheduled.
+#+caption: The four interfaces of a delay scheduler. The first is for initialization, the second is for schedule updates, the third is for broadcasting, and the fourth is for generating RTEDs. The dispatchable form is ultimately the source of truth for when events should be scheduled.
 file:../images/approach-interfaces.png
 
-With three distinct processes involved in scheduling, we naturally define three explicit interfaces
-on the delay scheduler. Figure [[fig:approach-interfaces]] shows the flow of information between the
-interfaces and introduces a new data structure called the /dispatchable form/. In the context of
-scheduling, the dispatchable form is a graph structure that acts like a database. Event assignments
-are recorded to the dispatchable form, and the dispatchable form can be queried to find the next
-RTED. Note that Figure [[fig:approach-interfaces]] is a simplification. The dispatchable form is the key
-data structure that make scheduling possible, but an implementation of a scheduler will store forms
-of data other than the dispatchable form when events are recorded.
+With three distinct processes involved in single-agent scheduling (subprocesses 1, 2, and 4), we
+naturally define three explicit interfaces on the delay scheduler. Figure [[fig:intro-interfaces]] shows
+the flow of information between the interfaces and introduces a new data structure called the
+/dispatchable form/. In the context of scheduling, the dispatchable form is a graph structure that
+acts like a database. Event assignments are recorded to the dispatchable form, and the dispatchable
+form can be queried to find the next RTED. Note that Figure [[fig:intro-interfaces]] is a
+simplification. The dispatchable form is the key data structure that make scheduling possible, but
+an implementation of a scheduler will store forms of data other than the dispatchable form when
+events are recorded.
 
-Importantly, the second interface in Figure [[fig:approach-interfaces]], recording, takes both
+Importantly, the second interface in Figure [[fig:intro-interfaces]], recording, takes both
 observations and communications as input. A key idea for the delay dispatcher is that communications
 from agents are no different than event observations. Peer schedulers communicate when they have
 assigned events, which then received as observations. We shall see that equating communications and

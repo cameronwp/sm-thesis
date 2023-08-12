@@ -51,26 +51,14 @@ processes. We propose a clock-synchronized architecture that addresses challenge
 executives and better matches our expectations of order of operations behavior as programmers.
 
 
-* Approach
-<<ch:approach>>
+** bcw
+define input and output for subproblems. then give breakdowns of what it means for each subproblem to be correct
 
-# TODO this would be a good place for a diagram of Kirk's overall pipeline
+define pseudocode for algo that calls   both subproblems, with proof showing that algo will solve problem statement given subsolvers work correctly
 
-Some aspects of Kirk were already well-suited for coordinating multiple agents under observation
-delay, others were not. Specifically, our approach required research contributions in three key
-areas, which were then implemented in Kirk:
+- in approach chapter, explain what each agent scheduler does as a black box. coordinator
+  establishes comm pathways. and describe architecture of single agent scheduler
 
-1. /Modeling and Controllability/: prior to execution, we must be able to model communication delay
-   separate from temporal constraints, as well as guarantee that all temporal constraints can be
-   satisfied
-2. /Scheduling/: during execution, executives must be able to dynamically schedule and dispatch
-   events respecting temporal constraints in spite of observation delay
-3. /Coordination/: during execution, peer executives must be able to share event assignments and
-   observations
-
-Our approach to each research focus will be described below.
-
-# TODO do we need to say something about evaluation here? how do we want to evaluate our approach?
 
 ** Modeling and Controllability
 
@@ -181,7 +169,6 @@ quantitative evaluation of VDC in the article. The same experiments will be incl
 Chapter <<ch:modeling-tn>>.
 
 We formalize event observations and observation delay in Section [[sec:vdc]].
-
 
 ** Scheduling Temporal Events
 <<sec:approach-scheduling>>
@@ -314,3 +301,199 @@ are then naturally propagated through the graph. We assume that communication de
 system incorporates the time events spend propagating through the graph. Event propagation will be
 formally defined in Section [[sec:event-propagation]].
 
+
+* Approach
+<<ch:approach>>
+
+We define a delay scheduler in such a way that one instance is useful for single-agent scheduling,
+and multiple instances can be seamlessly integrated for collaboration with inter-agent constraints.
+Our approach builds towards such a multi-agent delay scheduler by first defining the subproblems
+necessary for single-agent scheduling with uncertain communication before layering on a
+communication pathway for multi-agent scheduling. Figure [[fig:approach-ma-schedulers]] presents a
+simplified view of multi-agent scheduling.
+
+#+label: fig:approach-ma-schedulers
+#+attr_latex: :width 0.7\textwidth
+#+caption: A sample architecture with two delay schedulers collaborating. Each agent receives a single temporal network as input. Observations of the outside world are recorded. Communications relay event assignments to peers. Each agent outputs its own RTED.
+[[file:../images/approach-ma-schedulers.png]]
+
+Our approach relies on the ability of a delay scheduler to accurately decide what events should be
+scheduled and when it is /valid/ to do so. In this context, a decision being "valid" means that the
+events and time of an RTED guarantees that all constraints in the problem can be satisfied given the
+history of events scheduled before now. We naturally need one or more data structures that, if
+maintained correctly during scheduling, can be queried to produce such an RTED. We refer to such a
+data structure as the dispatchable form, though, as will be seen in Chapter [[ch:delay-scheduling]],
+other data structures facilitate scheduling as well.
+
+A delay scheduler must be able to output RTEDs that are consistent with the constraints of the
+problem and the history of scheduled events. There are four key subproblems that must be addressed:
+
+1. an offline process must *initialize* a dispatchable form that reflects the semantics of $S$ and
+   $\gammabar$,
+2. an online process must *update* the dispatchable form given an event observation at a given time,
+3. an online process must *broadcast* new event assignments with peers, and
+4. an online process must *query* the dispatchable form for new RTEDs.
+
+#+label: fig:approach-interfaces
+#+attr_latex: :width 0.7\textwidth
+#+caption: The four interfaces of a delay scheduler. The second and third are combined to highlight that broadcasts are trigged when events are observed. The first shows the dispatchable form being intialized from a model. The second shows that event observations will cause the dispatchable form to be updated, immediatelly triggering a broadcast (the third interface). The fourth interface queries the dispatchable form to create RTEDs.
+file:../images/approach-interfaces.png
+
+Figure [[fig:approach-interfaces]] shows the architecture of a delay scheduler with respect to its four
+interfaces and dispatchable form.
+
+#+label: alg:approach-delay-scheduler
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Delay Scheduling}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+\Indm
+\Input{Controllable temporal network $S$; Observation uncertainty $\gammabar$; \texttt{clock}; \texttt{peers}}
+\Initialize{\texttt{dispatchable-form} $\gets$ \texttt{initialize}($S, \gammabar$); \texttt{RTED} $\gets \varnothing$;}
+\Indp
+\Algorithm{}
+\Indp
+
+\While{there are unexecuted executable events} {
+  \If{Event $x$ is observed} { \label{line:event-observed}
+    \texttt{update(dispatchable-form, $x$, clock.now))}\;
+    \texttt{broadcast($x$, peers)}\;
+  }
+
+  \texttt{RTED} $\gets$ \texttt{query(dispatchable-form, clock.now)}
+}
+\caption{Algorithm for performing delay scheduling to produce RTEDs for all executable events in a temporal network.}
+\label{alg:approach-delay-scheduler}
+\end{algorithm}
+#+end_export
+
+We provide pseudo-code for a delay scheduler in Algorithm [[alg:approach-delay-scheduler]]. =initialize=
+will create the dispatchable form, =update= will modify the dispatchable form to reflect an event
+assignment, =broadcast= will send event assignments to peers, and =query= will read the dispatchable
+form to find the next RTED.
+
+For now, we make the following assumptions. We assume that initialization, updates, and queries are
+sound and complete algorithms with respect to their intended handling of the dispatchable form. We
+use the term "networked" to refer to agents that can communicate event observations to each other.
+Broadcasting assumes the existence of a communication protocol that guarantees messages indicating
+an event has been assigned reach all networked schedulers. If a temporal network is controllable,
+then there must exist a dispatchable form [cite:@MMV2001].
+
+Below, we prove that Algorithm [[alg:approach-delay-scheduler]] will guarantee the output of valid RTEDs
+for all executable events for coordinating agents. We start by showing that the delay scheduler can
+be used in a multi-agent context.
+
+#+label: lemma:approach-all-controllable
+#+latex: \begin{lemma}
+#+latex: \label{lemma:approach-all-controllable}
+For $a$ delay schedulers, if each $S_{a}$ and $\gammabar_{a}$ received by each delay scheduler $a
+\in A$ is controllable and accurately models the world, then all networked delay schedulers may
+produce valid RTEDs.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+If $S_{a}$ is controllable for a single delay scheduler, then there must exist a set of RTEDs that
+allows all constraints to be satisfied for all resolutions of uncertainty in the uncontrollable
+constraints and observation delay. If it were not the case that any $S_{a}$ and $\gammabar_{a}$
+accurately models the world, then the uncontrollable inter-agent constraints of $S_{a}$ and
+$\gammabar_{a}$ would not strictly encompass all possible outcomes of uncertainty during scheduling.
+This would mean that, during scheduling, there may be a resolution of uncertainty that does not
+allow a valid RTED to be produced, which is inconsistent with a controllable $S_{a}$. Thus if each
+$S$ is controllable and accurate for all delay schedulers, then all delay schedulers may produce
+valid RTEDs.
+#+latex: \end{proof}
+
+We now show that the delay scheduler will produce valid RTEDs in a single-agent context.
+
+#+label: lemma:initialization
+#+latex: \begin{lemma}
+#+latex: \label{lemma:initialization}
+Given a controllable temporal network $S$ consisting of a set of events, $X$, constraints, $R$, and
+uncertain observation delay, $\gammabar$, initializing the dispatchable form before the first event
+is observed guarantees the dispatchable form can be used to schedule any executable event in $X$.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+As an offline process, by definition initialization will run before scheduling begins. Thus, the
+dispatchable form must be valid and include enough information to schedule all executable events.
+#+latex: \end{proof}
+
+Not all events may be observed. For instance, any event with infinite observation delay (as may
+occur during a communication dropout) is unobservable. The delay scheduler cannot schedule events
+with infinite observation delay.
+
+#+label: lemma:observable-events
+#+latex: \begin{lemma}
+#+latex: \label{lemma:observable-events}
+All events that have the ability to impact RTEDs may be observed by the delay scheduler.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+If $S$ is controllable, then it must be the case that the delay scheduler can output RTEDs that will
+guarantee all constraints between events can be satisfied. If it were the case that unobservable
+events must be assigned in order to produce a valid RTED, then scheduling would depend on
+information that cannot be learned, meaning $S$ would not be controllable.
+#+latex: \end{proof}
+
+For the next lemma, it is important to highlight that RTEDs may not depend on information about
+future events.
+
+#+label: lemma:all-events-are-observed
+#+latex: \begin{lemma}
+#+latex: \label{lemma:all-events-are-observed}
+If an event is scheduled, it will be observed by the delay scheduler.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+There are two parts to this proof. First, the delay scheduler loops without pause until all
+executable events have been scheduled, meaning that the conditional on line
+$\ref{line:event-observed}$ will be reached for all events that can have an impact on RTEDs.
+
+Second, RTEDs are not the same as event assignments. As will be shown in Definition [[def:rted-op]], the
+execution time of an RTED must be in the future. We are not allowed to assign an event to a future
+time, thus the events in an RTED cannot be immediately scheduled. We observe when executable events
+are scheduled in the future.
+#+latex: \end{proof}
+
+#+label: lemma:observe-then-rted
+#+latex: \begin{lemma}
+#+latex: \label{lemma:observe-then-rted}
+If we observe all events before producing RTEDs, then RTEDs will always be valid.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+We see that we always check for event observations before producing RTEDs. There are no processes
+between checking for an observation and producing an RTED. Therefore, each RTED will be queried
+against a dispatchable form that has been modified to reflect all event assignments up to the
+current time. If the choice of dispatchable form is valid for any set of assignments up to the
+current time, and the querying process is sound and complete, then the RTED must also be valid.
+#+latex: \end{proof}
+
+We finish by revisiting the multi-agent context.
+
+#+label: lemma:approach-broadcasting
+#+latex: \begin{lemma}
+#+latex: \label{lemma:approach-broadcasting}
+If there are satisfiable inter-agent constraints, then broadcasting all event assignments to all
+peers guarantees that each delay scheduler may produce valid RTEDs.
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+All observable events must be assigned. If all event assignments are broadcasted to all agents, then
+it must be the case that all agents observe all events. If all observable events are received for a
+controllable $S$, then it must be the case that a delay scheduler can produce a valid RTED, and thus
+all networked delay schedulers can produce valid RTEDs.
+#+latex: \end{proof}
+
+The next chapters will address each of the assumptions made above. Chapter [[ch:modeling-tn]] will
+elaborate on modeling temporal networks with uncertain communication and checking their
+controllability. Chapter [[ch:delay-scheduling]] will focus on the process of creating and maintaining a
+dispatchable form throughout single-agent scheduling. Chapter [[ch:technical-executive]] describes the
+integration of Algorithm [[alg:approach-delay-scheduler]] in a high-level task executive. Chapter
+[[ch:technical-coordination]] will describe the design of a robust broadcasting algorithm for networked
+schedulers with uncertain communication.
