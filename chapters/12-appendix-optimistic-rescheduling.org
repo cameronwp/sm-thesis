@@ -1,0 +1,279 @@
+#+title: 12 Appendix Optimistic Rescheduling
+
+* Optimistic Rescheduling
+<<appendix:optimistic-rescheduling>>
+
+We return to problem of potentially unnecessary wait time created by the buffering execution
+strategy described in Lemma [[lemma:buffering-imagining]]. First, we use an example to demonstrate how
+buffering early contingent events results in a reduction of the execution space. Then we contribute
+a technique for managing event observations that circumvents the loss of execution space.
+
+Consider the following variable-delay controllable STNU, which we will refer to as
+$\mathit{Bufferable}$.
+
+$$
+\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
+\edge{}{C}{[5, 9]}
+$$
+
+Following the semantics of the delay scheduler, we would first transform $\mathit{Bufferable}$ to
+its fixed-delay equivalent, $\mathit{Bufferable}'$ by applying Lemma [[lemma:main-tightening]].
+
+$$
+\fdelayedge{A'}{B'}{[4, 8]}{0}
+\edge{}{C'}{[4, 6]}
+$$
+
+# TODO what's wrong with the latex at the end of this paragraph?
+# TODO clean up writing and explanation. point out difference in times
+If we assume $A$ is executed at $t = 0$, the only question is when to schedule $C$ (or its
+fixed-delay equivalent, $C'$). According to the semantics of $\mathit{Buffering}$, if $B$ is
+observed at $t = 2$, we know that $B$ was assigned at $t = 1$. Thus, we only need to wait until $t =
+6$ to schedule $C$. However, the delay scheduler would schedule according the constraints found in
+$\mathit{Buffering}'$, wherein $\assign(B') = 2$ falls earlier than the lower bound of
+$\conedge{A'}{B'}{[4, 8]}$, triggering Lemma [[lemma:buffering-imagining]]. As a result, we act as if
+$\assign(B') = 4$ and then wait for the lower bound of $\edge{B'}{C'}{[4, 6]}$. The end result is
+that $C'$ is assigned to a later time of $t = 8$.
+
+From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
+case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
+software is telling astronauts on Moon to just stand there doing nothing, responding that your
+algorithm /does not know/ if it is safe to act, would be unacceptable. Therefore, we contribute a
+generate-and-test approach that looks for opportunities to avoid buffering when contingent events
+arrive before their expected windows in the fixed-delay STNU. The goal of this method is to dispatch
+future events earlier if possible.
+
+# We can see that the full execution space for $C$ is $[1, 7] + [5, 9] = [6, 16]$.
+
+# TODO include a diagram used in group meeting that highlights the gaps at either end of the VDC->FDC translation
+
+At its core, optimistic rescheduling consists of copying the original variable-delay STNU then
+rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
+STNU is narrowing the constraint and observation delay to match what was observed. We then
+re-perform controllability checks. If controllable, we have a new schedule that removes the need to
+buffer this contingent event. If not controllable, we do nothing, buffer the contingent event as
+planned, and continue dispatching against the original schedule.
+
+We now step through the Event Observations with optimistic rescheduling algorithm (Algorithm
+[[alg:optimistic-rescheduling]]) in detail.
+
+# TODO should be looping over observations in order!
+
+#+label: alg:optimistic-rescheduling
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Event Observations with Optimistic Rescheduling}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{Original VDC STNU $S$; Equivalent fixed-delay function $\gamma$\; Partial history $\xi$; Executed events map $\mathit{Ex}(S, x)$; Observed contingent event $x$; Normalized lower bound $\hat x$; Current time $t$;}
+\Output{Boolean whether $x$ was successfully scheduled, VDC STNU}
+
+\Indp
+\Algorithm{}
+\Indp
+
+$\mathit{successp}, \mathit{bufferedp} \gets \mathtt{updateSchedule(S, x, t)}$\;
+
+\If{$\neg \mathit{bufferedp}$} {
+    \Return $\mathit{successp}, S$\;
+}
+
+$S^{\ast} \gets \mathtt{rewriteSTNU(S, x, t)}$\;
+
+\If{$S^{\ast}$ is not variable-delay controllable} {
+    \Return $\mathit{successp}, S$\;
+}
+
+\For{$\mathit{a}$ in $\xi$ \Comment{$\mathit{a}$ is an assignment}} {
+    \If{$\gamma(\mathit{a[event]}) \neq \infty$} {
+        $\mathtt{updateSchedule(\mathit{S^{\ast}}, \mathit{a[event]}, \mathit{a[time]} + \gamma(\mathit{a[event]}))}$;
+    }
+}
+
+\For{$\mathit{event}$ in $\mathit{Ex(S)}$} {
+     $\mathit{Ex}(S^{\ast}, x) \gets \mathit{Ex}(S, x)$
+}
+
+$\mathtt{updateSchedule(\mathit{S^{\ast}}, \hat x, t)}$\;
+$\mathtt{updateSchedule(\mathit{S^{\ast}, x, t)}$\;
+
+\Return $\mathtt{true}, S^{\ast}$\;
+
+\caption{An Algorithm for observing contingent events with optimistic rescheduling.}
+\label{alg:optimistic-rescheduling}
+\end{algorithm}
+#+end_export
+
+We cannot know if an event is buffered if we do not attempt to schedule it. Our first step is to
+schedule an event like normal. If scheduling is possible without buffering, we simply return whether
+scheduling was successful.
+
+If the event was buffered, then we begin to optimistically reschedule. We do so by tightening the
+bounds of the original VDC STNU, $S_{\mathit{original}}$, based on the observation we received,
+which is the responsibility of Algorithm [[alg:rewrite-stnu]], implementing Lemma [[lemma:narrow-bounds]].
+
+If the rewritten STNU, $S^{\ast}$, is found to be VDC, we prepare to schedule it. First we iterate
+through all the assignments in the partial schedule and make the same assignments against the new
+STNU. When assignments are made, we subtract out the fixed observation delay. In this loop, we add
+the observation delay back, lest it be subtracted from the original observation twice.
+
+If any contingent events with infinite delay were observed, they would have been marked executed but
+not assigned. We iterate through the executed events of $S$ and mark the same events executed in
+$S^{\ast}$.
+
+The distance graph, partial schedule, and executed events of $S^{\ast}$ now match that of $S$ before
+$x_{c}$ was received. We are almost safe to record a new observation. Lastly, we must address the
+executable event representing the normalized lower bound of $x_{c}$, $\hat x_{c}$. During
+scheduling, we would have received an RTED consisting of $\langle l + \gammabar^+(x_{c}), \hat x_{c}
+\rangle$. Given that $x_{c}$ arrived before $l + \gammabar^+(x_{c})$, we never would have assigned
+$\hat x_{c}$, so we assign $\assign(\hat x_{c}) = t$ now. We finally update the schedule with the
+contingent event that arrived.
+
+#+label: lemma:narrow-bounds
+#+latex: \begin{lemma}
+#+latex: \label{lemma:narrow-bounds}
+If a contingent event, $x_{c} \in X_{c}$, where $u - l > \gammabar^+(x_{c}) - \gammabar^{-}(x_{c})$,
+is observed at time $t$ and when $t < l + \gammabar^+(x_{c})$, we may replace $x_{c}$ and
+$\gammabar(x_{c})$ with a constraint, $x_{c}^{\ast}$, and variable-delay function,
+$\gammabar(x_{c}^{\ast})$, with narrower bounds as follows.
+
+\begin{align*}
+x_{c}^{\ast} &= [l^{\ast}, u^{\ast}] \\
+x_{c}^{\ast} &= [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
+\gammabar(x_{c}^{\ast}) &= [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)]
+\end{align*}
+#+latex: \end{lemma}
+
+#+latex: \begin{proof}
+Buffering is only possible if the conditions of Lemmas [[lemma:main-tightening]] and
+[[lemma:buffering-imagining]] are triggered. By Lemma [[lemma:main-tightening]], we are guaranteed to be
+able to narrow where in the range $[l, u]$ $x_{c}$ was scheduled. By Lemma
+[[lemma:buffering-imagining]], we know that rewritten bounds will lead to an assignment of $x_{c}$ that
+is no later than $l + \gammabar^{+}(x_{c})$. Our tool for narrowing the bounds is Equation
+[[eqn:fixed-recording]], which allows us to use the observation to reason over the assignment and
+observation delay. Our strategy is to look at the extreme cases leading to an observation.
+
+We start by reasoning over the earliest and latest assignments respectively. In order for $x_{c}$ to
+be assigned as early as possible, $l^{\ast}$, we assume the delay has taken on its maximum value,
+$\gammabar^+(x_{c})$.
+
+\begin{align}
+\assign(x_{c}) &= \obs(x_{c}) - \gamma(x_{c}) \\
+l^\ast &= t - \gammabar^+(x_c) \label{eqn:l-ast}
+\end{align}
+
+Likewise, to find the last possible assignment leading to an observation, we subtract the smallest
+observation delay, $\gammabar^{-}(x_{c})$.
+
+\begin{align}
+u^\ast = t - \gammabar^-(x_c) \label{eqn:u-ast}
+\end{align}
+
+Given that Nature will adhere to the constraints originally put forth in $S$, the bounds of
+$x_{c}^{\ast}$ must remain within the bounds of $x_{c}$. Hence, we guarantee the lower bound is at
+least $l$ while the upper bound is at most $u$.
+
+\begin{align*}
+l^\ast &= \max(l, t - \gammabar^+(x_c)) \\
+u^\ast &= \min(u, t - \gammabar^-(x_c))
+\end{align*}
+
+We use the same logic for narrowing the observation delay. If $x_{c}$ was assigned as late as
+possible, $u$, then the observation delay would be minimized, $\gammabar^-(x_{c}^{\ast})$. Likewise,
+if $x_{c}$ was assigned as early as possible, $l$, the observation delay would be maximized,
+$\gammabar^+(x_{c}^{\ast})$. The narrowed lower and upper bounds of $\gammabar(x_{c})^{\ast}$ are as
+follows.
+
+\begin{align*}
+\gamma &= \obs(x_{c}) - \assign(x_{c}) \\
+\gammabar^-(x_{c}^{\ast}) &= t - u \\
+\gammabar^+(x_{c}^{\ast}) &= t - l \\
+\end{align*}
+
+As before, the bounds of $\gammabar(x_{c}^{\ast})$ must stay within the original bounds of
+$\gammabar(x_{c})$, leaving us with the following narrowed observation delay.
+
+\begin{align}
+\gammabar^-(x_{c}^{\ast}) &= \max(\gammabar^{-}(x_{c}), t - u) \\
+\gammabar^+(x_{c}^{\ast}) &= \min(\gammabar^+(x_{c}), t - l)
+\end{align}
+#+latex: \end{proof}
+
+We revisit the example from the beginning of this section to see Lemma [[lemma:narrow-bounds]] in
+action. As we saw before, any $\obs(B)$ before $t = 4$ will result in buffered assignments.
+
+$$
+\vdelayedge{A}{B}{[1, 7]}{[1, 3]}
+\edge{}{C}{[5, 9]}
+$$
+
+Let $t = 3$. We will step through the reasoning for narrowing the bounds of $x_{c}$ accordingly.
+
+\begin{align*}
+x_{c}^{\ast} &\in [\max(l, t - \gammabar^+(x_{c})), \min(u, t - \gammabar^{-}(x_{c}))] \\
+x_{c}^{\ast} &\in [\max(1, 3 - 3), \min(7, 3 - 1)] \\
+x_{c}^{\ast} &\in [1, 2] \\
+\\
+\gammabar(x_{c}^{\ast}) &\in [\max(\gammabar^{-}(x_{c}), t - u), \min(\gammabar^+(x_{c}), t - l)] \\
+\gammabar(x_{c}^{\ast}) &\in [\max(1, 3 - 7), \min(3, 3 - 1)] \\
+\gammabar(x_{c}^{\ast}) &\in [1, 2]
+\end{align*}
+
+We find that $\assign(x_{c})$ must have fallen somewhere in the range of $[1, 2]$, while
+$\gammabar(x_{c})$ was resolved somewhere in $[1, 2]$. Looking at the extremes, it is clear that
+there are multiple combinations of the assignment and observation delay that could lead to an
+observation at $t = 3$. While the narrowed range allows for observations other than $t = 3$, for
+instance, if $\assign(x_{c}) = 2$ and $\obs(x_{c}) = 2$ yielding an observation at $t = 4$, there
+are no other ranges of assignments or observation delay outside of $\assign(x_{c}) \in [1, 2]$ and
+$\gammabar(x_{c}) \in [1, 2]$ that would allow an observation at $t = 3$.
+
+#+label: alg:rewrite-stnu
+#+begin_export tex
+\begin{algorithm}
+\SetAlgoLined
+\SetKwComment{Comment}{//}{}
+\SetKwFunction{Return}{return}
+\SetKwInput{Input}{Input}
+\SetKwInput{Output}{Output}
+\SetKwInput{Algorithm}{\textsc{Rewrite STNU}}
+\SetKwInput{Initialize}{Initialization}
+\SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
+
+\Indm
+\Input{VDC STNU $S_{\mathit{original}}$; Variable-delay function $\gammabar$\; Observed contingent event $x$; Observation time $t$;}
+\Output{VDC STNU}
+
+\Initialize{$S_{\mathit{new}} \gets \mathtt{copy}(S_{\mathit{original}})$}
+
+\Indp
+\Algorithm{}
+\Indp
+
+\For{$\mathit{constraint}$ in $S_{\mathit{new}}$} {
+    \If{$\mathit{constraint}$ ends in $x$} {
+        $\mathit{constraint}[lower] \gets \max(\mathit{constraint}[lower], t - \gammabar^{+}(x))$\;
+        $\mathit{constraint}[upper] \gets \min(\mathit{constraint}[upper], t - \gammabar^{-}(x))$\;
+        $\gammabar^{-}(x) \gets \max(\gammabar^{-}(x), t - \mathit{constraint}[upper])$\;
+        $\gammabar^{+}(x) \gets \max(\gammabar^{+}(x), t - \mathit{constraint}[lower])$\;
+    }
+}
+
+\Return $S_{\mathit{new}}$\;
+
+\caption{An Algorithm for rewriting an STNU given the resolution of uncertainty of a contingent link.}
+\label{alg:rewrite-stnu}
+\end{algorithm}
+#+end_export
+
+The complexity of Algorithm [[alg:optimistic-rescheduling]] is dominated by the loop over
+=updateSchedule=. Each call to =updateSchedule= is $O(N^{3})$ in the number of events. In the worst
+case scenario, every event up to the last contingent event has been scheduled, giving us a
+complexity of $O(N^{4})$. We discuss potential means for improving optimistic rescheduling in
+Section [[sec:discussion-optimistic-rescheduling]].

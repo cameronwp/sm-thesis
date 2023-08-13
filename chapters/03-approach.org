@@ -244,7 +244,7 @@ We make two changes for (1). First, we do not assume that contingent events are 
 observed. Essentially, we use the known fixed observation delay to decide where in the past an
 observed contingent event was assigned. Second, to account for one special case due to the
 transformation, we use observations to optimistically rewrite the variable-delay STNU in an attempt
-to shorten the overall makespan (see Section [[sec:optimistic-rescheduling]]). Key to (2) is that we are
+to shorten the overall makespan (see Appendix [[appendix:optimistic-rescheduling]]). Key to (2) is that we are
 allowed to /imagine/ that contingent events were assigned despite never observing them. Imagining
 contingent events is a result of the other special case from the variable-delay to fixed-delay
 transformation (see Section [[sec:delay-scheduling]]).

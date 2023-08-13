@@ -166,6 +166,7 @@
 
 #+include: "chapters/10-appendix-postnu.org"
 #+include: "chapters/11-appendix-rmpl.org"
+#+include: "chapters/12-appendix-optimistic-rescheduling.org"
 
 # insert appendices here
 

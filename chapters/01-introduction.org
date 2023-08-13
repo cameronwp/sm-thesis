@@ -546,7 +546,7 @@ dispatcher/ a component that enables an executive to impact an environment by ta
 on the RTEDs the delay scheduler produces.
 
 #+label: fig:intro-dispatching-architecture
-#+attr_latex: :width 0.6\textwidth
+#+attr_latex: :width 0.5\textwidth
 #+caption: A more detailed view of the delay dispatcher architecture.
 file:../images/architecture.png
 
@@ -559,18 +559,16 @@ actions to happen in the real-world. For a digital assistant, a driver might sen
 update the heads-up-display in the crew's helmet. For a robot, the driver might publish a ROS
 message [cite:@ros].
 
-Note also that Figure [[fig:intro-dispatching-architecture]] presents a different relationship between
-the scheduler and observations, which are now passed to the scheduler through the dispatcher. We do
-so because in our architecture the dispatcher, not the scheduler, has access to a clock. The
-dispatcher takes the responsibility of comparing RTEDs to the clock time and deciding when to act.
-Likewise, when events are observed, the dispatcher tells the scheduler when they were observed. This
-change has the cumulative effect of giving the dispatcher responsibility for interacting with the
-environment.
+Observations are passed to the scheduler through the dispatcher. We do so because in our
+architecture the dispatcher, not the scheduler, has access to a clock. The dispatcher takes the
+responsibility of comparing RTEDs to the clock time and deciding when to act. Likewise, when events
+are observed, the dispatcher tells the scheduler when they were observed. This change has the
+cumulative effect of giving the dispatcher responsibility for interacting with the environment.
 
-A key distinction between a normal dispatcher and the delay dispatcher is that not all observed
-events are scheduled immediately. if an event should be buffered to a later time, then the
-dispatcher has the responsibility of actually waiting until the correct clock time to record the
-time in the scheduler.
+A key distinction between a dispatcher for instantaneous observations and the delay dispatcher is
+that not all observed events are scheduled immediately. It is the case that some observations must
+be buffered to a later time to be scheduled. If so, the dispatcher has the responsibility of
+actually waiting until the correct clock time to record the time in the scheduler.
 
 #+label: fig:intro-tick-runtime
 #+attr_latex: :width 0.8\textwidth

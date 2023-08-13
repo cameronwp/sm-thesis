@@ -328,13 +328,6 @@ on real hardware requires modifications to generating decisions in dynamic sched
 said modifications, with confluent interfaces in dynamic dispatching, to suit our intended use cases
 for Delay Kirk.
 
-# TODO maybe?
-In Section [[sec:optimistic-rescheduling]], we extend our approach to scheduling variable-delay STNUs by
-introducing an optional procedure that addresses a shortcoming in the semantics of scheduling a
-variable-delay STNU. The shortcoming takes the form of potentially unnecessary wait times that are
-added after receiving contingent event assignments, extending the makespan of procedures. We present
-a generate-and-test algorithm to partially mitigate said shortcomings.
-
 Finally, Section [[sec:scheduling-experimental]] provides a series of benchmarks of the scheduling and
 dispatching algorithms described in this Chapter.
 
@@ -804,19 +797,3 @@ this graph is due to small sample sizes.
 #+caption: Average runtime data for observing events in VDC STNUs. Error bars represent standard deviation.
 file:../images/observations-avg-runtime.png
 
-*** Dispatching
-
-Finally, we benchmark action dispatching. In our simulated environments for dispatching, we run the
-dispatcher function as described in Algorithm [[alg:dispatcher-inner]] twice per simulated second. (We
-run it twice in the event that scheduling an event enables us to dispatch other actions immediately.
-If we ran Algorithm [[alg:dispatcher-inner]] once per second, the newly enabled events would then be
-dispatched a second late.)
-
-Given every event will be scheduled once using the FAST-EX update, FAST-EX updates will dominate the
-total runtime of dispatching. As seen in Figure [[fig:runtime-tick-aggregate]], the total runtime of all
-calls to Algorithm [[alg:dispatcher-inner]] indeed follows $O(N^{2} \log N)$.
-
-#+label: fig:runtime-tick-aggregate
-#+attr_latex: :width 0.8\textwidth
-#+caption: Average runtime data for running Algorithm [[alg:dispatcher-inner]].
-file:../images/tick-total-runtime.png
