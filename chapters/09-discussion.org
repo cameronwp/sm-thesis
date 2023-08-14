@@ -138,15 +138,10 @@ consensus.
 ** Conclusion
 In summary, we contributed the following to temporal reasoning research.
 
-+ A Valid Execution Strategy for Temporal Networks with Uncertain Observations :: Past work on the
-  study of temporal networks with variable observation delay provided a sound and complete method
-  for proving the controllability given a set of constraints and uncertain observation delay
-  [cite:@Bhargava2018]. We contributed an execution strategy that builds off the controllability
-  checker and is valid for all resolutions of uncertainty realized during execution.
-+ A Delay Scheduler :: Past work in temporal reasoning has provided a sound and complete online
-  algorithm for dispatching controllable events given all other event assignments up to the current
-  time [cite:@Hunsberger2016]. We contribute an extension to online scheduling that implements the
-  execution strategy for uncertain observations.
++ A Scheduler for Uncertain Observations :: Past work in temporal reasoning has provided a sound and
+  complete online algorithm for dispatching controllable events given all other event assignments up
+  to the current time [cite:@Hunsberger2016]. We contribute an online method for scheduling that
+  guarantees that all temporal constraints will be satisfied given uncertain observations.
 + An Online Dispatcher for Dispatching Events to Hardware :: State of the art schedulers are limited
   in that they output execution decisions, which act like instructions as to when to act rather than
   actions themselves [cite:@Hunsberger2016]. We contributed a dispatching algorithm for enacting

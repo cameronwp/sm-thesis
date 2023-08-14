@@ -30,17 +30,18 @@ directly to MCC, not the crew.
 <<ch:problem-statement>>
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
-uncertain observations and uncertain inter-agent communication. We focus on an example drawn from
-the domain of human spaceflight below, but any domain in which operations take place in extreme
-environments needs to consider uncertain communication. Examples include military operations and
-remote science, both summarized below.
+uncertain observations and uncertain inter-agent communication. The problem domain of EVAs will be
+used to elucidate the inputs and outputs of a multi-agent delay scheduler for uncertain
+observations. However, any domain in which operations take place in extreme environments needs to
+consider uncertain communication. Examples include military operations and remote science, both
+summarized below.
 
-For instance, military operators are frequently in environments where communication is impossible or
-dangerous. Radioing from a staging area back to a command center may be impossible. Even
-communications between operators in a hostile environment may risk exposing them to an enemy.
-Despite communication concerns, there is an advantage for operations who can coordinate on a
-battlefield. A delay scheduler would allow military operators to decide when to act given
-uncertainty in their environment and communications.
+Military operators are frequently in environments where communication is impossible or dangerous.
+Radioing from a staging area back to a command center may be impossible. Even communications between
+operators in a hostile environment may risk exposing them to an enemy. Despite communication
+concerns, there is an advantage for operations who can coordinate on a battlefield. A delay
+scheduler would allow military operators to decide when to act given uncertainty in their
+environment and communications.
 
 Remote science with robotic explorers features many of the same communication and observation
 constraints that are found in human spaceflight. The upcoming set of NASA Commercial Lunar Payload

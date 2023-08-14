@@ -1,4 +1,4 @@
-% Created 2023-08-13 Sun 19:58
+% Created 2023-08-13 Sun 23:20
 % Intended LaTeX compiler: pdflatex
 \documentclass[12pt,vi,leftblank,twoside]{mitthesis}
 \usepackage[utf8]{inputenc}
@@ -183,22 +183,22 @@
 As space exploration accelerates and the number of robots and humans working in extreme environments
 grows with it, we must enact autonomous multi-agent coordination in order to safely operate in
 environments that are inherently hostile to communication. To the best of our knowledge, there are
-no autonomous executives capable of coordinating with other agents while independently reasoning
-over communication delay to decide when to act. A key gap that must be addressed is a single-agent
-executive capable of deciding when to act given communication delay, which can the form the basis
-for a multi-agent execution context. Existing research has provided insights into temporal
-reasoning, namely modeling observation delay and scheduling actions with temporal constraints, but
-there is both a need for deciding when to schedule events when there is uncertain observation delay,
-and a need to robustly coordinate between agents. Scheduling actions in the face of uncertainty is a
-challenge due to the compounding uncertainties of uncontrollable exogenous events, unknown
-observation delay, and uncertain communication between agents. This thesis puts forth a series of
-contributions that culminates in a robust single-agent executive demonstrated to run on real
-hardware with the ability to coordinate in a multi-agent context despite observation delay. Doing so
-required insights in checking variable-delay controllability, defining an execution strategy against
-temporal constraints with variable observation delay, and online coordination for multiple agents.
-We show that single agent online scheduler exhibits the expected performance characteristics, and
-demonstrate multi-agent execution with uncertain communication in the context of a simulated
-astronaut and robotic asset collaborating with communication delay.
+no multi-agent scheduling algorithms capable of independently reasoning over communication delay. A
+key gap that must be addressed is a single-agent scheduler capable of deciding when to act given
+uncertain observation, which can the form the basis for distributed multi-agent scheduling. Existing
+research has provided insights into temporal reasoning, namely modeling observation uncertainty and
+scheduling events with temporal constraints. There is both a need for deciding when to schedule
+events when there is uncertain observation delay, and a need to robustly coordinate between agents.
+Scheduling events in the face of uncertainty is a challenge due to the compounding uncertainties of
+uncontrollable exogenous events, unknown observation delay, and uncertain communication between
+agents. This thesis puts forth a series of contributions that culminates in the demonstration of a
+robust single-agent task executive that used our scheduler to coordinate in a multi-agent context
+despite observation delay. Doing so required insights in checking controllability of temporal
+constraints with uncertain delay, defining a scheduler that is robust to uncertain observation
+delay, integrating the scheduler in an existing high-level task executive, and a coordination
+strategy for multiple agents. We show that the scheduler exhibits the expected performance
+characteristics, and perform laboratory demonstrations of multi-agent execution with uncertain
+communication using a scenario inspired by human spaceflight.
 
 \end{abstractpage}
 
@@ -207,25 +207,24 @@ astronaut and robotic asset collaborating with communication delay.
 \section*{Acknowledgements}
 
 My journey to this SM thesis began eight years ago when I was a software engineer living in San
-Francisco. Two years prior, I had just wrapped four years of teaching high school science and didn't
-know how to code. I taught myself Python using MIT OpenCourseware on a whim because it was something
-I had always wanted to learn. Coding took over my life the first time I wrote a function. My first
-projects were physics demos and websites, but soon I learned I loved helping systems make decisions.
-And there is absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and
-wondered, ``I want to be a part of the next space race! What if I studied autonomy for human
-spaceflight? Where would I even go to learn autonomy?'' (I didn't even know the field was called
-``autonomy'' at the time.) Of course, MIT came up when I started searching. It took five more years of
-studying computer science, finding people to learn from, and integrating in the human spaceflight
-community, but eventually I found my way into AeroAstro and the MERS lab. It's been the journey of a
+Francisco. Two years prior, I was a former high school science teach who didn't know how to code. I
+taught myself Python using MIT OpenCourseware on a whim because it was something I had always wanted
+to learn. Coding took over my life the first time I wrote a function. My first projects were physics
+demos and websites, but soon I learned I loved helping systems make decisions. And there is
+absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and wondered, ``I
+want to be a part of the next space race! What if I studied autonomy for human spaceflight? Where
+would I even go to learn autonomy?'' (I didn't even know the field was called ``autonomy'' at the
+time.) Of course, MIT came up when I started searching. It took five more years of studying computer
+science, finding people to learn from, and integrating in the human spaceflight community, but
+eventually I found my way into NASA, AeroAstro, and the MERS lab. It's been the journey of a
 lifetime and there's no way I would be here without the love and support from so many people.
 
 First, I have to thank my amazing wife, Mo, who is the hardest working, most driven person I've ever
 met. She's been my biggest cheerleader and sounding board for my ideas (even when she has no idea
-what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I think about her living
-in a world where there are thousands of people living and working in space. At the time of writing
-this, she's a month old and already making me work harder than I ever have. I never would have made
-it this far without a supportive family. My parents, Mark and Suzanne, and my brother, Max, have
-always been there for me.
+what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I dream about her living
+in a world where there are thousands of people living and working in space. She's already making me
+work harder than I ever have to make the dream real. I never would have made it this far without a
+supportive family. My parents, Mark and Suzanne, and my brother, Max, have always been there for me.
 
 My advisor, Brian Williams, has consistently surprised me with how much support he's freely given.
 Brian has been one of the most helpful people I've ever met, starting with the first time I
@@ -235,12 +234,34 @@ executive architectures, to explaining basic concepts in temporal reasoning, to 
 generation of online education, he's been open, honest, and eager to share ideas. Brian, you have
 had a profound impact on my life and career, and for that I'm forever grateful.
 
-Next, I have to thank all my labmates. I can't really quantify the level of impact any single person
-has had, so I'll be doing these chronological order of when we met.
+Mark Shirley, my NASA mentor, has been an amazing sounding board for bringing autonomy to real NASA
+missions. I can't thank Mark enough for the fun brainstorming sessions and career advice (and
+answering millions of questions about Ames robotic missions).
 
-The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office hours
-even when I didn't have questions just because I wanted to hang out and talk autonomy with people.
-Simon, thank you for being a supportive TA (and introducing me to \emph{Aunty Donna}). Sungkweon, \ldots{}
+I can't imagine I would have known how to pursue grad school without Matthew Miller, my colleague
+and friend. Matthew has been an invaluable fountain of knowledge about academia. He also literally
+got me a job at NASA, which is probably the best gift I'll ever receive.
+
+Next, I have to thank all my labmates. I'll be doing these roughly in chronological order of when we
+met. The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office
+hours even when I didn't have questions just because I wanted to hang out and talk autonomy with
+people. Simon, thank you for being a supportive TA (and introducing me to \emph{Aunty Donna}). Sungkweon,
+thank you for your thorough review of this thesis. I hope our daughters get a playdate soon! Andrew
+Wang, I appreciate you being a sounding board for all my crazy temporal reasoning ideas. Eric
+Timmons, I have studied thousands of lines of your code. You've had a very meaningful impact on the
+way I approach the design of autonomous systems, for which I'm eternally grateful. Marlyse Reeves,
+thanks for being a great friend and co-TA! Yuening Zhang, thanks for reviewing this thesis! Your
+advice on temporal reasoning over the years has been hugely helpful. Charles Dawson, thanks for
+taking such detailed notes on the WAM! Nikhil Bhargava, thanks for taking me under your wing and
+teaching me the ways of variable-delay controllability! Delia Stephens, thanks for the lunch
+conversations (and offering to watch my dogs while we were gone)! Viraj Parimi, thanks for ``bouncing
+ideas around'' with me, both on the fifth floor and with an iiwa. Finally, thanks also to Pedro
+Acosta, Ben Ayton, Jacob Broida, Jingkai Chen, Allegra Farrar, Meng Feng, Weiqiao Han, Cyrus Huang,
+Jake Olkin, Amy Phung, Sabrina Romero, Anoop Sonar, Shashank Swaminathan, Allen Wang, Tesla Wells,
+Sienna Williams, Tiffany Yao.
+
+Thank you to my generous sponsors. This research was supported by NSTGRO grant number 80NSSC21K1303
+and Airbus.
 
 \pagestyle{plain}
 
@@ -256,35 +277,38 @@ Simon, thank you for being a supportive TA (and introducing me to \emph{Aunty Do
 \begin{document}
 
 \chapter{Introduction}
-\label{sec:org6a85d0e}
+\label{sec:org8c0cc0e}
 
 The United States, Europe, private companies, and new space agencies around the world are
 collectively urging humanity further into the cosmos with a sense of urgency that has not been seen
 since Apollo. We are witness to the great forces of political will, economics, and technological
 prowess launching our foothold beyond low Earth orbit and into planetary colonization. From every
 perspective, the scale of space exploration is staggering. It will take relentless effort from
-untold numbers of people, and our robotic partners, to usher us into the era where interplanetary
-travel and living off-world are commonplace. In every envisioned scenario for deep space
-exploration, there is a need to coordinate between agents, whether human or robotic, who must find a
-way to safely work together in the face of the communication challenges inherent to extreme
+untold numbers of people, and our robotic partners, to usher humanity into the era where
+interplanetary travel and living off-world are commonplace. In every envisioned scenario for deep
+space exploration, there is a need to coordinate between agents, whether human or robotic, who must
+find a way to safely work together in the face of the communication challenges inherent to extreme
 environments.
 
 There is good reason to design a system for coordination around the notion of uncertain
 communication. We take for granted that communication is easy in our civilized corners of the
 Earth's surface. Cellular signals and WiFi are security blankets, tricking us into thinking it must
-be easy for \emph{everyone} to communicate \emph{everywhere}. The fact of the matter is that the communication
-is far from a given when you leave civilization. Consider low Earth orbit. The largest artificial
-satellite, the International Space Station (ISS), has been in orbit since 1998. Despite that, it
-still loses communication with the ground regularly. Satellites with much less robust infrastructure
-lose contact with the ground even more often. When astronauts set foot on the South Pole of the Moon
-soon as part of the Artemis program,\footnote{\url{https://www.nasa.gov/specials/artemis/}} they will find
-uncertain satellite coverage and the need to contend against local topology that is hostile to radio
-signals \citeprocitem{1}{[1]}. Any robots working near a habitat, or any astronauts collecting samples
-nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
+be easy for \emph{everyone} to communicate \emph{everywhere}. The fact of the matter is that communication is
+far from a given in the frontiers. Consider low Earth orbit. The largest artificial satellite, the
+International Space Station (ISS), has been in orbit since 1998. Despite that, it still loses
+communication with the ground regularly. Satellites with much less robust infrastructure lose
+contact with the ground even more often. When astronauts set foot on the South Pole of the Moon soon
+as part of the Artemis program,\footnote{\url{https://www.nasa.gov/specials/artemis/}} they will find
+uncertain satellite coverage and the need to contend against local topology that is unforgiving to
+radio signals \citeprocitem{1}{[1]}. Any robots working near a habitat, or any astronauts collecting
+samples nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
 communications with nearby \emph{in situ} agents, let alone Mission Control on Earth. Communications may
 be delayed due to passing through multiple relays and the speed of light. Or communications may drop
-out altogether when agents accidentally walk behind a big boulder between them and the closest
-relay.
+out altogether when astronauts step behind a large boulder between them and the closest relay.
+
+This thesis will address on-the-fly task coordination under limited communication using human
+spaceflight, specifically spacewalks, as a motivating example. We provide more background here
+before outlining the rest of this thesis.
 
 The Artemis astronauts will continue a longstanding tradition in the U.S. space program of
 performing Extravehicular Activities (EVAs) \citeprocitem{2}{[2]}. Like the Apollo astronauts of the
@@ -347,9 +371,9 @@ will have their own assistant, each running a scheduler that can reason over tim
 between their actions and the actions of their peers.
 
 The gap in the current state of the art is that, to the best of our knowledge, there is no such
-scheduler that is capable of reasoning over the sources of uncertain communication and observation
-delay. Existing schedulers assume instantaneous communications, which is unreasonable on the lunar
-surface, or indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
+scheduler that is capable of reasoning over uncertain communication and observation delay. Existing
+schedulers assume instantaneous communications, which is unreasonable on the lunar surface, or
+indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
 collaborative capabilities that allow multiple agents to work together, especially in the presence
 of uncertain communication. This thesis leverages and contributes to temporal reasoning research to
 implement such a scheduler for multi-agent (MA) collaboration with uncertain communication, which we
@@ -361,7 +385,7 @@ refer to as a \emph{delay scheduler}.
 For the remainder of the introduction, we present a short summary of each chapter.
 
 \section{Problem Statement}
-\label{sec:orgeedbeeb}
+\label{sec:orgc80e93a}
 
 A delay scheduler can be used in the case of both one agent (e.g. a single astronaut or a robot)
 working individually, as well as when multiple agents are collaborating. We start by defining the
@@ -400,7 +424,7 @@ Thus, the multi-agent addition to the problem statement follows. Given event ass
 of peers, all assignments made at \(t\) should be immediately communicated to all peers.
 
 \section{Approach}
-\label{sec:org1139260}
+\label{sec:orgdc463e1}
 
 The architecture of the delay scheduler is designed around the notion of taking everything we know
 about set of temporal constraints and when events have been assigned and distilling it down to a
@@ -465,7 +489,7 @@ communication pathway between all agents. We do not assume every agent can commu
 peer, rather when communications are received, they are relayed to all known peers.
 
 \section{Modeling Temporal Constraints with Uncertain Observations}
-\label{sec:org2f2b853}
+\label{sec:orgfd92dd7}
 
 As stated before, our choice for modeling the ``what'' and ``when'' of scheduling is a temporal network,
 also called a temporal constraint network \citeprocitem{9}{[9]}.
@@ -517,7 +541,7 @@ that is equivalent with respect to controllability. It is this less uncertain fo
 network that we then schedule.
 
 \section{Scheduling Events Despite Uncertain Observations}
-\label{sec:orge368315}
+\label{sec:orged74d70}
 
 From this point forward, we assume that the scheduler has been given a controllable temporal
 network that accurately models the world.
@@ -559,7 +583,7 @@ eight) working in parallel with inter-agent temporal constraints. Figure
 characteristics against said temporal networks.
 
 \section{An Envisioned Executive for Dispatching Actions with Uncertain Observations}
-\label{sec:org9a90337}
+\label{sec:orgfa56ad1}
 
 We need a means to connect the RTEDs of a delay scheduler with the actions an agent performs. We
 envision that the delay scheduler can serve as the scheduling logic behind an astronaut's digital
@@ -627,7 +651,7 @@ inside this loop, we see the same \(O(N^{2} \log N)\) performance we saw when lo
 time to run all schedule updates.
 
 \section{Multi-Agent Scheduling with Uncertain Observations}
-\label{sec:orgdc7e3cc}
+\label{sec:org7c199e6}
 
 Collaboration between agents is enabled by enforcing that communications between agents are treated
 the same as uncontrollable event observations. Thus, we are only challenged to define communication
@@ -653,7 +677,7 @@ that Delay Kirk is able to dispatch actions to the Barrett WAM while receiving c
 representing inter-agent constraints over HTTP.
 
 \section{Thesis Structure}
-\label{sec:org17cc7e3}
+\label{sec:org7c2365e}
 
 The structure of this thesis is as follows. A more detailed problem statement, including
 descriptions of the scenarios used for testing distributed collaboration and coordination with
@@ -670,22 +694,26 @@ coordination architecture for environments with uncertain communication. The dis
 \ref{ch:discussion} concludes this thesis by providing additional context for the decisions made during
 this research.
 
+Unless otherwise specified, the code used to run the experiments of this thesis can be found at
+\url{http://gitlab.com/mit-mers/enterprise/enterprise} under the \texttt{CAM-SM-THESIS} branch.
+
 \chapter{Problem Statement}
-\label{sec:org23e24ea}
+\label{sec:orgd23ccd3}
 \label{ch:problem-statement}
 
 There is a real-world need for coordinating multiple agents that are collaborating while facing
-uncertain observations and uncertain inter-agent communication. We focus on an example drawn from
-the domain of human spaceflight below, but any domain in which operations take place in extreme
-environments needs to consider uncertain communication. Examples include military operations and
-remote science, both summarized below.
+uncertain observations and uncertain inter-agent communication. The problem domain of EVAs will be
+used to elucidate the inputs and outputs of a multi-agent delay scheduler for uncertain
+observations. However, any domain in which operations take place in extreme environments needs to
+consider uncertain communication. Examples include military operations and remote science, both
+summarized below.
 
-For instance, military operators are frequently in environments where communication is impossible or
-dangerous. Radioing from a staging area back to a command center may be impossible. Even
-communications between operators in a hostile environment may risk exposing them to an enemy.
-Despite communication concerns, there is an advantage for operations who can coordinate on a
-battlefield. A delay scheduler would allow military operators to decide when to act given
-uncertainty in their environment and communications.
+Military operators are frequently in environments where communication is impossible or dangerous.
+Radioing from a staging area back to a command center may be impossible. Even communications between
+operators in a hostile environment may risk exposing them to an enemy. Despite communication
+concerns, there is an advantage for operations who can coordinate on a battlefield. A delay
+scheduler would allow military operators to decide when to act given uncertainty in their
+environment and communications.
 
 Remote science with robotic explorers features many of the same communication and observation
 constraints that are found in human spaceflight. The upcoming set of NASA Commercial Lunar Payload
@@ -713,7 +741,7 @@ impact drill sites.
 We now provide an example using EVAs to motivate the need for uncertain observations.
 
 \section{EVAs as a Problem Domain}
-\label{sec:org1194b4a}
+\label{sec:org077c1e7}
 
 EVAs must be performed in a timely manner. Life support imposes an upper bound on the total duration
 of an EVA. As an EVA progresses, EV crews consume four non-renewable resources, comprised of oxygen,
@@ -755,7 +783,7 @@ then is to wait as little time as necessary before moving on to the next dish. T
 act, the astronaut relies on advice from the delay scheduler built in to their digital assistant.
 
 \section{Problem Statement Definitions}
-\label{sec:org7941e82}
+\label{sec:orgeafb682}
 
 Broadly speaking in this scenario, we have two types of input and one type of output. The first
 input is decided before the astronaut egresses the habitat. MCC writes an EVA timeline (much like
@@ -827,7 +855,7 @@ In other words, event assignments should be broadcasted to all peers as soon as 
 made.
 
 \chapter{Approach}
-\label{sec:org9fe8215}
+\label{sec:orge8b627a}
 \label{ch:approach}
 
 We define a delay scheduler in such a way that one instance is useful for single-agent scheduling,
@@ -1019,7 +1047,7 @@ integration of Algorithm \ref{alg:approach-delay-scheduler} in a high-level task
 schedulers with uncertain communication.
 
 \chapter{Modeling Temporal Constraints with Uncertain Observation Delay}
-\label{sec:orgb251d0f}
+\label{sec:org19e8c7f}
 \label{ch:modeling-tn}
 
 Our overarching aim in this Chapter is to architect the offline portions of a single-agent pipeline
@@ -1037,7 +1065,7 @@ The three aims of this chapter are to
 \item model temporal constraints with uncertain observation delay,
 \item define a consistency (controllability) checking procedure for temporal networks with uncertain
 observation delay, and
-\item prove that the execution strategy assumed by the controllability checking procedure is safe.
+\item prove that there is a valid execution strategy for all resolutions of uncertainty.
 \end{enumerate}
 
 In Section \ref{sec:tn}, we address aim (1) by outlining the necessary definitions for modeling temporal
@@ -1046,12 +1074,12 @@ uncertain observation delay, and address aim (2) by presenting a procedure for c
 consistency thereof. Sections \ref{sec:fdc} and \ref{sec:vdc} are largely based on the work originally put forth
 by Bhargava et. al., \citeprocitem{13}{[13]}, \citeprocitem{28}{[28]}, \citeprocitem{29}{[29]} with additional
 contributions by us as highlighted below. Notably, Section \ref{sec:vdc} addresses aim (3) by contributing
-novel proofs that the execution strategy assumed to exist by Bhargava et. al. is safe. We conclude
+novel proofs that the execution strategy assumed to exist by Bhargava et. al. is valid. We conclude
 with experimental analysis of our chosen consistency checking procedure in Section
 \ref{sec:vdc-experimental} using example temporal constraint networks inspired by lunar exploration.
 
 \section{Temporal Networks}
-\label{sec:orgcc72578}
+\label{sec:org56d787b}
 \label{sec:tn}
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
@@ -1085,6 +1113,8 @@ in \(R\). We use the notation \(\assign(x)\) to represent a mapping from an even
 \rightarrow \mathbb{R}\), in the schedule. A schedule is \emph{complete} if all \(x \in X\) are assigned
 times in \(\assign\). An STN is \emph{consistent} if it has at least one feasible schedule that assigns all
 events in \(X\).
+
+The set of all possible schedules is \(\Xi\).
 
 An STN is consistent if and only if there is no negative cycle in its equivalent distance graph
 \citeprocitem{9}{[9]}. Let \(n\) be the number of events in a temporal network and \(m\) to be the number
@@ -1142,9 +1172,9 @@ resolved.
 
 For an STNU \(S\) with \(k\) contingent constraints \(\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
 \langle e_{k}, c_{k}, l_{k}, u_{k} \rangle\), each \textit{situation}, \(\omega\), represents a
-possible set of values for all links in \(S\), \(\omega = (\omega_{1}, \cdots, \omega_{k}) \in \Omega\).
-The \textit{space of situations} for \(S\), \(\Omega\), is \(\Omega = [e_{1}, c_{1}] \times \cdots \times
-[e_{k}, c_{k}]\).
+possible set of durations for all links in \(S\), \(\omega = (\omega_{1}, \cdots, \omega_{k}) \in
+\Omega\). The \textit{space of situations} for \(S\), \(\Omega\), is \(\Omega = [l_{1}, u_{1}] \times
+\cdots \times [l_{k}, u_{k}]\).
 \end{defn}
 
 Each \emph{situation} in the \emph{space of situations}, \(\omega \in \Omega\), represents a different
@@ -1173,10 +1203,11 @@ An \emph{execution strategy}, \(\mathcal{S}\), is a mapping of situations to sch
 \end{defn}
 
 An \emph{execution strategy} then naturally maps a specific resolution of the uncertainty of the
-contingent constraints to a set of assignments for the events of an STNU. For an STNU, time
-monotonically increases and we only observe \emph{activated} contingent events, or those contingent
-events at the tail of a contingent link whose free event predecessor has been executed. As such, we
-modify our definition of \(\assign\).
+contingent constraints to a set of assignments for the events of an STNU. (Note that we use the
+convention of assuming that the STNU exhibits \emph{dynamic controllability}, which will be described
+below.) For an STNU, time monotonically increases and we only observe \emph{activated} contingent events,
+or those contingent events at the tail of a contingent link whose free event predecessor has been
+executed. As such, we modify our definition of \(\assign\).
 
 \begin{defn}
 \textbf{Partial Schedule}
@@ -1186,7 +1217,7 @@ A \emph{partial schedule}, \(\assign\), is a mapping from a proper subset of eve
 \end{defn}
 
 As a proper subset, \(\assign\) represents an assignment of events \emph{so far} during the execution of an
-STNU. From here on, \(\assign\) refers to a partial schedule. If \(X' = X_{e} \cup \X_{c}\), then the
+STNU. From here on, \(\assign\) refers to a partial schedule. If \(X' = X_{e} \cup X_{c}\), then the
 schedule is complete.
 
 To determine whether an STNU is controllable, we determine whether there exists a \emph{valid} execution
@@ -1195,7 +1226,7 @@ strategy for it.
 \begin{defn}
 \textbf{Valid Execution Strategy}
 
-A \emph{valid} \(\mathcal{S}\) is one that enforces that, for any \(\omega_{f} \in \Omega_{f}\), the
+A \emph{valid} \(\mathcal{S}\) is one that enforces that, for any \(\omega \in \Omega\), the
 outputted decision respects all existing temporal constraints and ensures the existence of a
 subsequent valid execution strategy following that action.
 \end{defn}
@@ -1213,7 +1244,7 @@ single theory. But first, we describe fixed-delay controllability, which introdu
 observation delay to STNUs.
 
 \section{Fixed-Delay Controllability}
-\label{sec:orgd34b0e1}
+\label{sec:org01f5b2f}
 \label{sec:fdc}
 
 Under fixed-delay controllability (FDC) \citeprocitem{28}{[28]}, we consider the problem of scheduling
@@ -1254,11 +1285,11 @@ function on event observations.
 \textbf{Fixed-Delay Situations}
 
 For an STNU \(S\) with \(k\) contingent constraints \(\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
-\langle e_{k}, c_{k}, l_{k}, u_{k} \rangle\) and fixed-delay function \(\gamma\), each
-\textit{fixed-delay situation}, \(\omega_{f}\), represents a possible set of \textit{observed} values
-for all links in \(S\), \(\omega_{f} = (\omega_{f1}, \cdots, \omega_{fk})\). The \textit\{space of
-situations\} for \(S\), \(\Omega_{f}\), is \(\Omega_{f} = [e_{1}, c_{1}] + [\gamma_{1}, \gamma_{1}] \times
-\cdots \times [e_{k}, c_{k}] + [\gamma_{k}, \gamma_{k}]\).
+\langle e_{k}, c_{k}, l_{k}, u_{k} \rangle\) and fixed-delay function \(\gamma\), each \emph{fixed-delay
+situation}, \(\omega_{f}\), represents a possible set of \textit{observed} values for all links in
+\(S\), \(\omega_{f} = (\omega_{f1}, \cdots, \omega_{fk})\). The \emph{space of situations} for \(S\),
+\(\Omega_{f}\), is \(\Omega_{f} = [l_{1} + \gamma_{1}, u_{1} + \gamma_{1}] \times \cdots \times
+[e_{k} + \gamma_{k}, c_{k} + \gamma_{k}]\).
 \end{defn}
 
 To emphasize that the \emph{observed} value for an event is not the same as its assignment, we also use
@@ -1287,10 +1318,10 @@ execution.
 
 Importantly, fixed-delay controllability (FDC) generalizes the two concepts of controllability that
 are central to STNUs, strong and dynamic controllability. In particular, by using a fixed-delay
-function where we observe all events instantaneously, e.g. \(\gamma(x_{c}) = 0 \forall x_{c} \in
+function where we observe all events instantaneously, e.g. \(\gamma(x_{c}) = 0~\forall~x_{c} \in
 X_{c}\), checking fixed-delay controllability reduces to checking \emph{dynamic controllability}.
 Similarly, a fixed-delay function that specifies we never observe any contingent events, e.g.
-\(\gamma(x_{c}) = \infty \forall x_{c} \in X_{c}\), corresponds to checking \emph{strong controllability}
+\(\gamma(x_{c}) = \infty~\forall~x_{c} \in X_{c}\), corresponds to checking \emph{strong controllability}
 \citeprocitem{10}{[10]}.
 
 As is the case for a vanilla STNU, evaluating whether a valid execution strategy exists for a
@@ -1343,7 +1374,7 @@ before its immediate successor. More detail can be found in \citeprocitem{33}{[3
 We generalize fixed-delay to variable-delay controllability next.
 
 \section{Variable-Delay Controllability}
-\label{sec:orgcac5283}
+\label{sec:org75c383b}
 \label{sec:vdc}
 
 While fixed-delay controllability is quite expressive, its fundamental limitation is that it assumes
@@ -1415,8 +1446,8 @@ must use interval-bounded contingent event assignments instead.
 \textbf{Schedule}
 
 A \emph{schedule}, \(\assign\), when applied to contingent events, is a mapping of events to
-interval-bounded times, \(\assign : X_{c} \rightarrow (\mathbb{R}^+ \cup \{\infty\}) \times
-(\mathbb{R}^+^+ \cup \{\infty\})\), where, for any contingent constraint, \(0 \leq l_r \leq c_r - e_r
+interval-bounded times, \(\assign : X_{c} \rightarrow (\mathbb{R}^{\geq 0} \cup \{\infty\}) \times
+(\mathbb{R}^{\geq 0} \cup \{\infty\})\), where, for any contingent constraint, \(0 \leq l_r \leq c_r - e_r
 \leq u_r\), ending in contingent event \(x_{c}\), \(\assign(x_{c}) \in [l + \gammabar^{-}(x_{c}), u +
 \gammabar^{+}(x_{c})]\).
 \end{defn}
@@ -1435,14 +1466,14 @@ variable-delay function on the space of observations.
 For an STNU \(S\) with \(k\) contingent constraints \(\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
 \langle e_{k}, c_{k}, l_{k}, u_{k} \rangle\) and variable-delay function \(\gammabar\), each
 \textit{variable-delay situation}, \(\omega_{v}\), represents a possible set of \textit{observed}
-values for all links in \(S\), \(\omega = (\omega_{v1}, \cdots, \omega_{vk})\). The \textit\{space of
-situations\} for \(S\), \(\Omega_{v}\), is \(\Omega_{v} = [e_{1}, c_{1}] + [\gammabar^{-}_{1},
-\gammabar^+_{1}] \times \cdots \times [e_{k}, c_{k}] + [\gammabar^{-}_{k}, \gammabar^+_{k}]\).
+values for all links in \(S\), \(\omega = (\omega_{v1}, \cdots, \omega_{vk})\). The \emph{space of
+situations} for \(S\), \(\Omega_{v}\), is \(\Omega_{v} = [l_{1} + \gammabar^{-}_{1}, u_{1} +
+\gammabar^+_{1}] \times \cdots \times [l_{k} + \gammabar^{-}_{k}, u_{k} + \gammabar^+_{k}]\).
 \end{defn}
 
 We see that the space of observations has likewise grown in the transition to variable observation
-delay. If \(\gammabar^{-} < \gammabar^{+}\), \(\Omega_{v}\) for variable observation delay is strictly
-larger than \(\Omega_{f}\) for fixed-observation delay and \(\Omega\) for vanilla STNUs.
+delay. If \(\gammabar^{-} \neq \gammabar^{+}\), \(\Omega_{v}\) for variable observation delay is
+strictly larger than \(\Omega_{f}\) for fixed-observation delay and \(\Omega\) for vanilla STNUs.
 
 Like the fixed-delay function for fixed-delay controllability, the variable-delay function relates
 an observation delay to a contingent event, independent of other events. We take a similar approach
@@ -1468,7 +1499,7 @@ following up with transformations to the requirement links to maintain the same 
 in \(S'\).
 
 \subsection{Variable-Delay to Fixed-Delay Transformations}
-\label{sec:org119dccd}
+\label{sec:org77c44cd}
 \label{sec:vdc-to-fdc}
 
 We now show how we transform a variable-delay STNU to a fixed-delay STNU in order to perform
@@ -1486,10 +1517,9 @@ function, \(\gamma(x'_{c})\).
 
 Note that we receive \(\obs(x_{c})\) from Nature, but make the assignment \(\xi(x'_{c})\) in the
 dispatchable form of \(S'\). To be clear, while \(\assign(x_{c})\) is an interval, \((\mathbb{R} \cup
-\infty) \times (\mathbb{R} \cup \infty)\), \(\assign(x'_{c})\) is in \(\mathbb{R}\). For a fixed
-interval, e.g. \(\obs(x_{c}) \in [t, t]\), we sometimes employ an equivalent representation,
+\infty) \times (\mathbb{R} \cup \infty)\), \(\assign(x'_{c})\) is in \(\mathbb{R} \cup \infty\). For a
+fixed interval, e.g. \(\obs(x_{c}) \in [t, t]\), we sometimes employ an equivalent representation,
 \(\assign(x_{c}) = t\).
-
 
 Additionally, we sometimes apply \(-\) and \(+\) superscripts to \(l\) and \(u\) to denote the earliest and
 latest times respectively that an assignment at those bounds could be observed. For instance, the
@@ -1539,7 +1569,7 @@ For any contingent event \(x_c \in X_c\) in \(S\), if \(\gammabar^-(x_c) = \gamm
 
 \begin{proof}
 We translate an already fixed-bounded observation delay in the form of \(\gammabar(x_{c})\) to the
-equivalent fixed-delay function, \(\gamma(x'_{c})\), thus \(\omega_{f}(x'_{c}) = \omega_{v}(x_{c})\).
+equivalent fixed-delay function, \(\gamma(x'_{c})\). Thus, \(\omega_{f}(x'_{c}) = \omega_{v}(x_{c})\).
 \end{proof}
 
 \begin{lemma}
@@ -1560,7 +1590,7 @@ necessary.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.7\textwidth]{images/lemmas-combined.png}
+\includegraphics[width=0.6\textwidth]{images/lemmas-combined.png}
 \caption{\label{fig:lemmas-combined}A visualization of the lemmas used to transform contingent links with variable observation delay and subsequent requirement links.}
 \end{figure}
 
@@ -1815,7 +1845,7 @@ executed in \([16, 24]\). The execution semantics for both cases match the equiv
 \ref{fig:lemmas-combined}a described above.
 
 \section{Discussion}
-\label{sec:org52a713f}
+\label{sec:orgf66b4e7}
 
 We have demonstrated a modeling formalism to describe temporal networks with uncertain observation
 delay, along with a sound and complete procedure for checking controllability of said temporal
@@ -1825,7 +1855,7 @@ is not controllable, then there exists a projection of \(S\) that is uncontrolla
 variable-delay controllable.
 
 \section{Experimental Analysis}
-\label{sec:orgb722f67}
+\label{sec:org75b6249}
 \label{sec:vdc-experimental}
 
 In this section, we provide empirical evaluations of our variable-delay controllability checking
@@ -1980,7 +2010,7 @@ adopted to prevent either false positives or false negatives; however, such a wi
 results strongly reinforces the value of modeling observational uncertainty directly.
 
 \chapter{Scheduling Events Despite Uncertain Observations}
-\label{sec:orga2c9ad1}
+\label{sec:orgd7ad769}
 \label{ch:delay-scheduling}
 
 Now that we have shown there exists a valid execution strategy for variable-delay controllable
@@ -2011,7 +2041,7 @@ Finally, Section \ref{sec:scheduling-experimental} provides a series of benchmar
 dispatching algorithms described in this Chapter.
 
 \section{Dynamic Scheduling through Real-Time Execution Decisions}
-\label{sec:org85f7552}
+\label{sec:orgcccad25}
 \label{sec:dynamic-scheduling}
 
 We first provide a necessary overview of dynamic scheduling of vanilla STNUs, which we will extend
@@ -2049,8 +2079,9 @@ The key idea of FAST-EX is maintaining accurate distances from an artificial zer
 distance graph to all events. At the outset of execution, all events from \(S\) are present as nodes
 in \emph{AllMax}. As events are assigned, \emph{AllMax} performs update steps using Dijkstra Single
 Source/Sink Shortest Path (SSSP) to maintain distances to unexecuted events, while also collapsing
-executed events to \(Z\). We include pseudo-code of the real-time update step in Figure
-\ref{alg:fast-ex-update}.
+executed events to \(Z\). The ``fast'' in FAST-EX is enabled by removing unnecessary contingent links in
+\emph{AllMax} in favor of their strongest replacements with respect to \(Z\). We include pseudo-code of the
+real-time update step in Algorithm \ref{alg:fast-ex-update}.
 
 \begin{algorithm}
 \SetAlgoLined
@@ -2078,7 +2109,7 @@ For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
     Add upper-bound edge $\edge{Z}{E}{t}$\;
 }
 For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
-\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapated from \citeprocitem{3}{[3]}, Fig. 19.}
+\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapted from \citeprocitem{15}{[15]}, Fig. 19.}
 \label{alg:fast-ex-update}
 \end{algorithm}
 
@@ -2120,7 +2151,7 @@ t &= \cfrac{\texttt{now} + t^+}{2}
 So long as \(t^+ > \texttt{now}\), we know that the reassignment of \(t\) ensures \(t > \texttt{now}\).
 
 \section{Delay Scheduling as an Extension to Dynamic Scheduling}
-\label{sec:org460a0bc}
+\label{sec:orgaf90983}
 \label{sec:delay-scheduling}
 
 \begin{figure}[htbp]
@@ -2148,9 +2179,12 @@ We start by providing an explanation of fixed-delay scheduling, before expanding
 execution strategies of variable-delay scheduling.
 
 \subsection{Fixed-Delay Scheduling}
-\label{sec:org6beab43}
+\label{sec:org28b2764}
 
-We first establish the algebra of receiving observations.
+We first establish the algebra of receiving observations. We use the same notation as Section
+\ref{sec:vdc-to-fdc}. \(S\) and \(x_{c}\) refer to a variable-delay STNU and an uncontrollable event within
+\(S\) respectively. \(S'\) is the fixed-delay STNU that is equivalent to \(S\) with respect to
+controllability. \(x'_{c}\) is the transformed version of \(x_{c}\) in \(S'\).
 
 \begin{lemma}
 \label{lemma:information-fixes-bounds}
@@ -2236,15 +2270,20 @@ For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths
 No other modifications to FAST-EX are required to schedule a fixed-delay STNU.
 
 \subsection{Variable-Delay Scheduling}
-\label{sec:org1d63571}
+\label{sec:org194d2fe}
 
-Our execution strategy must address each of the following special categories of contingent event
-observations:
+The execution strategy for scheduling a variable-delay STNU naturally builds off the execution
+strategy for fixed-delay STNUs. Our approach is to perform fixed-delay scheduling of \(S'\). However,
+Nature is under no obligation to obey the contingent constraints of \(S'\). Thus the execution
+strategy for variable-delay STNUs must address each of the following special categories of
+contingent event observations:
 
 \begin{enumerate}
-\item contingent events with infinite observation delay,
-\item contingent events that are observed outside \([l^+(x_{c}), u^-(x_{c})]\) in \(S'\).
+\item uncontrollable events with infinite observation delay, and
+\item uncontrollable events that are observed outside their bounds in \(S'\)
 \end{enumerate}
+
+We address both concerns below.
 
 The first category is a requirement for dispatching the fixed-delay equivalent of a variable-delay
 STNU. If the constraints of a problem domain are modeled directly in a fixed-delay STNU and the
@@ -2257,9 +2296,9 @@ scheduler receives observations of them.
 
 \begin{lemma}
 \label{lemma:ignore-inf-delay}
-For any contingent event \(x'_{c} \in X_{c}\) in fixed-delay controllable \(S'\), if \(\gamma(x'_{c}) =
-\infty\), we mark the event executed but do not assign \(\assign(x'_{c})\) in the dispatchable form of
-\(S'\).
+For any contingent event \(x'_{c} \in X_{c}\) in fixed-delay controllable \(S'\), which is transformed
+from \(x_{c} \in X_{c}\) in variable-delay controllable \(S\), if \(\gamma(x'_{c}) = \infty\), we mark the
+event executed but do not assign \(\assign(x'_{c})\) in the dispatchable form of \(S'\).
 \end{lemma}
 
 \begin{proof}
@@ -2270,12 +2309,6 @@ to guarantee controllability and may safely ignore it.
 
 We mark the event executed to prevent it from appearing in future RTEDs.
 \end{proof}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=3in]{images/viz-l-plus.png}
-\caption{\label{fig:observations}Here, we show how the combination of \(\assign(x_{c})\) and \(\gammabar(x_{c})\) lead to an assignment of \(\assign(x'_{c})\) in \(S'\). We see the range \(\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})\) representing the earliest and latest assignments of \(\assign(x_{c})\) that could result in \(\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})\), l\^{}+(x\textsubscript{c})]\$. The grey region represents the range of possible observation delays, \(\gammabar(x_{c})\), supporting \(\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]\).}
-\end{figure}
 
 The second category refers to the need for buffering and imagining events as a result of Lemma
 \ref{lemma:main-tightening} using the execution strategy proven to be valid in Lemma
@@ -2303,11 +2336,13 @@ u^-(x_{c})  & \text{if } \obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})] \mathit{~(imag
 \end{cases}
 \end{equation}
 
-In the first case, we cannot immediately schedule buffered events. It may be the case that there are
-other unexecuted timepoints between \(\obs(x_{c})\) and \(l^+(x_{c})\). If we make an assignment at
-\(l^+(x_{c})\), we would be preempting later timepoints, which would cause us to later make
-assignments in the past, which invalidates our assumptions of partial history. Thus, we buffer
-\(x'_{c}\) in the sense that we must wait until \(l^+(x_{c})\) to assign \(\assign(x'_{c}) = l^+(x_{c})\).
+In the first case, we cannot immediately schedule buffered events. This is a key distinction between
+a delay scheduler and existing dynamic schedulers. It may be the case that, despite observing an
+event, we must wait to perform the assignment. If we make an assignment at \(l^+(x_{c})\), we would be
+preempting events that could be assigned before \(l^+(x_{c})\). Doing so would cause us to later make
+assignments out of order, violating the assumptions in place while checking controllability. Thus,
+we buffer \(x'_{c}\) in the sense that we must wait until \(l^+(x_{c})\) to assign \(\assign(x'_{c}) =
+l^+(x_{c})\).
 
 In the last case, late observations are assigned to an earlier time. During execution, time is
 always increasing. There is no need to wait to make an observation after \(u^-(x_{c})\). Instead, we
@@ -2325,7 +2360,10 @@ t &= \min\{t_{x}, t_{c}\} \\
 \chi &= \chi_{x} \cup \chi_{c}
 \end{align}
 
-We see that RTEDs may now include unobserved (or unexecuted) contingent timepoints at their upper
+Note that we allow RTEDs where \(t\) is the current time. Hunsberger presents an addendum in
+\citeprocitem{15}{[15]} p.129 that guarantees that \(t\) is greater than the current time.
+
+We see that RTEDs may now include unobserved (or unexecuted) uncontrollable events at their upper
 bounds. Note that there is no need to distinguish between contingent events that are the result of
 tightening during the fixed-delay transformation by applying Lemma \ref{lemma:main-tightening} and others.
 We assume that the contingent constraints of the variable-delay STNU accurately reflect Nature. The
@@ -2343,7 +2381,7 @@ We have addressed the key issue of reconciling observations from \(S\) with the 
 that combine to add robustness for variable observation delay.
 
 \section{Experimental Analysis}
-\label{sec:org94c4c08}
+\label{sec:org7ffc546}
 \label{sec:scheduling-experimental}
 
 We first introduce an example which models a construction task on the lunar surface that will be
@@ -2355,7 +2393,7 @@ execution strategy, the dispatching routine, and observations. All benchmark cod
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=1\textwidth]{images/dish-install-stnu.png}
-\caption{\label{fig:dish-stnu}An STNU representing the installation and test of repeater antennas. Each row represents a single rover. The episode durations are representative of the bounds used in simulation.}
+\caption{\label{fig:dish-stnu}An STNU roughly representing the installation and test of repeater antennas. Each row represents a single rover. The episode durations are representative of the bounds used in simulation. Circles with solid lines represent controllable events, while dashed lines are uncontrollable events.}
 \end{figure}
 
 It is possible that, before NASA is ready to grow the population of a lunar base, there is a need to
@@ -2404,10 +2442,10 @@ contingent constraint \([l, u]\). If we observe \(x_{c}\) at some time \(t\), wh
 Dijkstra SSSP subroutine may unexpectedly find a negative edge and raise an error. We have been
 able to replicate the problem for specific STNUs with specific observations, and, as of the time of
 this writing, we are still investigating the cause. We do not believe it meaningfully impacts the
-validity of the benchmarks below.
+validity of the benchmarks or experiments in this thesis.
 
 \subsection{Scheduling}
-\label{sec:org53fc295}
+\label{sec:orgf82f4f8}
 
 We start with the runtime performance of schedule updates. There can be runtime variance for each
 individual call to the scheduling update routine, so we focus on the total time spent scheduling all
@@ -2439,7 +2477,7 @@ as automated memory management.
 \end{figure}
 
 \subsection{Event Observations}
-\label{sec:org1049d11}
+\label{sec:org303a9b8}
 
 Next, we examine the runtime characteristics of event observations. While generating VDC STNUs, we
 also collected possible ranges of time to observe the confirmation event. As scheduling progressed,
@@ -2461,7 +2499,7 @@ this graph is due to small sample sizes.
 \end{figure}
 
 \chapter{An Executive for Scheduling with Observation Delay}
-\label{sec:org5fa7765}
+\label{sec:org96c7943}
 \label{ch:technical-executive}
 
 A delay scheduler is only useful if there is a system capable of dispatching the actions associated
@@ -2492,7 +2530,7 @@ the performance of the delay dispatcher, however, experimentation with a full De
 are presented in Section \ref{sec:ma-experimental}.
 
 \section{Dynamic Dispatching of STNUs with Observation Uncertainty}
-\label{sec:org49e5414}
+\label{sec:org912e66e}
 \label{sec:delay-scheduler}
 
 We assume that events in an STNU map one-to-one with actions in the real world. To put the design of
@@ -2541,7 +2579,7 @@ observing events. But first, we present a novel view on RTEDs that is required f
 events to real hardware in Section \ref{sec:real-vs-noop-events}.
 
 \subsection{Guaranteeing Agents Receive Actionable Events}
-\label{sec:orgf4bc58c}
+\label{sec:orgf71e075}
 \label{sec:real-vs-noop-events}
 
 We take the view that events in an STNU may be interpreted as commands by the driver. It is improper
@@ -2608,26 +2646,18 @@ For convenience and simplicity, and given the similarities between RTED and RTED
 Distinction, future references to RTEDs will always refer to RTEDs with Operational Distinctions.
 
 \subsection{Dispatching Actions Dynamically}
-\label{sec:orge31bb2b}
+\label{sec:org68e5714}
 \label{sec:dynamic-dispatching}
 
 The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. It consists
-of a dispatching routine and some type of outer loop monitoring it. The dispatching routine,
-Algorithm \ref{alg:dispatcher-inner}, is responsible for retrieving the latest RTEDs and dispatching
-actions when the clock indicates that the agent has reached time \(t\) corresponding to the latest
-RTED. The outer loop allows the dispatching routine to run until the scheduler reports there are no
-requirement events remaining.
+of a dispatching routine and some type of outer loop monitoring it. The interaction between the
+dispatching routine and monitoring loop is limited. The algorithms are presented below. First we
+provide a walkthrough of the dynamic dispatching algorithm.
 
-We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
-\emph{schedule} here is shorthand for whatever data structures the scheduler uses to generate RTEDs.
-\emph{Updating the schedule} refers to running the fixed-delay FAST-EX update, Algorithm
-\ref{alg:fast-ex-fixed-obs}, using the variable-delay execution strategy from Section
-\ref{sec:delay-scheduling}.
-
-The interaction between the dispatching routine and monitoring loop is limited. Algorithm
-\ref{alg:dispatcher-inner} returns a Boolean indicating whether there are executable events remaining.
-Here, the monitoring loop, Algorithm \ref{alg:dispatcher-outer} is a simple \texttt{while} that repeats until it
-receives \texttt{false} from the inner loop.
+We now provide a walkthrough . For simplicity's sake, the term \emph{schedule} here is shorthand for
+whatever data structures the scheduler uses to generate RTEDs. \emph{Updating the schedule} refers to
+running the fixed-delay FAST-EX update, Algorithm \ref{alg:fast-ex-fixed-obs}, using the variable-delay
+execution strategy from Section \ref{sec:delay-scheduling}.
 
 We break the dispatching routine into three distinct phases.
 
@@ -2674,9 +2704,9 @@ observations is a delay dispatcher's handling of buffered events (see Lemma
 need to be buffered, a delay dispatcher must take responsibility for buffered events. A delay
 dispatcher should record which events need to be buffered, and how long they should be buffered.
 
-Algorithm \ref{alg:choose-event-noops} provides a subroutine in which we compare a new RTED and any
-buffered events to the history of actions dispatched so far. Let \(t\) be the current time. It outputs
-a set of \eventnoops consisting of:
+To find the \(\eventnoop\) pairs to dispatch, we compare a new RTED and any buffered events to the
+history of actions dispatched so far. Let \(t\) be the current time. We want to find a set of
+\eventnoops consisting of:
 
 \begin{enumerate}
 \item any event buffered to \(t\),
@@ -2692,8 +2722,7 @@ A history of actions is necessary to avoid dispatching the same action more than
 dispatcher loop is running quickly and actions are dispatched asynchronously, then the loop may
 iterate one or more times between dispatching an action and observing its associated event.
 
-If Algorithm \ref{alg:choose-event-noops} returns no \(\eventnoop\) pairs, we end this iteration by
-returning \texttt{true}.
+If there are no \(\eventnoop\) pairs, we end this iteration by returning \texttt{true}.
 
 Once we reach the third stage, we are guaranteed to be able to dispatch valid actions because (1) we
 have confirmed that the \(\eventnoops\) we have in hand have never been dispatched, and (2) we are in
@@ -2705,11 +2734,6 @@ to the driver.
 
 All \(\eventnoops\) that were dispatched are added to the history to prevent them from being
 dispatched again. Finally, because events were dispatched, the dispatching routine returns \texttt{true}.
-
-We benefit greatly from using instance-based properties. The implementation of the delay dispatcher
-for this thesis uses slots on a \texttt{dispatcher} class to manage inputs to the dispatcher, which are
-then accessed by reference. All inputs to Algorithm \ref{alg:dispatcher-outer} can be properties on an
-instance of a delay dispatcher class.
 
 \begin{algorithm}
 \SetAlgoLined
@@ -2844,6 +2868,16 @@ Add \texttt{event-noops} to \texttt{history}\;
 \label{alg:dispatcher-inner}
 \end{algorithm}
 
+The monitoring loop, Algorithm \ref{alg:dispatcher-outer} is a simple \texttt{while} that repeats until it
+receives \texttt{false} from the dispatching routine, Algorithm \ref{alg:dispatcher-inner}. The dispatching
+routine returns a Boolean indicating whether there are executable events remaining. Algorithm
+\ref{alg:choose-event-noops} implements the subroutine for selecting \(\eventnoop\) pairs to dispatch.
+
+We benefit greatly from using instance-based properties. The implementation of the delay dispatcher
+for this thesis uses slots on a \texttt{dispatcher} class to manage inputs to the dispatcher, which are
+then accessed by reference. All inputs to Algorithm \ref{alg:dispatcher-outer} can be properties on an
+instance of a delay dispatcher class.
+
 The biggest factor for the performance of the dispatching routine, Algorithm
 \ref{alg:dispatcher-inner}, is updating the schedule. Assuming the \emph{Scheduler} is the Delay Scheduler
 described in Section \ref{sec:delay-scheduler}, then performing an assignment of an event will trigger the
@@ -2854,7 +2888,7 @@ would trigger a schedule update. Thus, the dynamic dispatching routine runs in \
 worst case.
 
 \subsection{Observing Contingent Events}
-\label{sec:org3cc15a9}
+\label{sec:orgdf81f05}
 \label{sec:event-observations}
 
 The dispatcher relays contingent event observations to the scheduler. In the base case, when a
@@ -2867,7 +2901,7 @@ constraint as the key. By Lemma \ref{lemma:buffering-imagining}, the lower bound
 some uncontrollable event \(x_{c}\).
 
 \subsection{Experimental}
-\label{sec:org11fc3a9}
+\label{sec:orgc001169}
 
 Finally, we benchmark action dispatching. In our simulated environments for dispatching, we run the
 dispatcher function as described in Algorithm \ref{alg:dispatcher-inner} twice per simulated second. (We
@@ -2885,7 +2919,7 @@ calls to Algorithm \ref{alg:dispatcher-inner} indeed follows \(O(N^{2} \log N)\)
 \caption{\label{fig:runtime-tick-aggregate}Average runtime data for running Algorithm \ref{alg:dispatcher-inner}.}
 \end{figure}
 \section{Architecture}
-\label{sec:orgf910ca2}
+\label{sec:org1caca55}
 
 We present a view of the Delay Kirk architecture that focuses attention to its scheduling and
 dispatching capabilities. Kirk takes RMPL \citeprocitem{16}{[16]} as input and produces actions as output
@@ -2926,7 +2960,7 @@ delay STNU.
 RTEDs that the delay scheduler outputs are sent to a delay dispatcher.
 
 \section{RMPL}
-\label{sec:org44df43b}
+\label{sec:org2f0c33f}
 \label{sec:rmpl}
 
 RMPL \citeprocitem{38}{[38]} is a key component of Kirk. This section steps through example RMPL
@@ -3127,7 +3161,7 @@ form.
 See Appendix \ref{appendix:rmpl} for further discussion of RMPL.
 
 \chapter{Coordinating Multiple Agents under Uncertain Communication}
-\label{sec:orgc6bcda1}
+\label{sec:org6a56f56}
 \label{ch:technical-coordination}
 
 In this chapter, we present a novel MA framework for dynamic event scheduling with inter-agent
@@ -3163,7 +3197,7 @@ analysis of our event propagation algorithms, and the results of hardware demons
 Kirk using a robotic arm and a simulated astronaut.
 
 \section{Event Propagation}
-\label{sec:org14496f7}
+\label{sec:org478063c}
 \label{sec:event-propagation}
 
 At a high level, scheduled events propagate through a simple directed graph of connected executives.
@@ -3321,8 +3355,17 @@ it takes to transmit messages between agents, which, to reiterate, should be mod
 functions for any inter-agent temporal constraints.
 
 \section{Modeling Inter-Agent Constraints}
-\label{sec:org29e1665}
+\label{sec:orgc52d951}
 \label{sec:ma-control-programs}
+
+We have assumed that for multi-agent collaboration, all instances of Kirk have their own constraint
+programs. The instances of Kirk used to evaluate multi-agent delay scheduling (Sections
+\ref{sec:dkirk-simulation} and \ref{sec:hw-demo}) both rely on the existence of constraint programs in RMPL that
+accurately reflect the uncertainty in their respective environments. The design of said constraint
+programs for multiple agents is not obvious when there is observation uncertainty and inter-agent
+constraints. Communication delays naturally cause agents to disagree as to the exact timing of
+events. Below, we introduce a strategy for synchronizing multiple agents with observation
+uncertainty.
 
 Consider two agents, \texttt{agent1} and \texttt{agent2}, that are scheduling STNUs \(S_{1}\) and \(S_{2}\)
 respectively. \(S_{1}\) and \(S_{2}\) share a subset of semantically similar episodes, \(e_{1}\) and
@@ -3450,17 +3493,17 @@ Synchronization episodes allow inter-agent constraints with observation delay to
 impacting the ordering of events. They are used to separate control programs in the hardware
 demonstration in Section \ref{sec:hw-demo}.
 
-
 \section{Experimental Analysis}
-\label{sec:orge7eaace}
+\label{sec:org17f8e86}
 \label{sec:ma-experimental}
 
 We performed two demonstrations of the Event Propagation algorithm. The first was a hardware
 demonstration performed on a Barrett WAM manipulator in the MERS lab. The second is a multi-agent
-simulation showcasing inter-agent constraints. Both will be described below.
+simulation showcasing the ability for multiple Kirks to share events and respect inter-agent
+constraints. Both will be described below.
 
 \subsection{Distributed Kirk Simulation}
-\label{sec:org33b61dc}
+\label{sec:org63052b8}
 \label{sec:dkirk-simulation}
 
 To demonstrate multi-agent communication, we built a simulation of an end-to-end mission with three
@@ -3671,7 +3714,7 @@ to avoid overlapping installation tasks using a communication architecture that 
 communication.
 
 \subsection{Hardware Demonstration}
-\label{sec:orgfb45a99}
+\label{sec:org2c6d0a2}
 \label{sec:hw-demo}
 
 We envision a scenario with an astronaut and a robot coordinating on the lunar surface. The
@@ -3987,8 +4030,13 @@ despite not receiving communication from the astronaut about the end of the astr
 science experiment.
 
 \chapter{Future Work and Conclusion}
-\label{sec:orge85be9e}
+\label{sec:org47a105c}
 \label{ch:discussion}
+
+We highlight two areas for future work.
+
+\section{Expanding the Execution Space of the Delay Scheduler}
+\label{sec:orgd89452a}
 
 The execution decisions produced by the delay scheduler are dependent on the strategy for checking
 VDC as presented in Chapter \ref{ch:modeling-tn}. While the delay scheduler has been shown to be
@@ -4047,16 +4095,11 @@ As shown in Appendix \ref{appendix:optimistic-rescheduling}, the total time to s
 \(O(\cfrac{1}{2} N^{2} (N + 1) \log N)\) in the worst case due to step 4.
 
 Ideally, we would not need to reschedule past events to change future constraints. Future work could
-entail finding a procedure for tightening the current dispatchable form directly instead of
+entail defining a procedure for tightening the current dispatchable form directly instead of
 rescheduling the entire run from scratch.
 
-What if we looked for conflicts? Could we possibly search for a time to dispatch early in the
-buffered execution space?
-
-Smarter rewriting STNU. Could we update the existing d-graph directly and check it for SRNCs? maybe?
-
 \section{Coordination}
-\label{sec:orgedc84c5}
+\label{sec:org9fa81a1}
 \label{sec:mastnus}
 
 We were focused on addressing the multi-agent (MA) online scheduling problem. Before scheduling, we
@@ -4083,13 +4126,13 @@ responsible for then handing events to agents. We also assume that there is no c
 making HR a poor fit for our problem domain.
 
 Both MASTNUs and HR assume communications between agents are either instantaneous or impossible,
-i.e. with an infinite delay. As we will see in Section \ref{sec:vdc}, our formalism for variable
-observation delay allows a \emph{spectrum} of communication delay. While we felt it was possible to
-shoehorn uncertain observation delay into MASTNUs or HR, we felt both were a poor choice because of
-their pre-existing expectations with respect to communication. In combination with our focus on
-online scheduling, we decided to forgo extending either formalism to account for observation delay.
-Instead our planning process simply consists of manually writing variable-delay STNUs with
-intra-agent and inter-agent temporal constraints by hand.
+i.e. with an infinite delay. As we saw in Section \ref{sec:vdc}, our formalism for variable observation
+delay allows a \emph{spectrum} of communication delay. While we felt it was possible to shoehorn
+uncertain observation delay into MASTNUs or HR, we felt both were a poor choice because of their
+pre-existing expectations with respect to communication. In combination with our focus on online
+scheduling, we decided to forgo extending either formalism to account for observation delay. Instead
+our planning process simply consists of manually writing variable-delay STNUs with intra-agent and
+inter-agent temporal constraints by hand.
 
 We believe it may be possible for MASTNUs or HR to be expanded to include variable observation
 delay, though we leave that problem for future research.
@@ -4107,14 +4150,29 @@ the explicitly modeled communications of the VDC formalism. Furthermore, the VDC
 to model that agents never receive communications, negating the requirement for distributed
 consensus.
 
-
 \section{Conclusion}
-\label{sec:org1785def}
+\label{sec:orgcdf876f}
+In summary, we contributed the following to temporal reasoning research.
+
+\begin{description}
+\item[{A Scheduler for Uncertain Observations}] Past work in temporal reasoning has provided a sound and
+complete online algorithm for dispatching controllable events given all other event assignments up
+to the current time \citeprocitem{15}{[15]}. We contribute an online method for scheduling that
+guarantees that all temporal constraints will be satisfied given uncertain observations.
+\item[{An Online Dispatcher for Dispatching Events to Hardware}] State of the art schedulers are limited
+in that they output execution decisions, which act like instructions as to when to act rather than
+actions themselves \citeprocitem{15}{[15]}. We contributed a dispatching algorithm for enacting
+execution decisions on robotic hardware in the face of uncertain observations.
+\item[{Distributed, Multi-Agent Coordination through Uncertain Communications}] We contributed a
+coordination algorithm that allows multiple agents, each using the scheduling and dispatching
+contributions described above, to share knowledge of event observations. The result is a
+multi-agent scheduling procedure for environments with uncertain communication.
+\end{description}
 
 \appendix
 
 \chapter{Comparison of Variable-Delay STNUs to Partially Observable STNUs}
-\label{sec:org1015180}
+\label{sec:orgd4c1cc8}
 \label{appendix:postnus}
 
 The delay scheduler is flexible in that so long as it receives a variable-delay STNU, it is capable
@@ -4277,14 +4335,14 @@ that can be controllability checked, and as such we advocate for continued devel
 of variable-delay controllability as a relevant framework for modelers.
 
 \chapter{Additional RMPL Information}
-\label{sec:orgcf9efa9}
+\label{sec:org17183f0}
 \label{appendix:rmpl}
 
 Modeling constraint programs in RMPL was required for the multi-agent demonstrations of a delay
 scheduler. We include additional information on RMPL below.
 
 \section{Control Programs and STNUs}
-\label{sec:orgdf3ee83}
+\label{sec:orgf55fa68}
 
 Key to the challenge of being a mission planner is to understand the constraints between events.
 RMPL is an abstraction layer, meaning that it will interpret RMPL and produce a delay STNU
@@ -4416,7 +4474,7 @@ If we need to translate events between the two forms, we simply note that event 
 one place earlier in the delay STNU generated by RMPL.
 
 \section{Action Model}
-\label{sec:org732b2ad}
+\label{sec:orgcdb3d2e}
 \label{sec:rmpl-agents}
 
 This section is included to expand on the features of RMPL, though note that none of these features
@@ -4492,7 +4550,7 @@ Kirk is able to take RMPL as input to perform classical planning, though further
 falls outside the scope of this thesis.
 
 \chapter{Optimistic Rescheduling}
-\label{sec:orgb769801}
+\label{sec:org5f3e523}
 \label{appendix:optimistic-rescheduling}
 
 We return to problem of potentially unnecessary wait time created by the buffering execution

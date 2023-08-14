@@ -1,10 +1,13 @@
 #+title: Technical VDC
 
 * COMMENT
-** TODO did we ever define RTEDs?
-** TODO I don't think defn:situation-comparisons is necessary at all
+** DONE did we ever define RTEDs?
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:49]
+** DONE I don't think defn:situation-comparisons is necessary at all
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:49]
 I'm not convinced situations in general need to be included. we don't use them in the buffering/imagining proof now
-** TODO s/X_r/X_e/g
+** DONE s/X_r/X_e/g
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:49]
 ** old proof for buffering and imagining
 Based on the derivations above, it is clear that $\mu(x'_{c})$ maps to the observation space where
 there is ambiguity as to the projection of $\assign(x_{c}) \in [l, u]$. We must also show that
@@ -51,13 +54,26 @@ range of the observation space when we map to $S$.
 
 Thus, $\mu(x'_{c})$ maps to the maximum of the range of $\omega_{v}(x_{c})$. The transition creates
 assignments in $S'$ that map to the entire $\omega_{v}(x_{c})$ in $S$.
-** TODO fig:obs-assign needs the right variables
-** TODO fix the tables in the experimental section!
-** TODO figure numbering is messed up in the experimental section
+** DONE fig:obs-assign needs the right variables
+- State "DONE"       from "TODO"       [2023-08-13 Sun 20:58]
+** DONE fix the tables in the experimental section!
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:49]
+** DONE figure numbering is messed up in the experimental section
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:49]
 ** DONE copy in parts of the VDC experimental section!
 
 - State "DONE"       from "TODO"       [2023-07-16 Sun 22:57]
-** TODO s/safe/valid
+** DONE s/safe/valid
+
+- State "DONE"       from "TODO"       [2023-08-13 Sun 20:58]
+** a diagram
+#+label: fig:observations
+#+attr_latex: :width 3in
+#+caption: Here, we show how the combination of $\assign(x_{c})$ and $\gammabar(x_{c})$ lead to an assignment of $\assign(x'_{c})$ in $S'$. We see the range $\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})$ representing the earliest and latest assignments of $\assign(x_{c})$ that could result in $\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})$, l^+(x_c)]$. The grey region represents the range of possible observation delays, $\gammabar(x_{c})$, supporting $\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$.
+[[file:../images/viz-l-plus.png]]
+
+** TODO might be worth dropping execution space stuff
+
 * Modeling Temporal Constraints with Uncertain Observation Delay
 <<ch:modeling-tn>>
 
@@ -75,10 +91,7 @@ The three aims of this chapter are to
 1. model temporal constraints with uncertain observation delay,
 2. define a consistency (controllability) checking procedure for temporal networks with uncertain
    observation delay, and
-3. prove that the execution strategy assumed by the controllability checking procedure is safe.
-
-# and the interaction between scheduling components and dispatching components within an executive.
-# Essentially, this chapter describes the process of single-agent execution with observation delay.
+3. prove that there is a valid execution strategy for all resolutions of uncertainty.
 
 In Section [[sec:tn]], we address aim (1) by outlining the necessary definitions for modeling temporal
 networks. Sections [[sec:fdc]] and [[sec:vdc]] describe our chosen model for temporal constraints with
@@ -86,17 +99,12 @@ uncertain observation delay, and address aim (2) by presenting a procedure for c
 consistency thereof. Sections [[sec:fdc]] and [[sec:vdc]] are largely based on the work originally put forth
 by Bhargava et. al., [cite:@Bhargava2018;@Bhargava2018a;@Bhargava2020;] with additional
 contributions by us as highlighted below. Notably, Section [[sec:vdc]] addresses aim (3) by contributing
-novel proofs that the execution strategy assumed to exist by Bhargava et. al. is safe. We conclude
+novel proofs that the execution strategy assumed to exist by Bhargava et. al. is valid. We conclude
 with experimental analysis of our chosen consistency checking procedure in Section
 [[sec:vdc-experimental]] using example temporal constraint networks inspired by lunar exploration.
 
-# Section [[sec:dynamic-scheduling]] lays the ground work for scheduling with observation delay by
-# describing relevant aspects of Hunsberger's FAST-EX dynamic scheduling algorithm
-# [cite:@Hunsberger2016], which we build off of in section
-
 ** Temporal Networks
 <<sec:tn>>
-# largely copying this from our VDC paper
 
 Temporal networks form the backbone of our architecture for temporal reasoning under observation
 delay. Simple Temporal Networks (STNs) offer the basic building blocks for most expressive temporal
@@ -127,6 +135,8 @@ in $R$. We use the notation $\assign(x)$ to represent a mapping from an event, $
 \rightarrow \mathbb{R}$, in the schedule. A schedule is /complete/ if all $x \in X$ are assigned
 times in $\assign$. An STN is /consistent/ if it has at least one feasible schedule that assigns all
 events in $X$.
+
+The set of all possible schedules is $\Xi$.
 
 An STN is consistent if and only if there is no negative cycle in its equivalent distance graph
 [cite:@Dechter1991]. Let $n$ be the number of events in a temporal network and $m$ to be the number
@@ -183,39 +193,15 @@ resolved.
 
 For an STNU $S$ with $k$ contingent constraints $\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
 \langle e_{k}, c_{k}, l_{k}, u_{k} \rangle$, each \textit{situation}, $\omega$, represents a
-possible set of values for all links in $S$, $\omega = (\omega_{1}, \cdots, \omega_{k}) \in \Omega$.
-The \textit{space of situations} for $S$, $\Omega$, is $\Omega = [e_{1}, c_{1}] \times \cdots \times
-[e_{k}, c_{k}]$.
+possible set of durations for all links in $S$, $\omega = (\omega_{1}, \cdots, \omega_{k}) \in
+\Omega$. The \textit{space of situations} for $S$, $\Omega$, is $\Omega = [l_{1}, u_{1}] \times
+\cdots \times [l_{k}, u_{k}]$.
 #+latex: \end{defn}
 
 Each /situation/ in the /space of situations/, $\omega \in \Omega$, represents a different
 assignment of contingent links in the schedule [cite:@Vidal1999]. We may represent the situation for
 a specific constraint as $\omega_{i}$ for the i-th constraint in $S$, or $\omega(x_{c})$ for
 contingent event $x_{c}$.
-
-# Situations are sets of intervals. To examine spaces of situations, we can
-# make the following comparisons.
-
-# # TODO what if j = 1 or j = k for the second item?
-# # TODO reread hunsberger and make sure this makes sense re: use of \omega
-
-# #+label: defn:situation-comparisons
-# #+latex: \begin{defn}
-# #+latex: \label{defn:situation-comparisons}
-# *Comparisons of Spaces of Situations*
-
-# Given two spaces of situations, $\Omega_{1}$ and $\Omega_{2}$, with contingent link $j$, $1 \leq j
-# \leq k$,
-# - $\Omega_{1} = \Omega_{2}$ if and only if $\omega_{1} = \omega_{2} \forall \omega_{1} \in
-#   \Omega_{1} \forall \omega_{2} \in \Omega_{2}$
-# - $\Omega_{1} \subset \Omega_{2}$ if situation $j$ in $\Omega_{1}$ is a subset of situation $j$ in
-#   $\Omega_{2}$, $\omega_{1j} \subset \omega_{2j}$, and all other situations are equivalent
-# - $\Omega_{1} \subset \Omega_{2}$ if $\Omega_{1}$ omits contingent link $j$, e.g. $\displaystyle
-#   \Omega_{1} = \prod^{k}_{\substack{i=1 \\ i \neq j}} [e_{1i}, c_{1i}]$, and all other situations
-#   are equal.
-# #+latex: \end{defn}
-
-# $\Omega_{1} = [e_{1}, c_{1}] \times \cdots [e_{j - 1}, c_{j - 1}] \times \cdots [e_{j+1}, c_{j+1}] \times \cdots \times [e_{k}, c_{k}]$
 
 Situations may be applied to STNUs.
 
@@ -238,10 +224,11 @@ $\mathcal{S}~:~\Omega \rightarrow \Xi$.
 #+latex: \end{defn}
 
 An /execution strategy/ then naturally maps a specific resolution of the uncertainty of the
-contingent constraints to a set of assignments for the events of an STNU. For an STNU, time
-monotonically increases and we only observe /activated/ contingent events, or those contingent
-events at the tail of a contingent link whose free event predecessor has been executed. As such, we
-modify our definition of $\assign$.
+contingent constraints to a set of assignments for the events of an STNU. (Note that we use the
+convention of assuming that the STNU exhibits /dynamic controllability/, which will be described
+below.) For an STNU, time monotonically increases and we only observe /activated/ contingent events,
+or those contingent events at the tail of a contingent link whose free event predecessor has been
+executed. As such, we modify our definition of $\assign$.
 
 #+latex: \begin{defn}
 *Partial Schedule*
@@ -251,7 +238,7 @@ A /partial schedule/, $\assign$, is a mapping from a proper subset of events in 
 #+latex: \end{defn}
 
 As a proper subset, $\assign$ represents an assignment of events /so far/ during the execution of an
-STNU. From here on, $\assign$ refers to a partial schedule. If $X' = X_{e} \cup \X_{c}$, then the
+STNU. From here on, $\assign$ refers to a partial schedule. If $X' = X_{e} \cup X_{c}$, then the
 schedule is complete.
 
 To determine whether an STNU is controllable, we determine whether there exists a /valid/ execution
@@ -260,7 +247,7 @@ strategy for it.
 #+latex: \begin{defn}
 *Valid Execution Strategy*
 
-A /valid/ $\mathcal{S}$ is one that enforces that, for any $\omega_{f} \in \Omega_{f}$, the
+A /valid/ $\mathcal{S}$ is one that enforces that, for any $\omega \in \Omega$, the
 outputted decision respects all existing temporal constraints and ensures the existence of a
 subsequent valid execution strategy following that action.
 #+latex: \end{defn}
@@ -286,9 +273,6 @@ has passed from the initial assignment, if ever. Fixed-delay controllability use
 function/ to encode the delay between when an event occurs and when it is observed by a scheduling
 agent. We sometimes refer to an STNU with an associated fixed-delay function as a /fixed-delay
 STNU/.
-
-# We prefer this model because it is flexible enough to model most forms of event observation we would
-# expect to see in a real-time execution context.
 
 #+latex: \begin{defn}
 *Fixed-Delay Function* [cite:@Bhargava2018a]
@@ -322,11 +306,11 @@ function on event observations.
 *Fixed-Delay Situations*
 
 For an STNU $S$ with $k$ contingent constraints $\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
-\langle e_{k}, c_{k}, l_{k}, u_{k} \rangle$ and fixed-delay function $\gamma$, each
-\textit{fixed-delay situation}, $\omega_{f}$, represents a possible set of \textit{observed} values
-for all links in $S$, $\omega_{f} = (\omega_{f1}, \cdots, \omega_{fk})$. The \textit{space of
-situations} for $S$, $\Omega_{f}$, is $\Omega_{f} = [e_{1}, c_{1}] + [\gamma_{1}, \gamma_{1}] \times
-\cdots \times [e_{k}, c_{k}] + [\gamma_{k}, \gamma_{k}]$.
+\langle e_{k}, c_{k}, l_{k}, u_{k} \rangle$ and fixed-delay function $\gamma$, each /fixed-delay
+situation/, $\omega_{f}$, represents a possible set of \textit{observed} values for all links in
+$S$, $\omega_{f} = (\omega_{f1}, \cdots, \omega_{fk})$. The /space of situations/ for $S$,
+$\Omega_{f}$, is $\Omega_{f} = [l_{1} + \gamma_{1}, u_{1} + \gamma_{1}] \times \cdots \times
+[e_{k} + \gamma_{k}, c_{k} + \gamma_{k}]$.
 #+latex: \end{defn}
 
 To emphasize that the /observed/ value for an event is not the same as its assignment, we also use
@@ -344,13 +328,6 @@ subsequent valid execution strategy following that action.
 With the semantics of delayed observations in hand, we can define what it means for a fixed-delay
 STNU to be controllable.
 
-# Note that our choice to include an infinite delay allows us to model that certain events are
-# unobservable. While there are approaches that allow unobservable events and their constraints to be
-# compiled directly into a network \cite{vidal:controllability,zavatteri:strong}, decoupling
-# observation models from the events themselves makes it easy to evaluate controllability across
-# different observation models and to directly compare those models when agents have flexibility in
-# deciding when to communicate \cite{bhargava:communication-costs}.
-
 #+latex: \begin{defn}
 *Fixed-Delay Controllability* [cite:@Bhargava2018a]
 
@@ -362,10 +339,10 @@ execution.
 
 Importantly, fixed-delay controllability (FDC) generalizes the two concepts of controllability that
 are central to STNUs, strong and dynamic controllability. In particular, by using a fixed-delay
-function where we observe all events instantaneously, e.g. $\gamma(x_{c}) = 0 \forall x_{c} \in
+function where we observe all events instantaneously, e.g. $\gamma(x_{c}) = 0~\forall~x_{c} \in
 X_{c}$, checking fixed-delay controllability reduces to checking /dynamic controllability/.
 Similarly, a fixed-delay function that specifies we never observe any contingent events, e.g.
-$\gamma(x_{c}) = \infty \forall x_{c} \in X_{c}$, corresponds to checking /strong controllability/
+$\gamma(x_{c}) = \infty~\forall~x_{c} \in X_{c}$, corresponds to checking /strong controllability/
 [cite:@Vidal1999].
 
 As is the case for a vanilla STNU, evaluating whether a valid execution strategy exists for a
@@ -392,7 +369,6 @@ Morris and Muscettola [cite:@Morris2005], accounting for $\gamma$. More specific
 case where observation delay makes it impossible to receive information about a contingent event
 before its immediate successor. More detail can be found in [cite:@Bhargava2018b].
 
-# TODO why is the caption not showing up? check against others
 #+label: table:delay-reductions
 #+latex: \begin{table}[htb]
 #+latex: \label{table:delay-reductions}
@@ -430,9 +406,6 @@ uncertainty in observation delay, and thus uncertainty in contingent event assig
 the model, then we are forced to decide when to act despite imperfect knowledge of the partial
 history.
 
-# To reiterate, with variable observation delay, we no longer guaranteed to learn the true time when
-# contingent events were assigned.
-
 We now introduce this model in terms of definitions for a /variable-delay function/ and
 /variable-delay controllability/ (VDC) checking as applied to /variable-delay STNUs/. Since
 variable-delay semantics generalizes the notion of fixed-delay, as a matter of convenience, we also
@@ -465,10 +438,6 @@ By convention, we use $\gammabar^-(x_c)$ and $\gammabar^+(x_c)$ to represent the
 upper-bound, respectively, of the range representing the possible delay in observation, i.e.
 $\gammabar(x_{c}) \in [\gammabar^{-}(x_{c}), \gammabar^{+}(x_{c})]$.
 
-# TODO I'm pretty sure this is mentioned later! don't need it here.
-# For any fixed-delay function $\gamma$, we can produce a corresponding variable-delay function
-# $\gammabar$ where $\gammabar^+(x_{c}) = \gammabar^-(x_{c}) = \gamma(x_c)$.
-
 #+latex: \begin{defn}
 *Observation Projection*
 
@@ -496,16 +465,14 @@ Determining a real-valued mapping of a contingent event to the value of its assi
 schedule or $\assign(x_{c})$, is no longer guaranteed due to an interval bounded $\Gamma(x_{c})$. We
 must use interval-bounded contingent event assignments instead.
 
-# TODO we already defined schedule!
-
 #+label: def:schedule-as-interval
 #+latex: \begin{defn}
 #+latex: \label{def:schedule-as-interval}
 *Schedule*
 
 A /schedule/, $\assign$, when applied to contingent events, is a mapping of events to
-interval-bounded times, $\assign : X_{c} \rightarrow (\mathbb{R}^+ \cup \{\infty\}) \times
-(\mathbb{R}^+^+ \cup \{\infty\})$, where, for any contingent constraint, $0 \leq l_r \leq c_r - e_r
+interval-bounded times, $\assign : X_{c} \rightarrow (\mathbb{R}^{\geq 0} \cup \{\infty\}) \times
+(\mathbb{R}^{\geq 0} \cup \{\infty\})$, where, for any contingent constraint, $0 \leq l_r \leq c_r - e_r
 \leq u_r$, ending in contingent event $x_{c}$, $\assign(x_{c}) \in [l + \gammabar^{-}(x_{c}), u +
 \gammabar^{+}(x_{c})]$.
 #+latex: \end{defn}
@@ -517,8 +484,6 @@ constraint $l_r \leq x_r - y_r \leq u_r$ ending in requirement event $x_{e}$, $\
 We once again revise our definition of situations, $\Omega_{v}$, to reflect the impact of the
 variable-delay function on the space of observations.
 
-# TODO we may need a history of observations
-
 #+label: def:omega-v
 #+latex: \begin{defn}
 #+latex: \label{def:omega-v}
@@ -527,14 +492,14 @@ variable-delay function on the space of observations.
 For an STNU $S$ with $k$ contingent constraints $\langle e_{1}, c_{1}, l_{1}, u_{1} \rangle, \cdots,
 \langle e_{k}, c_{k}, l_{k}, u_{k} \rangle$ and variable-delay function $\gammabar$, each
 \textit{variable-delay situation}, $\omega_{v}$, represents a possible set of \textit{observed}
-values for all links in $S$, $\omega = (\omega_{v1}, \cdots, \omega_{vk})$. The \textit{space of
-situations} for $S$, $\Omega_{v}$, is $\Omega_{v} = [e_{1}, c_{1}] + [\gammabar^{-}_{1},
-\gammabar^+_{1}] \times \cdots \times [e_{k}, c_{k}] + [\gammabar^{-}_{k}, \gammabar^+_{k}]$.
+values for all links in $S$, $\omega = (\omega_{v1}, \cdots, \omega_{vk})$. The /space of
+situations/ for $S$, $\Omega_{v}$, is $\Omega_{v} = [l_{1} + \gammabar^{-}_{1}, u_{1} +
+\gammabar^+_{1}] \times \cdots \times [l_{k} + \gammabar^{-}_{k}, u_{k} + \gammabar^+_{k}]$.
 #+latex: \end{defn}
 
 We see that the space of observations has likewise grown in the transition to variable observation
-delay. If $\gammabar^{-} < \gammabar^{+}$, $\Omega_{v}$ for variable observation delay is strictly
-larger than $\Omega_{f}$ for fixed-observation delay and $\Omega$ for vanilla STNUs.
+delay. If $\gammabar^{-} \neq \gammabar^{+}$, $\Omega_{v}$ for variable observation delay is
+strictly larger than $\Omega_{f}$ for fixed-observation delay and $\Omega$ for vanilla STNUs.
 
 Like the fixed-delay function for fixed-delay controllability, the variable-delay function relates
 an observation delay to a contingent event, independent of other events. We take a similar approach
@@ -550,19 +515,6 @@ if and only if for the space of situations, $\Omega_{v}$, there is an $\mathcal{
 satisfying schedule for requirement events during execution, $\xi$.
 #+latex: \end{defn}
 
-# Variable-delay controllability, VDC, is a generalization of fixed-delay controllability.
-
-# It is important to recognize that with VDC, we lose the guarantee that we can learn the exact
-# assignment of $x_{c}$. The only information we have is the time of our observation of $x_{c}$, which
-# is the summation of the resolution of $x_{c}$ and the resolution of the $\gammabar$ function.
-
-# TODO awk. just want to say that VDC checking and scheduling necessarily follow the same principles
-# laid out in the Lemmas
-# In order to guarantee that our real-time execution decisions maintain consistency with respect to
-# the modeled variable-delay STNU, our online scheduler needs to be consistent with the expectations
-# for scheduling laid out in the variable-delay controllability checking procedure, which we will
-# document during our discussion of delay scheduling in Section [[sec:delay-scheduling]].
-
 Determining whether a given variable-delay STNU, $S$, is variable-delay controllable has two
 components [cite:@Bhargava2018]. The first is to derive a fixed-delay STNU, $S'$, with
 fixed-observation delay, $\gamma$, that is equivalent with respect to controllability. The second is
@@ -573,12 +525,8 @@ links from $S$ to $S'$, and demonstrate their correctness with respect to observ
 following up with transformations to the requirement links to maintain the same scheduling semantics
 in $S'$.
 
-# TODO finish this. or move to to start of next section
-
 *** Variable-Delay to Fixed-Delay Transformations
 <<sec:vdc-to-fdc>>
-
-# TODO maybe put pipeline diagram here?
 
 We now show how we transform a variable-delay STNU to a fixed-delay STNU in order to perform
 fixed-delay controllability checking.
@@ -587,7 +535,6 @@ For the following lemmas, let $x_{c}$ be a contingent event in $S$ and variable-
 $\gammabar(x_{c})$. Let $x'_{c}$ be the transformed contingent event in $S'$ with fixed-delay
 function, $\gamma(x'_{c})$.
 
-# TODO replace g(x_c), a(x_c), o(x_c) with the real variables in the fig
 #+label: fig:obs-assign
 #+attr_latex: :width 3.5in
 #+caption: We visualize the relationship between realized assignments across $S$ and $S'$. In this example, each horizontal line is a timeline monotonically increasing from left to right. Dashed lines represent observation delays. We see how an assignment in $S$, $\assign(x_{c})$, realized observation delay, $\Gamma(x_{c})$, and an observation in $S$, $\obs(x_{c})$, contribute to an assignment in $S'$, $\assign(x'_{c})$.
@@ -595,33 +542,9 @@ function, $\gamma(x'_{c})$.
 
 Note that we receive $\obs(x_{c})$ from Nature, but make the assignment $\xi(x'_{c})$ in the
 dispatchable form of $S'$. To be clear, while $\assign(x_{c})$ is an interval, $(\mathbb{R} \cup
-\infty) \times (\mathbb{R} \cup \infty)$, $\assign(x'_{c})$ is in $\mathbb{R}$. For a fixed
-interval, e.g. $\obs(x_{c}) \in [t, t]$, we sometimes employ an equivalent representation,
+\infty) \times (\mathbb{R} \cup \infty)$, $\assign(x'_{c})$ is in $\mathbb{R} \cup \infty$. For a
+fixed interval, e.g. $\obs(x_{c}) \in [t, t]$, we sometimes employ an equivalent representation,
 $\assign(x_{c}) = t$.
-
-# #+name: eqn:obs-assign
-# #+begin_export tex
-# \begin{align}
-# \obs(x_{c}) &\in \assign(x_{c}) + \gammabar(x_{c}) \\
-# \obs(x_{c}) &\in [l, u] + [\gammabar^-(x_{c}), \gammabar^+(x_{c})] \label{eqn:obs-assign}
-# \end{align}
-# #+end_export
-
-# See Figure [[fig:obs-assign]] for a visualization of Equation [[eqn:obs-assign]].
-
-
-# TODO switch to ~obs(x_c)~ and ~assign(x_c)~? instead?
-
-# TODO next two paragraphs say the same thing?
-# Before we begin, we need to introduce new notation to describe assignments and observations /during
-# scheduling/. Asserting \assign(x_{c}) = y$, where $y \in [l, u]$, means that $x_{c}$ has been assigned to
-# $y$ in $S$. For a contingent event $x'_{c} \in S'$, let \assign(x'_{c})$ be the time recorded in AllMax.
-# Let $\obs(x_{c})$ be an observation of a contingent event, $x_{c} \in X_{c}$.
-
-# When, during execution, we learn $\obs(x_{c})$, we may represent it as a fixed-bounded range, eg.
-# $\obs(x_{c}) \in [t, t]$ for some $t$, $l \leq t \leq u$. We can then use a fixed-bounded $\obs(x_{c})$ to
-# narrow the ranges of \assign(x_{c})$ and $g(x_{c})$ using Equation [[eqn:obs-assign]]. This relationship will
-# be key for variable-delay STNU scheduling, described in Section [[sec:delay-scheduling]].
 
 Additionally, we sometimes apply $-$ and $+$ superscripts to $l$ and $u$ to denote the earliest and
 latest times respectively that an assignment at those bounds could be observed. For instance, the
@@ -653,10 +576,6 @@ We now have the necessary vocabulary and notation to step through the transforma
 $S'$. These lemmas were first presented in [cite:@Bhargava2018], with some refinement by us for the
 aforementioned journal article submission.
 
-# TODO, make sure this is the right defn!
-
-# TODO, I don't know if this makes sense...
-# TODO do we say we can map from \Omega_f back to \Omega_v? I think that's more important than being a subset. maybe we say \Omega_f captures all of \Omega_v?
 #+latex: \begin{defn}
 *Variable-Delay to Fixed-Delay Transformations*
 
@@ -667,11 +586,6 @@ where there are valid observation space mappings for all the contingent constrai
 Thus, if there is a satisfying $\mathcal{S}$ for the fixed-delay observation space of $S'$, it is guaranteed to
 simultaneously satisfy any situation in the variable-delay observation space, $\Omega_{v}$, of $S$.
 
-# identifying when we need to reconcile observations from $S$ with the dispatchable form from $S'$,
-# and how we do so.
-
-# TODO something about assignments in $S'$ constraining assignments in $S$?
-
 #+label: lemma:emulating-fixed
 #+latex: \begin{lemma}
 #+latex: \label{lemma:emulating-fixed}
@@ -681,7 +595,7 @@ $\gammabar(x_c)$ in $S'$ using $\gamma(x'_c) = \gammabar^+(x_c)$.
 
 #+latex: \begin{proof}
 We translate an already fixed-bounded observation delay in the form of $\gammabar(x_{c})$ to the
-equivalent fixed-delay function, $\gamma(x'_{c})$, thus $\omega_{f}(x'_{c}) = \omega_{v}(x_{c})$.
+equivalent fixed-delay function, $\gamma(x'_{c})$. Thus, $\omega_{f}(x'_{c}) = \omega_{v}(x_{c})$.
 #+latex: \end{proof}
 
 #+label: lemma:partially-unobservable
@@ -702,7 +616,7 @@ necessary.
 #+latex: \end{proof}
 
 #+label: fig:lemmas-combined
-#+attr_latex: :width 0.7\textwidth
+#+attr_latex: :width 0.6\textwidth
 #+caption: A visualization of the lemmas used to transform contingent links with variable observation delay and subsequent requirement links.
 [[file:../images/lemmas-combined.png]]
 
@@ -820,20 +734,6 @@ are not in $\omega_{f}(Y')$.
 \omega_{f}(Y') &\not\supset (b + \gammabar^+(Y), b + \gammabar^+(Y)]~~(\textit{"Late" observations})
 \end{align*}
 
-# TODO maybe remove?
-# By Lemma [[lemma:applied-execution]], the full range of possible assignments to $Z'$ is,
-
-# \begin{align*}
-# \xi(Z') &= [a + \gammabar^+(Y), b + \gammabar^-(Y)] + [u - \gammabar^-(Y), v - \gammabar^+(Y)] \\
-# \xi(Z') &= [a + u + (\gammabar^+(Y) - \gammabar^-(Y)), b + v]
-# \end{align*}
-
-# We do so by showing that by buffering an early observation
-# to $\xi(Y') = a + \gammabar^+(Y)$, we have a valid $\mathcal{S}$. In fact, the execution strategy
-# when $\xi(Y') = a + \gammabar^+(Y)$ is applicable to all early observations, $\obs(Y) = [a, a +
-# (\gammabar^+(Y) - \gammabar^-(Y))$.
-
-# TODO use < instead of leq?
 We address the early observations first. The range of early assignments of $\xi(Y)$ in $S$ that we
 care about are the ones that could produce an observation $\obs(Y) \leq a + \gammabar^+(Y)$, which
 is $\xi(Y) = [a, a + (\gammabar^+(Y) - \gammabar^-(Y))]$. We rewrite the range of early assignments
@@ -888,9 +788,6 @@ to its equivalent $x'_{c} \in X_{c}$ in $S'$. What remains is to address the tra
 requirement links, $x_{r} \in X_{r}$, in $S$ such that their transformed equivalents, $x'_{r} \in
 X_{r}$ in $S'$, express the same execution semantics in $S'$ as they did in $S$. We will demonstrate
 the correctness of the transformations after Lemma [[lemma:applied-execution]].
-
-# TODO can we not change our notation here? it's very confusing
-# FIXME NOTATION
 
 #+label: lemma:execution
 #+latex: \begin{lemma}
@@ -996,8 +893,6 @@ networks. VDC is sound because if it finds that $S'$ has a valid execution strat
 also be the case that $S$ has an execution strategy. VDC is complete because if it finds that $S'$
 is not controllable, then there exists a projection of $S$ that is uncontrollable, thus $S$ is not
 variable-delay controllable.
-
-# TODO O(N^3)?
 
 ** Experimental Analysis
 <<sec:vdc-experimental>>

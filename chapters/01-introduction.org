@@ -176,28 +176,31 @@ collectively urging humanity further into the cosmos with a sense of urgency tha
 since Apollo. We are witness to the great forces of political will, economics, and technological
 prowess launching our foothold beyond low Earth orbit and into planetary colonization. From every
 perspective, the scale of space exploration is staggering. It will take relentless effort from
-untold numbers of people, and our robotic partners, to usher us into the era where interplanetary
-travel and living off-world are commonplace. In every envisioned scenario for deep space
-exploration, there is a need to coordinate between agents, whether human or robotic, who must find a
-way to safely work together in the face of the communication challenges inherent to extreme
+untold numbers of people, and our robotic partners, to usher humanity into the era where
+interplanetary travel and living off-world are commonplace. In every envisioned scenario for deep
+space exploration, there is a need to coordinate between agents, whether human or robotic, who must
+find a way to safely work together in the face of the communication challenges inherent to extreme
 environments.
 
 There is good reason to design a system for coordination around the notion of uncertain
 communication. We take for granted that communication is easy in our civilized corners of the
 Earth's surface. Cellular signals and WiFi are security blankets, tricking us into thinking it must
-be easy for /everyone/ to communicate /everywhere/. The fact of the matter is that the communication
-is far from a given when you leave civilization. Consider low Earth orbit. The largest artificial
-satellite, the International Space Station (ISS), has been in orbit since 1998. Despite that, it
-still loses communication with the ground regularly. Satellites with much less robust infrastructure
-lose contact with the ground even more often. When astronauts set foot on the South Pole of the Moon
-soon as part of the Artemis program,[fn:: https://www.nasa.gov/specials/artemis/] they will find
-uncertain satellite coverage and the need to contend against local topology that is hostile to radio
-signals [cite:@Coan2020a]. Any robots working near a habitat, or any astronauts collecting samples
-nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
+be easy for /everyone/ to communicate /everywhere/. The fact of the matter is that communication is
+far from a given in the frontiers. Consider low Earth orbit. The largest artificial satellite, the
+International Space Station (ISS), has been in orbit since 1998. Despite that, it still loses
+communication with the ground regularly. Satellites with much less robust infrastructure lose
+contact with the ground even more often. When astronauts set foot on the South Pole of the Moon soon
+as part of the Artemis program,[fn:: https://www.nasa.gov/specials/artemis/] they will find
+uncertain satellite coverage and the need to contend against local topology that is unforgiving to
+radio signals [cite:@Coan2020a]. Any robots working near a habitat, or any astronauts collecting
+samples nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
 communications with nearby /in situ/ agents, let alone Mission Control on Earth. Communications may
 be delayed due to passing through multiple relays and the speed of light. Or communications may drop
-out altogether when agents accidentally walk behind a big boulder between them and the closest
-relay.
+out altogether when astronauts step behind a large boulder between them and the closest relay.
+
+This thesis will address on-the-fly task coordination under limited communication using human
+spaceflight, specifically spacewalks, as a motivating example. We provide more background here
+before outlining the rest of this thesis.
 
 The Artemis astronauts will continue a longstanding tradition in the U.S. space program of
 performing Extravehicular Activities (EVAs) [cite:@McBarron1994]. Like the Apollo astronauts of the
@@ -262,9 +265,9 @@ between their actions and the actions of their peers.
 # other agents while independently reasoning over communication delay to decide when to act.
 
 The gap in the current state of the art is that, to the best of our knowledge, there is no such
-scheduler that is capable of reasoning over the sources of uncertain communication and observation
-delay. Existing schedulers assume instantaneous communications, which is unreasonable on the lunar
-surface, or indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
+scheduler that is capable of reasoning over uncertain communication and observation delay. Existing
+schedulers assume instantaneous communications, which is unreasonable on the lunar surface, or
+indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
 collaborative capabilities that allow multiple agents to work together, especially in the presence
 of uncertain communication. This thesis leverages and contributes to temporal reasoning research to
 implement such a scheduler for multi-agent (MA) collaboration with uncertain communication, which we
@@ -606,31 +609,6 @@ We finally present a hardware demonstration with a Barrett WAM manipulator being
 Delay Kirk, with another Delay Kirk representing an astronaut's digital assistant. We demonstrate
 that Delay Kirk is able to dispatch actions to the Barrett WAM while receiving communications
 representing inter-agent constraints over HTTP.
-
-** COMMENT Summary of Contributions
-
-Here we present the specific contributions of this thesis that are required to address the gaps
-presented above.
-
-+ Safe Execution Strategy for Temporal Networks with Uncertain Observation Delay :: Past work on the
-  study of temporal networks with variable observation delay has provided a sound and complete
-  method for proving the controllability given a set of constraints and uncertain observation delay
-  [cite:@Bhargava2018]. We contribute an execution strategy that builds off the controllability
-  checker and is valid for all resolutions of uncertainty realized during execution.
-+ An Online Scheduler for Temporal Networks with Uncertain Observation Delay :: Past work in
-  temporal reasoning has provided a sound and complete online algorithm for dispatching controllable
-  events given all other event assignments up to the current time [cite:@Hunsberger2016]. We
-  contribute an extension to online scheduling that implements the execution strategy for uncertain
-  observation delay.
-+ An Online Dispatcher for Dispatching Events to Hardware :: State of the art schedulers are limited
-  in that they output execution decisions, which act like instructions as to when to act rather than
-  actions themselves [cite:@Hunsberger2016]. We contribute a dispatching algorithm for enacting
-  execution decisions on robotic hardware in the face of uncertain observations.
-+ Distributed, Multi-Agent Coordination through Uncertain Communications :: We contribute a
-  coordination algorithm that allows multiple agents, each using the scheduling and dispatching
-  contributions described above, to share knowledge of event observations. The result is a framework
-  that enables safe scheduling and dispatching events when there are inter-agent constraints with
-  uncertain communication.
 
 ** Thesis Structure
 

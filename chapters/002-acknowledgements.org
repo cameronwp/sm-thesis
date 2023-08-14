@@ -1,25 +1,24 @@
 #+title: Acknowledgements
 
 My journey to this SM thesis began eight years ago when I was a software engineer living in San
-Francisco. Two years prior, I had just wrapped four years of teaching high school science and didn't
-know how to code. I taught myself Python using MIT OpenCourseware on a whim because it was something
-I had always wanted to learn. Coding took over my life the first time I wrote a function. My first
-projects were physics demos and websites, but soon I learned I loved helping systems make decisions.
-And there is absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and
-wondered, "I want to be a part of the next space race! What if I studied autonomy for human
-spaceflight? Where would I even go to learn autonomy?" (I didn't even know the field was called
-"autonomy" at the time.) Of course, MIT came up when I started searching. It took five more years of
-studying computer science, finding people to learn from, and integrating in the human spaceflight
-community, but eventually I found my way into AeroAstro and the MERS lab. It's been the journey of a
+Francisco. Two years prior, I was a former high school science teach who didn't know how to code. I
+taught myself Python using MIT OpenCourseware on a whim because it was something I had always wanted
+to learn. Coding took over my life the first time I wrote a function. My first projects were physics
+demos and websites, but soon I learned I loved helping systems make decisions. And there is
+absolutely no system cooler than human spaceflight. So I sat there at my desk in SF and wondered, "I
+want to be a part of the next space race! What if I studied autonomy for human spaceflight? Where
+would I even go to learn autonomy?" (I didn't even know the field was called "autonomy" at the
+time.) Of course, MIT came up when I started searching. It took five more years of studying computer
+science, finding people to learn from, and integrating in the human spaceflight community, but
+eventually I found my way into NASA, AeroAstro, and the MERS lab. It's been the journey of a
 lifetime and there's no way I would be here without the love and support from so many people.
 
 First, I have to thank my amazing wife, Mo, who is the hardest working, most driven person I've ever
 met. She's been my biggest cheerleader and sounding board for my ideas (even when she has no idea
-what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I think about her living
-in a world where there are thousands of people living and working in space. At the time of writing
-this, she's a month old and already making me work harder than I ever have. I never would have made
-it this far without a supportive family. My parents, Mark and Suzanne, and my brother, Max, have
-always been there for me.
+what I'm talking about). Our newborn daughter, Catalina, is my inspiration. I dream about her living
+in a world where there are thousands of people living and working in space. She's already making me
+work harder than I ever have to make the dream real. I never would have made it this far without a
+supportive family. My parents, Mark and Suzanne, and my brother, Max, have always been there for me.
 
 My advisor, Brian Williams, has consistently surprised me with how much support he's freely given.
 Brian has been one of the most helpful people I've ever met, starting with the first time I
@@ -29,11 +28,31 @@ executive architectures, to explaining basic concepts in temporal reasoning, to 
 generation of online education, he's been open, honest, and eager to share ideas. Brian, you have
 had a profound impact on my life and career, and for that I'm forever grateful.
 
-Next, I have to thank all my labmates. I can't really quantify the level of impact any single person
-has had, so I'll be doing these chronological order of when we met.
+Mark Shirley, my NASA mentor, has been an amazing sounding board for bringing autonomy to real NASA
+missions. I can't thank Mark enough for the fun brainstorming sessions and career advice (and
+answering millions of questions about Ames robotic missions).
 
-The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office hours
-even when I didn't have questions just because I wanted to hang out and talk autonomy with people.
-Simon, thank you for being a supportive TA (and introducing me to /Aunty Donna/). Sungkweon, ...
+I can't imagine I would have known how to pursue grad school without Matthew Miller, my colleague
+and friend. Matthew has been an invaluable fountain of knowledge about academia. He also literally
+got me a job at NASA, which is probably the best gift I'll ever receive.
 
-# Incl Matthew
+Next, I have to thank all my labmates. I'll be doing these roughly in chronological order of when we
+met. The first people I met were my 16.413 TAs, Simon Fang and Sungkweon Hong. I would go to office
+hours even when I didn't have questions just because I wanted to hang out and talk autonomy with
+people. Simon, thank you for being a supportive TA (and introducing me to /Aunty Donna/). Sungkweon,
+thank you for your thorough review of this thesis. I hope our daughters get a playdate soon! Andrew
+Wang, I appreciate you being a sounding board for all my crazy temporal reasoning ideas. Eric
+Timmons, I have studied thousands of lines of your code. You've had a very meaningful impact on the
+way I approach the design of autonomous systems, for which I'm eternally grateful. Marlyse Reeves,
+thanks for being a great friend and co-TA! Yuening Zhang, thanks for reviewing this thesis! Your
+advice on temporal reasoning over the years has been hugely helpful. Charles Dawson, thanks for
+taking such detailed notes on the WAM! Nikhil Bhargava, thanks for taking me under your wing and
+teaching me the ways of variable-delay controllability! Delia Stephens, thanks for the lunch
+conversations (and offering to watch my dogs while we were gone)! Viraj Parimi, thanks for "bouncing
+ideas around" with me, both on the fifth floor and with an iiwa. Finally, thanks also to Pedro
+Acosta, Ben Ayton, Jacob Broida, Jingkai Chen, Allegra Farrar, Meng Feng, Weiqiao Han, Cyrus Huang,
+Jake Olkin, Amy Phung, Sabrina Romero, Anoop Sonar, Shashank Swaminathan, Allen Wang, Tesla Wells,
+Sienna Williams, Tiffany Yao.
+
+Thank you to my generous sponsors. This research was supported by NSTGRO grant number 80NSSC21K1303
+and Airbus.

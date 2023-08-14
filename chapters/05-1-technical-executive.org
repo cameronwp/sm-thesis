@@ -90,9 +90,6 @@ events to real hardware in Section [[sec:real-vs-noop-events]].
 *** Guaranteeing Agents Receive Actionable Events
 <<sec:real-vs-noop-events>>
 
-# In our view, RTEDs are not commands to the agent. Rather, they inform the executive of the
-# time where actions ensure consistency.
-
 We take the view that events in an STNU may be interpreted as commands by the driver. It is improper
 to knowingly send an invalid command. Accordingly, the driver must never receive an event (in an
 RTED) that cannot be mapped to a corresponding action in its environment. As such, it is the
@@ -131,7 +128,6 @@ of RTEDs.
 \newcommand*{\eventnoops}{\mathit{event}\textsf{-}\mathit{noops}}
 #+end_export
 
-# TODO these variables aren't great
 #+label: def:rted
 #+latex: \begin{defn}
 *Event-No-op Pair*
@@ -161,28 +157,14 @@ Distinction, future references to RTEDs will always refer to RTEDs with Operatio
 <<sec:dynamic-dispatching>>
 
 The dynamic dispatcher runs the main loop of the executive's temporal reasoning routine. It consists
-of a dispatching routine and some type of outer loop monitoring it. The dispatching routine,
-Algorithm [[alg:dispatcher-inner]], is responsible for retrieving the latest RTEDs and dispatching
-actions when the clock indicates that the agent has reached time $t$ corresponding to the latest
-RTED. The outer loop allows the dispatching routine to run until the scheduler reports there are no
-requirement events remaining.
+of a dispatching routine and some type of outer loop monitoring it. The interaction between the
+dispatching routine and monitoring loop is limited. The algorithms are presented below. First we
+provide a walkthrough of the dynamic dispatching algorithm.
 
-# The dispatcher requests RTEDs with blocking synchronous calls, while the dispatcher and driver
-# communicate asynchronously. The dispatcher spawns a thread to make non-blocking calls to the
-# driver's interface to execute events. The dispatcher and driver also share a FIFO queue that the
-# driver can append messages to indicating the successful execution of events.
-# TODO is the part about non-blocking calls to the driver true? does it matter?
-
-We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
-/schedule/ here is shorthand for whatever data structures the scheduler uses to generate RTEDs.
-/Updating the schedule/ refers to running the fixed-delay FAST-EX update, Algorithm
-[[alg:fast-ex-fixed-obs]], using the variable-delay execution strategy from Section
-[[sec:delay-scheduling]].
-
-The interaction between the dispatching routine and monitoring loop is limited. Algorithm
-[[alg:dispatcher-inner]] returns a Boolean indicating whether there are executable events remaining.
-Here, the monitoring loop, Algorithm [[alg:dispatcher-outer]] is a simple =while= that repeats until it
-receives =false= from the inner loop.
+We now provide a walkthrough . For simplicity's sake, the term /schedule/ here is shorthand for
+whatever data structures the scheduler uses to generate RTEDs. /Updating the schedule/ refers to
+running the fixed-delay FAST-EX update, Algorithm [[alg:fast-ex-fixed-obs]], using the variable-delay
+execution strategy from Section [[sec:delay-scheduling]].
 
 We break the dispatching routine into three distinct phases.
 
@@ -225,9 +207,9 @@ observations is a delay dispatcher's handling of buffered events (see Lemma
 need to be buffered, a delay dispatcher must take responsibility for buffered events. A delay
 dispatcher should record which events need to be buffered, and how long they should be buffered.
 
-Algorithm [[alg:choose-event-noops]] provides a subroutine in which we compare a new RTED and any
-buffered events to the history of actions dispatched so far. Let $t$ be the current time. It outputs
-a set of \eventnoops consisting of:
+To find the $\eventnoop$ pairs to dispatch, we compare a new RTED and any buffered events to the
+history of actions dispatched so far. Let $t$ be the current time. We want to find a set of
+\eventnoops consisting of:
 
 1. any event buffered to $t$,
 2. real events of the RTED if $t_{\mathit{RTED}} = t \leq \epsilon$, and
@@ -241,8 +223,7 @@ A history of actions is necessary to avoid dispatching the same action more than
 dispatcher loop is running quickly and actions are dispatched asynchronously, then the loop may
 iterate one or more times between dispatching an action and observing its associated event.
 
-If Algorithm [[alg:choose-event-noops]] returns no $\eventnoop$ pairs, we end this iteration by
-returning =true=.
+If there are no $\eventnoop$ pairs, we end this iteration by returning =true=.
 
 Once we reach the third stage, we are guaranteed to be able to dispatch valid actions because (1) we
 have confirmed that the $\eventnoops$ we have in hand have never been dispatched, and (2) we are in
@@ -254,11 +235,6 @@ to the driver.
 
 All $\eventnoops$ that were dispatched are added to the history to prevent them from being
 dispatched again. Finally, because events were dispatched, the dispatching routine returns =true=.
-
-We benefit greatly from using instance-based properties. The implementation of the delay dispatcher
-for this thesis uses slots on a =dispatcher= class to manage inputs to the dispatcher, which are
-then accessed by reference. All inputs to Algorithm [[alg:dispatcher-outer]] can be properties on an
-instance of a delay dispatcher class.
 
 #+label: alg:dispatcher-outer
 #+begin_export tex
@@ -402,6 +378,16 @@ Add \texttt{event-noops} to \texttt{history}\;
 \end{algorithm}
 #+end_export
 
+The monitoring loop, Algorithm [[alg:dispatcher-outer]] is a simple =while= that repeats until it
+receives =false= from the dispatching routine, Algorithm [[alg:dispatcher-inner]]. The dispatching
+routine returns a Boolean indicating whether there are executable events remaining. Algorithm
+[[alg:choose-event-noops]] implements the subroutine for selecting $\eventnoop$ pairs to dispatch.
+
+We benefit greatly from using instance-based properties. The implementation of the delay dispatcher
+for this thesis uses slots on a =dispatcher= class to manage inputs to the dispatcher, which are
+then accessed by reference. All inputs to Algorithm [[alg:dispatcher-outer]] can be properties on an
+instance of a delay dispatcher class.
+
 The biggest factor for the performance of the dispatching routine, Algorithm
 [[alg:dispatcher-inner]], is updating the schedule. Assuming the /Scheduler/ is the Delay Scheduler
 described in Section [[sec:delay-scheduler]], then performing an assignment of an event will trigger the
@@ -500,9 +486,6 @@ RMPL has undergone a number of rewrites since its inception, and is currently be
 superset of the Common Lisp language using the Metaobject Protocol [cite:@Kiczales1991]. The goal is
 that a human should have a comfortable means for accurately modeling sufficient detail about the
 problem domain such that an executive can perform model-based reasoning to decide how to act.
-
-# TODO does this sentence go with the paragraph above?
-# RMPL should /never/ include explicit programming instructions for the executive.
 
 An example of an RMPL control program for a single-agent without agent dynamics follows in Listing
 [[code:example-control-program]].

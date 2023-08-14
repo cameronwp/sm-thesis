@@ -88,15 +88,11 @@ Self-loops, or self-edges, are not allowed, i.e. for any vertex $v_{i} \in V$, n
 \in E$ may both originate and terminate at $v_{i}$.
 #+latex: \end{defn}
 
-# TODO insert sample graph here
-
 For some executive $v_{i} \in V$ with outgoing edges in $E$, $(v_{i}, v_{j})$, $\cdots$, $(v_{i},
 v_{k})$, any scheduled events that $v_{i}$ assigns, whether free or contingent, are propagated to
 all peer executives $v_{j}$, $\cdots$, $v_{k}$. Likewise, all contingent events received from Nature
 are propagated to peers. Finally, any events $v_{i}$ receives from other agents are also relayed to
 peers.
-
-# Note that $C$ is wholly distinct from individual STNUs and inter-agent temporal constraints.
 
 #+label: def:event-propagations
 #+latex: \begin{defn}
@@ -117,11 +113,6 @@ Events that are received in $m$, $m[x]$, are handled the same as observations of
 during scheduling. Lemmas [[lemma:information-fixes-bounds]], [[lemma:ignore-inf-delay]], and
 [[lemma:subtract-gamma]] are applied as appropriate when the observation of $m[x]$ arrives.
 
-# TODO clean up
-
-# we can always ignore events
-# agents are likely to receive more events than they care about
-
 For an edge $(v_{i}, v_{j}) \in E$, it is possible that $v_{j}$ receives events that are not present
 in its STNU.
 
@@ -135,8 +126,6 @@ message has an equivalent event in $X_{c}$ of the STNU being executed by any rec
 \in V$. If agent $v_{j}$ cannot find $x_{i}$ in their $X_{c}$, then $x_{i}$ can be ignored. As will
 be discussed in Algorithm [[alg:event-propagation]], we represent $x$ using a type that can be compared
 for equivalence with the events in an agent's STNUs, e.g. a list of strings.
-
-# ODOT
 
 We use $P$ to avoid cycles in event propagation. As will be shown in Algorithm
 [[alg:event-propagation]], agent $v_{i}$ will avoid propagating $x$ to any agents in $P$. Agent $v_{i}$
@@ -236,12 +225,15 @@ functions for any inter-agent temporal constraints.
 ** Modeling Inter-Agent Constraints
 <<sec:ma-control-programs>>
 
-# It's hard to write MA RMPL by hand
+We have assumed that for multi-agent collaboration, all instances of Kirk have their own constraint
+programs. The instances of Kirk used to evaluate multi-agent delay scheduling (Sections
+[[sec:dkirk-simulation]] and [[sec:hw-demo]]) both rely on the existence of constraint programs in RMPL that
+accurately reflect the uncertainty in their respective environments. The design of said constraint
+programs for multiple agents is not obvious when there is observation uncertainty and inter-agent
+constraints. Communication delays naturally cause agents to disagree as to the exact timing of
+events. Below, we introduce a strategy for synchronizing multiple agents with observation
+uncertainty.
 
-# TODO is what I'm describing here more of an RMPL restriction? why did (:slack t) not work?
-# TODO what this is describing is more of a problem with (:slack nil)?
-
-# TODO do we need to define "semantically similar"?
 Consider two agents, =agent1= and =agent2=, that are scheduling STNUs $S_{1}$ and $S_{2}$
 respectively. $S_{1}$ and $S_{2}$ share a subset of semantically similar episodes, $e_{1}$ and
 $e_{2}$. =agent1= "owns" $e_{1}$, meaning it is responsible for scheduling the free event
@@ -366,32 +358,17 @@ somewhere in the lower and upper bounds $\sigma$. Assuming =agent2= knows that $
 $\sigma$​-end semantically represent the same point in time, $\sigma$​-end can be safely scheduled as
 soon as $e_{1}$​-end arrives.
 
-# where, according to the way RMPL is compiled to STNUs (see Appendix [[appendix:rmpl]]), $[l, u]$ may
-# take on either $[0, 0]$ or $[0, \infty]$ bounds. Regardless, =robot-drilling:start= is a
-# controllable event, meaning the astronaut is allowed to choose when to schedule it. The envisioned
-# scenario does not allow the astronaut to decide when the robot is allowed to start drilling. Hence,
-# we added an uncontrollable =sync= episode to ensure that the astronaut must wait to receive
-# =robot-drilling:start= from the robot. The robot also has a =sync= episode, which ensures that both
-# agents agree on the naming of events. Finally, the last salient feature of =sync= to highlight is
-# that bounds of =sync= match the bounds of the observation delay for =human-downlink-science=
-# according to the robot. This correlation ensures that the robot can schedule =sync:end= immediately
-# upon observing =human-downlink-science:end= because any resolution of observation delay of
-# =human-downlink-science:end= also satisfies the constraint between =sync:start= and =sync:end=.
-
 Synchronization episodes allow inter-agent constraints with observation delay to be modeled without
 impacting the ordering of events. They are used to separate control programs in the hardware
 demonstration in Section [[sec:hw-demo]].
 
-
 ** Experimental Analysis
 <<sec:ma-experimental>>
 
-# TODO HTTP technically has more than one message passed. discuss other protocols and when you would want to use them here?
-
-# TODO improve generally. not quite right
 We performed two demonstrations of the Event Propagation algorithm. The first was a hardware
 demonstration performed on a Barrett WAM manipulator in the MERS lab. The second is a multi-agent
-simulation showcasing inter-agent constraints. Both will be described below.
+simulation showcasing the ability for multiple Kirks to share events and respect inter-agent
+constraints. Both will be described below.
 
 *** Distributed Kirk Simulation
 <<sec:dkirk-simulation>>

@@ -1,7 +1,7 @@
 #+title: Main
 #+author: Cameron W Pittman
 #+email: cameronp@mit.edu
-#+export_file_name: Pittman-SM.pdf
+#+export_file_name: pittman-cameronp-sm-aeroastro-thesis.pdf
 
 #+options: author:nil
 #+options: date:nil

@@ -4,17 +4,22 @@
 :PROPERTIES:
 :startup: content
 :END:
-** TODO consistency with "noop"
+** DONE consistency with "noop"
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:52]
 is it =noop= or =no-op= or $\mathit{noop}$ or /noop/ or /no-op/?
-** TODO consistency with capitalization and italics of Scheduler, Delay Scheduler, Dispatcher, Driver
-** TODO we need an =updateSchedule= algo defined in the execution strategy section
+** DONE consistency with capitalization and italics of Scheduler, Delay Scheduler, Dispatcher, Driver
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:52]
+** DONE we need an =updateSchedule= algo defined in the execution strategy section
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:52]
 include the fact that it returns if an event is buffered
 ** TODO clean up fast-ex algos
 - [ ] double check accuracy!
 - [ ] weird italics
 - [ ] check for loop usage
-** TODO fix:observations is weird. fix notation, caption
-** TODO RTED defn is missing info in the scheduler section. also check it is accurate wrt code
+** DONE fix:observations is weird. fix notation, caption
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:52]
+** DONE RTED defn is missing info in the scheduler section. also check it is accurate wrt code
+- State "DONE"       from "TODO"       [2023-08-13 Sun 21:52]
 ** extra content 1
 Bhargava et al. [cite:@Bhargava2018] addressed this ambiguity in contingent event assignment by
 first transforming the VDC STNU into a controllability-equivalent fixed-delay STNU. With fixed
@@ -348,7 +353,6 @@ executed and are generated based on /partial schedules/ of STNUs being executed.
 may also be produced, reflecting the need to wait for the assignment of a contingent event before
 continuing. RTED-based scheduling applies a dynamic programming paradigm in three steps:
 
-# TODO why did I use Hunsberger2009 here? not 2016?
 1. creating a dispatchable form of temporal constraints offline in the form of a distance graph,
 2. updating the dispatchable form as the partial schedule is updated online through event
    assignments, and
@@ -368,10 +372,9 @@ The key idea of FAST-EX is maintaining accurate distances from an artificial zer
 distance graph to all events. At the outset of execution, all events from $S$ are present as nodes
 in /AllMax/. As events are assigned, /AllMax/ performs update steps using Dijkstra Single
 Source/Sink Shortest Path (SSSP) to maintain distances to unexecuted events, while also collapsing
-executed events to $Z$. We include pseudo-code of the real-time update step in Figure
-[[alg:fast-ex-update]].
-
-# TODO define replacement edge. maybe 1-3 sentences at most
+executed events to $Z$. The "fast" in FAST-EX is enabled by removing unnecessary contingent links in
+/AllMax/ in favor of their strongest replacements with respect to $Z$. We include pseudo-code of the
+real-time update step in Algorithm [[alg:fast-ex-update]].
 
 #+label: alg:fast-ex-update
 #+begin_export tex
@@ -401,7 +404,7 @@ For each event $X$, update $D(X, Z)$ using Dijkstra Single-Sink Shortest Paths\;
     Add upper-bound edge $\edge{Z}{E}{t}$\;
 }
 For each event $X$, update $D(Z, X)$ using Dijkstra Single-Source Shortest Paths\;
-\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapated from \citeprocitem{3}{[3]}, Fig. 19.}
+\caption{Algorithm for updating distances for all events in relation to $Z$ upon the execution of an event. Adapted from \citeprocitem{15}{[15]}, Fig. 19.}
 \label{alg:fast-ex-update}
 \end{algorithm}
 #+end_export
@@ -465,16 +468,15 @@ contingent event observations we receive will adhere to the constraints and vari
 of the variable-delay STNU. Hence, we must modify our real-time update and RTED generation
 algorithms to account for early and late contingent event observations.
 
-# TODO rewrite
 We start by providing an explanation of fixed-delay scheduling, before expanding it to address the
 execution strategies of variable-delay scheduling.
 
 *** Fixed-Delay Scheduling
 
-# TODO wc algebra
-We first establish the algebra of receiving observations.
-
-# TODO remind people what the primes mean
+We first establish the algebra of receiving observations. We use the same notation as Section
+[[sec:vdc-to-fdc]]. $S$ and $x_{c}$ refer to a variable-delay STNU and an uncontrollable event within
+$S$ respectively. $S'$ is the fixed-delay STNU that is equivalent to $S$ with respect to
+controllability. $x'_{c}$ is the transformed version of $x_{c}$ in $S'$.
 
 #+label: lemma:information-fixes-bounds
 #+latex: \begin{lemma}
@@ -483,8 +485,6 @@ For any contingent event, $x_{c} \in S$ or $x'_{c} \in S'$, observing $x_{c}$ at
 [l^-(x_{c}), u^+(x_{c})]$ fixes the observation to $\obs(x_{c}) = [t, t]$.
 #+latex: \end{lemma}
 #+latex: \begin{proof}
-
-# TODO use def:schedule-as-interval?
 
 Prior to execution, an observation of $x_{c}$ may fall anywhere within the set-bounded interval from
 the earliest possible observation at $l^-(x_{c})$ to the last possible observation at $u^+(x_{c})$.
@@ -572,17 +572,20 @@ No other modifications to FAST-EX are required to schedule a fixed-delay STNU.
 
 *** Variable-Delay Scheduling
 
-# TODO probably needs to say we're building off FDC
-
-Our execution strategy must address each of the following special categories of contingent event
-observations:
+The execution strategy for scheduling a variable-delay STNU naturally builds off the execution
+strategy for fixed-delay STNUs. Our approach is to perform fixed-delay scheduling of $S'$. However,
+Nature is under no obligation to obey the contingent constraints of $S'$. Thus the execution
+strategy for variable-delay STNUs must address each of the following special categories of
+contingent event observations:
 
 # TODO remind $S'$, which lemmas. highlight that general strategy for VDC will do FDC transformation first and it creates these two problems... ref back to prev chapters
 
 # TODO num 1 is also a problem for fixed delay! move up
 
-1. contingent events with infinite observation delay,
-2. contingent events that are observed outside $[l^+(x_{c}), u^-(x_{c})]$ in $S'$.
+1. uncontrollable events with infinite observation delay, and
+2. uncontrollable events that are observed outside their bounds in $S'$
+
+We address both concerns below.
 
 The first category is a requirement for dispatching the fixed-delay equivalent of a variable-delay
 STNU. If the constraints of a problem domain are modeled directly in a fixed-delay STNU and the
@@ -596,9 +599,9 @@ scheduler receives observations of them.
 #+label: lemma:ignore-inf-delay
 #+latex: \begin{lemma}
 #+latex: \label{lemma:ignore-inf-delay}
-For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, if $\gamma(x'_{c}) =
-\infty$, we mark the event executed but do not assign $\assign(x'_{c})$ in the dispatchable form of
-$S'$.
+For any contingent event $x'_{c} \in X_{c}$ in fixed-delay controllable $S'$, which is transformed
+from $x_{c} \in X_{c}$ in variable-delay controllable $S$, if $\gamma(x'_{c}) = \infty$, we mark the
+event executed but do not assign $\assign(x'_{c})$ in the dispatchable form of $S'$.
 #+latex: \end{lemma}
 
 #+latex: \begin{proof}
@@ -609,11 +612,6 @@ to guarantee controllability and may safely ignore it.
 
 We mark the event executed to prevent it from appearing in future RTEDs.
 #+latex: \end{proof}
-
-#+label: fig:observations
-#+attr_latex: :width 3in
-#+caption: Here, we show how the combination of $\assign(x_{c})$ and $\gammabar(x_{c})$ lead to an assignment of $\assign(x'_{c})$ in $S'$. We see the range $\alpha \in [l, l + \gammabar^+(x_{c}) - \gammabar^-(x_{c})$ representing the earliest and latest assignments of $\assign(x_{c})$ that could result in $\obs(x_{c}) \in \assign(x'_{c}) \in [l^+(x_{c})$, l^+(x_c)]$. The grey region represents the range of possible observation delays, $\gammabar(x_{c})$, supporting $\assign(x'_{c}) \in [l^+(x_{c}), l^+(x_{c})]$.
-[[file:../images/viz-l-plus.png]]
 
 The second category refers to the need for buffering and imagining events as a result of Lemma
 [[lemma:main-tightening]] using the execution strategy proven to be valid in Lemma
@@ -631,7 +629,6 @@ to the fact that $\gamma(x'_{c}) = 0$ after applying Lemma [[lemma:main-tighteni
 Our execution strategy is to then make the following assignments during the FAST-EX real-time
 update.
 
-# TODO why is this not rendering!?
 #+begin_export tex
 \begin{equation}
 \assign(x'_c) = \begin{cases}
@@ -642,21 +639,19 @@ u^-(x_{c})  & \text{if } \obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})] \mathit{~(imag
 \end{equation}
 #+end_export
 
-# TODO or the assignment might fail altogether!
-# TODO make it clear that observing does not mean you can instantly assign. THIS IS PART OF THE DIFF BETWEEN REGULAR AND DELAY SCHEDULER
-In the first case, we cannot immediately schedule buffered events. It may be the case that there are
-other unexecuted timepoints between $\obs(x_{c})$ and $l^+(x_{c})$. If we make an assignment at
-$l^+(x_{c})$, we would be preempting later timepoints, which would cause us to later make
-assignments in the past, which invalidates our assumptions of partial history. Thus, we buffer
-$x'_{c}$ in the sense that we must wait until $l^+(x_{c})$ to assign $\assign(x'_{c}) = l^+(x_{c})$.
+In the first case, we cannot immediately schedule buffered events. This is a key distinction between
+a delay scheduler and existing dynamic schedulers. It may be the case that, despite observing an
+event, we must wait to perform the assignment. If we make an assignment at $l^+(x_{c})$, we would be
+preempting events that could be assigned before $l^+(x_{c})$. Doing so would cause us to later make
+assignments out of order, violating the assumptions in place while checking controllability. Thus,
+we buffer $x'_{c}$ in the sense that we must wait until $l^+(x_{c})$ to assign $\assign(x'_{c}) =
+l^+(x_{c})$.
 
 In the last case, late observations are assigned to an earlier time. During execution, time is
 always increasing. There is no need to wait to make an observation after $u^-(x_{c})$. Instead, we
 modify RTED generation, namely Equation [[eqn:rted1]], such that we dispatch $x'_{c}$ at $u^-(x_{c})$ if
 it is not been observed before $u^-(x_{c})$. Let $U_{c}$ be the set of unobserved contingent
 timepoints.
-
-# TODO this omits t_U logic! needs to be fixed
 
 #+label: rted-with-ctg
 \begin{align}
@@ -668,7 +663,10 @@ t &= \min\{t_{x}, t_{c}\} \\
 \chi &= \chi_{x} \cup \chi_{c}
 \end{align}
 
-We see that RTEDs may now include unobserved (or unexecuted) contingent timepoints at their upper
+Note that we allow RTEDs where $t$ is the current time. Hunsberger presents an addendum in
+[cite:@Hunsberger2016; p.129] that guarantees that $t$ is greater than the current time.
+
+We see that RTEDs may now include unobserved (or unexecuted) uncontrollable events at their upper
 bounds. Note that there is no need to distinguish between contingent events that are the result of
 tightening during the fixed-delay transformation by applying Lemma [[lemma:main-tightening]] and others.
 We assume that the contingent constraints of the variable-delay STNU accurately reflect Nature. The
@@ -696,7 +694,7 @@ execution strategy, the dispatching routine, and observations. All benchmark cod
 
 #+label: fig:dish-stnu
 #+attr_latex: :width 1\textwidth
-#+caption: An STNU representing the installation and test of repeater antennas. Each row represents a single rover. The episode durations are representative of the bounds used in simulation.
+#+caption: An STNU roughly representing the installation and test of repeater antennas. Each row represents a single rover. The episode durations are representative of the bounds used in simulation. Circles with solid lines represent controllable events, while dashed lines are uncontrollable events.
 [[file:../images/dish-install-stnu.png]]
 
 It is possible that, before NASA is ready to grow the population of a lunar base, there is a need to
@@ -745,7 +743,7 @@ contingent constraint $[l, u]$. If we observe $x_{c}$ at some time $t$, where $l
 Dijkstra SSSP subroutine may unexpectedly find a negative edge and raise an error. We have been
 able to replicate the problem for specific STNUs with specific observations, and, as of the time of
 this writing, we are still investigating the cause. We do not believe it meaningfully impacts the
-validity of the benchmarks below.
+validity of the benchmarks or experiments in this thesis.
 
 *** Scheduling
 
@@ -770,7 +768,6 @@ If we expand the size of STNUs to $N \leq 600$, then we see the total runtime co
 closely with $O(N^{2} \log N)$, as can be seen in Figure [[fig:runtime-scheduling-aggregate]]. We
 believe the deviation is due to programming language features in lisp outside of our control, such
 as automated memory management.
-# It is also possible that the aforementioned scheduler bug is responsible for the deviation.
 
 #+label: fig:runtime-scheduling-aggregate
 #+attr_latex: :width 0.8\textwidth
