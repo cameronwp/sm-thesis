@@ -648,3 +648,6 @@ deployed to real hardware. Chapter [[ch:technical-coordination]] finally contrib
 coordination architecture for environments with uncertain communication. The discussion in Chapter
 [[ch:discussion]] concludes this thesis by providing additional context for the decisions made during
 this research.
+
+Unless otherwise specified, the code used to run the experiments of this thesis can be found at
+[[http://gitlab.com/mit-mers/enterprise/enterprise]] under the =CAM-SM-THESIS= branch.

@@ -635,9 +635,9 @@ update.
 #+begin_export tex
 \begin{equation}
 \assign(x'_c) = \begin{cases}
-$l^+(x_{c})$  & \text{if } $\obs(x_{c}) \in [l^-(x_{c}), l^+(x_{c}))$ \textit{(buffering)} \\
-$\obs(x_{c})$ & \text{if } $\obs(x_{c}) \in [l^+(x_{c}), u^-(x_{c})]$ \\
-$u^-(x_{c})$  & \text{if } $\obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})]$ \textit{(imagining)}
+l^+(x_{c})  & \text{if } \obs(x_{c}) \in [l^-(x_{c}), l^+(x_{c})) \mathit{~(buffering)} \\
+\obs(x_{c}) & \text{if } \obs(x_{c}) \in [l^+(x_{c}), u^-(x_{c})] \\
+u^-(x_{c})  & \text{if } \obs(x_{c}) \in (u^-(x_{c}), u^+(x_{c})] \mathit{~(imagining)}
 \end{cases}
 \end{equation}
 #+end_export
@@ -648,7 +648,7 @@ In the first case, we cannot immediately schedule buffered events. It may be the
 other unexecuted timepoints between $\obs(x_{c})$ and $l^+(x_{c})$. If we make an assignment at
 $l^+(x_{c})$, we would be preempting later timepoints, which would cause us to later make
 assignments in the past, which invalidates our assumptions of partial history. Thus, we buffer
-$x'_{c}$ in the sense that we wait until $l^+(x_{c})$ to assign $\assign(x'_{c}) = l^+(x_{c})$.
+$x'_{c}$ in the sense that we must wait until $l^+(x_{c})$ to assign $\assign(x'_{c}) = l^+(x_{c})$.
 
 In the last case, late observations are assigned to an earlier time. During execution, time is
 always increasing. There is no need to wait to make an observation after $u^-(x_{c})$. Instead, we
@@ -682,8 +682,8 @@ observation delay in $S$, Lemma [[lemma:emulating-fixed]], and can be scheduled 
 out the observation delay with Equation [[eqn:fixed-recording]].
 
 We have addressed the key issue of reconciling observations from $S$ with the dispatchable form from
-$S'$. We now present a dispatcher and wrapper algorithms on top of FAST-EX that combine to add
-robustness for variable observation delay.
+$S'$. Section [[sec:delay-scheduler]] will present a dispatcher and wrapper algorithms on top of FAST-EX
+that combine to add robustness for variable observation delay.
 
 ** Experimental Analysis
 <<sec:scheduling-experimental>>

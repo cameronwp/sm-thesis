@@ -702,6 +702,7 @@ necessary.
 #+latex: \end{proof}
 
 #+label: fig:lemmas-combined
+#+attr_latex: :width 0.7\textwidth
 #+caption: A visualization of the lemmas used to transform contingent links with variable observation delay and subsequent requirement links.
 [[file:../images/lemmas-combined.png]]
 

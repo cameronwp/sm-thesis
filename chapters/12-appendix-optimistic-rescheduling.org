@@ -273,7 +273,12 @@ $\gammabar(x_{c}) \in [1, 2]$ that would allow an observation at $t = 3$.
 #+end_export
 
 The complexity of Algorithm [[alg:optimistic-rescheduling]] is dominated by the loop over
-=updateSchedule=. Each call to =updateSchedule= is $O(N^{3})$ in the number of events. In the worst
-case scenario, every event up to the last contingent event has been scheduled, giving us a
-complexity of $O(N^{4})$. We discuss potential means for improving optimistic rescheduling in
-Section [[sec:discussion-optimistic-rescheduling]].
+=updateSchedule=. Each call to =updateSchedule= is $O(N^{3})$ in the number of events.
+
+In the worst case, each of the $N$ events could trigger Optimistic Rescheduling. We know that the
+total time to schedule one event scales with $O(N \log N)$. Scaling all events goes as $O(N^{2} \log
+N)$. If we had to schedule the next to last event too, the performance would be $O(N^{2} \log N +
+(N - 1) N \log N)$. The last two events being rescheduled would have the performance of $O(NN
+\log N + (N - 1) N \log N) + (N - 2) N \log N)$, and so on for all $N$ events. We know that
+$\sum_{n=0}^{N} N - n = \cfrac{1}{2} N (N + 1)$, giving us $O(N^{2} (N + 1) \log N)$ total runtime
+to schedule (and reschedule) all events.

@@ -40,7 +40,7 @@ used to represent constraints and action models for Delay Kirk. We present exper
 the performance of the delay dispatcher, however, experimentation with a full Delay Kirk executive
 are presented in Section [[sec:ma-experimental]].
 
-** Dynamic Dispatching of STNUs with Observation Delay
+** Dynamic Dispatching of STNUs with Observation Uncertainty
 <<sec:delay-scheduler>>
 
 We assume that events in an STNU map one-to-one with actions in the real world. To put the design of
@@ -167,10 +167,10 @@ actions when the clock indicates that the agent has reached time $t$ correspondi
 RTED. The outer loop allows the dispatching routine to run until the scheduler reports there are no
 requirement events remaining.
 
-The dispatcher requests RTEDs with blocking synchronous calls, while the dispatcher and driver
-communicate asynchronously. The dispatcher spawns a thread to make non-blocking calls to the
-driver's interface to execute events. The dispatcher and driver also share a FIFO queue that the
-driver can append messages to indicating the successful execution of events.
+# The dispatcher requests RTEDs with blocking synchronous calls, while the dispatcher and driver
+# communicate asynchronously. The dispatcher spawns a thread to make non-blocking calls to the
+# driver's interface to execute events. The dispatcher and driver also share a FIFO queue that the
+# driver can append messages to indicating the successful execution of events.
 # TODO is the part about non-blocking calls to the driver true? does it matter?
 
 We now provide a walkthrough of the dynamic dispatching algorithm. For simplicity's sake, the term
@@ -181,23 +181,22 @@ We now provide a walkthrough of the dynamic dispatching algorithm. For simplicit
 
 The interaction between the dispatching routine and monitoring loop is limited. Algorithm
 [[alg:dispatcher-inner]] returns a Boolean indicating whether there are executable events remaining.
-Here, the monitoring loop is a simple =while= that repeats until it receives =false= from the inner
-loop. Otherwise, the only communication between the dispatching routine and outer loop is a variable
-containing the last RTED that was generated but not executed. The outer loop creates the variable
-and passes it by reference to the dispatching routine, which is free to use or modify the variable
-as it sees fit.
+Here, the monitoring loop, Algorithm [[alg:dispatcher-outer]] is a simple =while= that repeats until it
+receives =false= from the inner loop.
 
 We break the dispatching routine into three distinct phases.
 
 1. Observe events that were executed.
-2. Collect an RTED and confirm the clock time matches RTED time $t$.
-3. If there is an RTED:
-   a. send executable events to the driver, else
+2. Collect events from the RTED and events that have been buffered that should be dispatched at this
+   time.
+3. If there are events to be dispatched:
+   a. send real events to the driver, and
    b. immediately assign all /no-op/ events to the current time.
 
 Our goal in the dispatching routine is to dispatch events to the driver only after updating the
-schedule, collecting an up-to-date RTED, and confirming we are within the time window of the RTED.
-The routine will exit before reaching the dispatch step if any conditions are not met.
+schedule, collecting an up-to-date RTED, checking for buffered events, and confirming we are within
+the time window of the actions to be dispatched. The routine will exit before reaching the dispatch
+step if any conditions are not met.
 
 For the first step, we ask the scheduler if there are any remaining executable events. If there are
 none, we return =false= to signal the loop's termination, otherwise we continue.
@@ -207,48 +206,58 @@ to use a FIFO queue to store messages corresponding to event observations from t
 presence of a message would indicate that the driver has successfully executed a free event. We
 iteratively pop messages off the queue and update the schedule with the events and execution time
 contained in each message. Note that the scheduler update is a blocking operation because we need an
-up-to-date schedule to guarantee future RTEDs are consistent. We then invalidate the last RTED
-generated.
+up-to-date schedule to guarantee future RTEDs are consistent.
 
-# TODO do we need to be more specific about checking the RTED? what if some events overlap but not all?
-The second step starts once we have popped all messages from the driver off the queue. If we do not
-have a valid RTED from the last iteration of the routine, we ask the scheduler for one and save it
-to the referenced variable from the outer loop. Given that we interact with the driver
-asynchronously, it is possible that the current RTED is one that has already been sent to the driver
-but we have yet to receive an acknowledgment message confirming its execution. If so, there is
-nothing to do so we return =true=.
+The second step begins once we have popped all messages from the driver off the queue. We need to
+decide what events will be dispatched as actions next. Given the relationship between the scheduler,
+routine, and driver, we do not assume that dispatched actions are executed instantaneously by the
+driver. We know that execution contends against delays such as the computational time in simply
+calling a function, to network latency, to robotic hardware that takes a moment to interpolate a
+motion plan from waypoints. In some contexts, it may make sense to preempt execution by dispatching
+events some small amount of time /before/ the clock time reaches the RTED execution window. We call
+this preemption time $\epsilon$, where $\epsilon \in \mathbb{R}^{\geq 0}$. If $\epsilon = 0$, the
+dispatcher is not allowed to preemptively dispatch actions before the RTED time. The value of
+$\epsilon$ should be dependent on the operational domain of the driver.
 
-# TODO does it make sense to call it a "suggested" time?
-# TODO isn't this the second \epsilon in the chapter? what about the epsilon proof? maybe the proof gets a new variable because this one is baked into Kirk?
-Lastly, we compare the suggested time in the RTED against the clock's elapsed time. Given the
-relationship between the scheduler, routine, and driver, we do not assume that dispatched actions
-are executed instantaneously by the driver. We know that execution contends against delays such as
-the computational time in simply calling a function, to network latency, to robotic hardware that
-takes a moment to interpolate a motion plan from waypoints. In some contexts, it may make sense to
-preempt execution by dispatching events some small amount of time /before/ the clock time reaches
-the RTED execution window. We call this preemption time $\epsilon$, where $\epsilon \in
-\mathbb{R}^{\geq 0}$. Thus, we dispatch actions, signaled by =dispatch-p=, when $\texttt{dispatch-p}
-= (t_{\mathit{RTED}} - t_{\mathit{clock}} \leq \epsilon)$. If $\epsilon = 0$, the dispatcher is not
-allowed to preemptively dispatch actions before the RTED time. We allow the human operator to choose
-an $\epsilon$ that is consistent with the operational context for the driver.
+What distinguishes a delay dispatcher from a dispatcher that would work with instantaneous
+observations is a delay dispatcher's handling of buffered events (see Lemma
+[[lemma:buffering-imagining]]). Given we left no facility in the delay scheduler to track events that
+need to be buffered, a delay dispatcher must take responsibility for buffered events. A delay
+dispatcher should record which events need to be buffered, and how long they should be buffered.
 
-If =dispatch-p= is =false=, we are too early to execute the RTED and so the loop returns =true=.
-Otherwise we continue.
+Algorithm [[alg:choose-event-noops]] provides a subroutine in which we compare a new RTED and any
+buffered events to the history of actions dispatched so far. Let $t$ be the current time. It outputs
+a set of \eventnoops consisting of:
+
+1. any event buffered to $t$,
+2. real events of the RTED if $t_{\mathit{RTED}} = t \leq \epsilon$, and
+3. no-op events of the RTED if $t_{\mathit{RTED}} = t$.
+
+Buffered events are always no-ops given that they are uncontrollable events observed earlier, hence
+we do not need to preempt them with $\epsilon$. No-op events in the RTED should not be preempted
+either. Only real events should be preempted.
+
+A history of actions is necessary to avoid dispatching the same action more than once. If the
+dispatcher loop is running quickly and actions are dispatched asynchronously, then the loop may
+iterate one or more times between dispatching an action and observing its associated event.
+
+If Algorithm [[alg:choose-event-noops]] returns no $\eventnoop$ pairs, we end this iteration by
+returning =true=.
 
 Once we reach the third stage, we are guaranteed to be able to dispatch valid actions because (1) we
-have confirmed that the RTED we have in hand has unexecuted events that have never been dispatched,
-and (2) that we are in a time window that the scheduler has told us is consistent with the STNU's
-constraints. Going forward, we take advantage of the operational distinction we added to
-Hunsberger's RTEDs in Definition [[def:rted-op]]. Using the no-op property of each $\eventnoop$ pair in
-the RTED, we filter the $\eventnoop$ pairs into a set of no-op events and a set of real events. In
-the event that an uncontrollable event and its normalized lower bound are to be scheduled at the
-same time, we schedule the no-op events first. Real events are then asynchronously sent to the
-driver.
+have confirmed that the $\eventnoops$ we have in hand have never been dispatched, and (2) we are in
+a time window that the scheduler has told us is consistent with the STNU's constraints. We filter
+the $\eventnoop$ pairs into a set of no-op events and a set of real events. In the event that an
+uncontrollable event and its normalized lower bound (both no-ops) are to be scheduled at the same
+time, we schedule the normalized lower bound first first. Real events are then asynchronously sent
+to the driver.
 
-Finally, because events were dispatched, the dispatching routine returns =true=.
+All $\eventnoops$ that were dispatched are added to the history to prevent them from being
+dispatched again. Finally, because events were dispatched, the dispatching routine returns =true=.
 
-We benefit greatly from using instance-based properties. All inputs in Algorithms
-[[alg:dispatcher-outer]], [[alg:choose-event-noops]], and [[alg:dispatcher-inner]] can be properties on an
+We benefit greatly from using instance-based properties. The implementation of the delay dispatcher
+for this thesis uses slots on a =dispatcher= class to manage inputs to the dispatcher, which are
+then accessed by reference. All inputs to Algorithm [[alg:dispatcher-outer]] can be properties on an
 instance of a delay dispatcher class.
 
 #+label: alg:dispatcher-outer
@@ -267,13 +276,13 @@ instance of a delay dispatcher class.
 \Indm
 \Input{}
 
-\Initialize{\texttt{buffered-events} $\gets \varnothing$; \texttt{history} $\gets \varnothing$}
+\Initialize{Hash-table \texttt{buffered-events} $\gets \varnothing$; Set \texttt{history} $\gets \varnothing$}
 
 \Indp
 \Algorithm{}
 \Indp
 
-\texttt{all-inputs} \gets \langle \texttt{buffered-events}, \texttt{history}, \textit{Scheduler}, \textit{Driver}, \textit{Queue}, \epsilon \rangle\;
+\texttt{all-inputs} \gets \langle \texttt{buffered-events}, \texttt{history}, \textit{Scheduler}, \textit{Driver}, \textit{Queue}, \textit{Clock}, \epsilon \rangle\;
 
 \While{Calling inner loop with \texttt{all-inputs} returns true} {
     \Continue
@@ -282,9 +291,6 @@ instance of a delay dispatcher class.
 \label{alg:dispatcher-outer}
 \end{algorithm}
 #+end_export
-
-# TODO check logic with last RTED
-# TODO add buffered events
 
 #+label: alg:choose-event-noops
 #+begin_export tex
@@ -299,31 +305,30 @@ instance of a delay dispatcher class.
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{\texttt{RTED}; \texttt{buffered-events}; a set of dispatched event-noops \texttt{history}, current time $t$}
-\Output{Set of event-noops, time to dispatch}
+\Input{\texttt{RTED}; \texttt{buffered-events}; a set of dispatched event-noops \texttt{history}; \epsilon; current time $t$}
+\Output{Set of event-noops}
 
-\Initialize{$t_{\mathit{dispatch}}$ \gets \infty; \texttt{event-noops} \gets \varnothing\;}
+\Initialize{\texttt{event-noops} \gets \varnothing\;}
 
 \Indp
 \Algorithm{}
 \Indp
 
 \If{t is a key in \texttt{buffered-events}} {
-    $t_{\mathit{dispatch}} \gets t$\;
     \texttt{event-noops} $\gets$ event-noops from \texttt{buffered-events}[$t$]\;
 }
 
-\uIf{\texttt{RTED}[time] < $t_{\mathit{dispatch}}$} {
-    $t_{\mathit{dispatch}}$ \gets \texttt{RTED}[time]\;
-    \texttt{event-noops} $\gets$ \texttt{RTED}[event-noops]\;
+\If {$\mathtt{RTED}[time] = t$} {
+    Add no-op \texttt{RTED}[event-noops] to \texttt{event-noops}\;
 }
-\uElseIf {\texttt{RTED}[time] = $t_{\mathit{dispatch}}$} {
-    Add \texttt{RTED}[event-noops] to \texttt{event-noops}\;
+
+\If {$t - \mathtt{RTED}[time] \leq \epsilon$} {
+    Add real \texttt{RTED}[event-noops] to \texttt{event-noops}\;
 }
 
 Remove any event-noops in \texttt{event-noops} that are in \texttt{history}\;
 
-\Return \texttt{event-noops}, $t_{\mathit{dispatch}}\;
+\Return \texttt{event-noops}\;
 
 \caption{An algorithm for paring the events from an RTED and buffered events into \eventnoops.}
 \label{alg:choose-event-noops}
@@ -344,10 +349,10 @@ Remove any event-noops in \texttt{event-noops} that are in \texttt{history}\;
 \SetKwIF{If}{ElseIf}{Else}{if}{then}{else if}{else}{endif}
 
 \Indm
-\Input{Current time $t$, $\texttt{buffered-events}; \mathit{Scheduler}; \mathit{Driver}; \mathit{Queue}; \texttt{history}; \epsilon$;}
+\Input{Current time $t$, $\texttt{buffered-events}; \texttt{history}; \mathit{Scheduler}; \mathit{Driver}; \mathit{Queue}; \mathit{Clock}; \epsilon$;}
 \Output{Boolean whether the outer loop should continue}
 
-\Initialize{\texttt{real-events} $\gets$ \{\}; \texttt{noop-events} $\gets$ \{\};}
+\Initialize{\texttt{real-events} $\gets$ \{\}; \texttt{noop-events} $\gets$ \{\}; $t$ \gets current time of \textit{Clock};}
 
 \Indp
 \Algorithm{}
@@ -366,11 +371,10 @@ Remove any event-noops in \texttt{event-noops} that are in \texttt{history}\;
 
 \texttt{RTED} $\gets$ a new RTED from \textit{Scheduler}; \Comment{Equations \ref{eqn:rted-chi} and \ref{eqn:rted-t}}
 
-$t_{\mathit{dispatch}}$, \texttt{event-noops} \gets \\
-\quad \texttt{choose-event-noops(RTED, buffered-events, history, \mathit{t})}\;
+\texttt{event-noops} \gets \texttt{choose-event-noops(RTED, buffered-events, history}, \epsilon, \textit{t}\texttt{)}\;
 
-\If{$t - t_{\mathit{dispatch}} > \epsilon$} {
-    \Return $\mathtt{true}$\;
+\If{no \texttt{event-noops}} {
+    \Return true\;
 }
 
 \For{\texttt{event-noop} pair in \texttt{event-noops}} {
@@ -381,8 +385,10 @@ $t_{\mathit{dispatch}}$, \texttt{event-noops} \gets \\
     }
 }
 
+Sort \texttt{noop-events} such that normalized lower bounds have the lowest indices;
+
 \For{event in \texttt{noop-events}} {
-    Update \textit{Scheduler} with observation of event at $t_{dispatch}$\;
+    Update \textit{Scheduler} with observation of event at $t$\;
 }
 
 Asynchronously send all \texttt{real-events} to the \textit{Driver}\;
@@ -412,12 +418,12 @@ The dispatcher relays contingent event observations to the scheduler. In the bas
 contingent event is observed, the dispatcher updates the schedule with the event and current clock
 time.
 
-If the observed event is contingent and arrived earlier than its lower bound, then the dispatcher
-will save the event in a =buffered-events= hash-table for the lower bound.
+If the observed event is uncontrollable and arrived earlier than its lower bound, then the
+dispatcher will save the event in a =buffered-events= hash-table with the lower bound of its
+constraint as the key. By Lemma [[lemma:buffering-imagining]], the lower bound will be $l^+(x_{c})$ for
+some uncontrollable event $x_{c}$.
 
 *** Experimental
-
-# TODO mention it will be tested next section in a MA context
 
 Finally, we benchmark action dispatching. In our simulated environments for dispatching, we run the
 dispatcher function as described in Algorithm [[alg:dispatcher-inner]] twice per simulated second. (We
@@ -470,27 +476,21 @@ fact, as implemented for this thesis, the delay scheduler can take either a stat
 as input. If a state plan is received, then the first action taken is to convert the state plan to a
 delay STNU.
 
-RTEDs that the delay scheduler outputs are sent to a delay dispatcher. As a dispatcher, it has the
-primary purpose of translating events to actions that can affect the environment. It is also
-responsible for running the loop described in Algorithm [[alg:approach-delay-scheduler]]. With the
-additional requirement of dispatching actions in the presence of observation delay, the delay
-dispatcher manages buffered events (see Lemma [[lemma:buffering-imagining]]) to ensure they are sent to
-the delay scheduler at the appropriate time.
+RTEDs that the delay scheduler outputs are sent to a delay dispatcher.
 
 ** RMPL
 <<sec:rmpl>>
 
 # TODO better explanation
-RMPL is a key component of Kirk. This section steps through example RMPL control programs to
-describe their features and our modeling choices. The purpose of this section is three-fold:
+RMPL [cite:@Williams2003] is a key component of Kirk. This section steps through example RMPL
+control programs to describe their features and our modeling choices. The purpose of this section is
+two-fold:
 
-1. A short walkthrough of the language is required in order to explain this thesis' contributions
-   because an updated RMPL description in any form (e.g. manual, publication, or tutorial) has not
-   been publicly released since 2003 [cite:@Williams2003]
-2. We must describe the modeling choices of RMPL in sufficient detail to make concrete our approach
-   to modeling temporal constraints in human-readble form
-3. The above is used to demonstrate that modeling uncertain communication delay can be naturally
-   modeled in RMPL
+1. We must describe the modeling choices of RMPL in sufficient detail to make concrete our approach
+   to modeling temporal constraints in human-readble form for the experiments in Sections
+   [[sec:dkirk-simulation]] and [[sec:hw-demo]]
+2. The above is used to demonstrate that modeling uncertain communication delay can be naturally
+   modeled in RMPL.
 
 This section is not meant to be a complete documentation of RMPL, rather our goal is to motivate the
 strength of RMPL as a modeling language for human planners describing autonomous systems with
@@ -503,16 +503,6 @@ problem domain such that an executive can perform model-based reasoning to decid
 
 # TODO does this sentence go with the paragraph above?
 # RMPL should /never/ include explicit programming instructions for the executive.
-
-RMPL and Kirk can be used to achieve a number of different goals. These include but are not limited
-to temporal scheduling, classical planning, hybrid planning. For this thesis, we focus on temporal
-scheduling and the ability for a human to write /control programs/, or composable constraints and
-goals.
-
-For this thesis, we take the assumption that each Kirk executive is responsible for a single agent.
-We also ignore vehicle dynamics given this thesis' focus on contributions to temporal scheduling.
-However, RMPL is more flexible and allows multi-agent planning and motion planning using vehicle
-dynamics, which will be briefly described in Section [[sec:rmpl-agents]].
 
 An example of an RMPL control program for a single-agent without agent dynamics follows in Listing
 [[code:example-control-program]].
@@ -546,6 +536,9 @@ all events in the control program.
 The example control programs in Listing [[code:example-control-program]] are defined without agents in
 that there is an assumption that the Kirk instance that executes this control program must know what
 the semantics of =eat-breakfast= and =bike-to-lecture= mean and how to execute them.
+
+Each constraint is represented as an episode of a start and end event, e.g. =eat-breakfast= becomes
+$\edge{\texttt{eat-breakfast:start}}{\texttt{eat-breakfast:end}}{[15, 20]}$.
 
 It could also be the case that Kirk is simply being used to produce a schedule of events offline
 that will be handed to an agent that knows how to execute them. As an example, perhaps a student
@@ -654,19 +647,10 @@ constraints as in Listing [[code:drive-to-lecture]].
                      :contingent t)))
 #+end_src
 
-The addition of =:contingent t= to the =(duration ...)= form tells Kirk that it does not have
-control over when the end of =drive-to-lecture= is scheduled, rather, Nature (i.e. traffic
-conditions) chooses a time. Despite the lack of control over =drive-to-lecture=, we do know the
-drive should take between 15 and 20 minutes, hence our model includes =:lower-bound 15= and
-=:upper-bound 20=.
-
-With uncontrollable constraints in a control program, we are no longer guaranteed to be able to
-produce a schedule offline as we show in Table [[tab:morning-lecture-schedule]]. Instead, as time
-passes, we may only choose to schedule controllable events based on the /partial history/ of
-contingent event assignments so far, or, in other words, perform /dynamic scheduling/. Thus, we can
-no longer simulate a schedule with Kirk. We must connect Kirk to a source for receiving contingent
-event assignments in order to make valid controllable event assignments. Our approach to dynamic
-scheduling is the focus of Chapter [[ch:delay-scheduling]].
+The addition of =:contingent t= to the =(duration ...)= form tells Kirk that =drive-to-lecture:end=
+is an uncontrollable event. With the instantiation of Kirk used for this thesis, observations of
+=drive-to-lecture:end= could come in the form of user interactions, HTTP POST requests, or a
+pre-determined list of event observations given to Kirk.
 
 As a contribution of this thesis, our existing approach to specifying durations in RMPL was expanded
 to model observation delay. An example follows in Listing [[code:rmpl-obs-delay]] modeling a sample
@@ -685,244 +669,6 @@ collection control program with observation delay.
 
 We can see in Listing [[code:rmpl-obs-delay]] that representing set-bounded observation delay is a
 simple as adding =:min-= and =:max-observation-delay= to the =(duration (simple ...) :contingent t)=
-form. In full, this control program represents an uncontrollable constraint with a contingent event
-that Nature will schedule $[15, 30]$ time units after sample collection begins. The executive will
-then wait an additional $[5, 15]$ time units before learning that =collect-science-sample= has been
-scheduled. As will be described in much greater detail in Section [[sec:vdc]], the executive will only
-learn /that/ the contingent event occurred - is not guaranteed to learn where in $[15, 30]$ the
-contingent event was assigned, nor will it know how much observation delay was incurred.
+form.
 
-*** Multi-Agent Control Programs
-<<sec:ma-control-programs>>
-
-# It's hard to write MA RMPL by hand
-
-# TODO is what I'm describing here more of an RMPL restriction? why did (:slack t) not work?
-# TODO what this is describing is more of a problem with (:slack nil)?
-
-# TODO paragraph probably needs to be broken up. part of the claim needs to be moved into the chapter intro
-This thesis introduces challenges in writing control programs for multiple agents who need to
-coordinate. We do not claim to solve all aspects of coordination, rather we present a framework for
-simple scenarios with the key feature being that agents need to agree on the /order/ of a subset of
-events. We start by presenting an example of inter-agent temporal constraints, followed by defining
-a modeling technique for guaranteeing that agents agree about the order of events in their
-respective partial histories. To the best of our knowledge, we are unaware of any other MA framework
-for coordinating the order of event histories.
-
-# TODO do we need to define "semantically similar"?
-Consider two agents, =agent1= and =agent2=, that are scheduling STNUs $S_{1}$ and $S_{2}$
-respectively. $S_{1}$ and $S_{2}$ share a subset of semantically similar episodes, $e_{1}$ and
-$e_{2}$. =agent1= "owns" $e_{1}$, meaning it is responsible for scheduling the free event
-$e_{1}$​-start and observing the contingent event $e_{1}$​-end, while =agent2= owns $e_{2}$. It is the
-case that $e_{1}$ must precede $e_{2}$ in $S_{1}$ and $S_{2}$. A simplified MA view of the
-constraints is as follows.
-
-$$
-\conedge{e_{1}\text{-start}}{e_{1}\text{-end}}{[15, 30]}
-\edge{}{e_{2}\text{-start}}{[0, \infty]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-From =agent1='s perspective, $S_{1}$ models the following constraints. We add a =noop= start event,
-$Z$, to simplify coordination. For now, we allow chained contingencies, though in a moment they will
-need to be addressed.
-
-$$
-\edge{Z}{e_{1}\text{-start}}{[0, 0]}
-\conedge{}{e_{1}\text{-end}}{[15, 30]}
-\conedge{}{e_{2}\text{-start}}{[0, \infty]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-We assume that =agent1= models $e_{2}$ in $S_{1}$ because other events under their control depend on
-$e_{2}$. $S_{2}$ is then modeled as follows. Note the change to the controllability of
-$\conedge{Z}{e_{1}\text{-start}}{[0, 0]}$.
-
-$$
-\conedge{Z}{e_{1}\text{-start}}{[0, 0]}
-\conedge{}{e_{1}\text{-end}}{[15, 30]}
-\edge{}{e_{2}\text{-start}}{[0, \infty]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-For the sake of controllability of $S_{1}$ and $S_{2}$, we would simply add $[0, 0]$ free
-constraints between consecutive contingent constraints. Also note that from a scheduling standpoint,
-there is no difference between $\edge{a}{b}{[0, 0]}$ and $\conedge{a}{b}{[0, 0]}$ - both indicate
-$a$ and $b$ should be scheduled simultaneously.
-
-We will walk through scheduling this scenario from the perspective of both agents. First, we
-describe their actions in the case that there is no communication delay, then we introduce
-communication, and finally we add delay to communications. This scenario will motivate our analysis
-of the challenges that arise in MA control programs.
-
-# TODO maybe we don't even need to include the "instantaneous knowledge" version of events here
-If both agents have perfect knowledge of the world (instantaneous knowledge of events), scheduling
-is trivial. =agent1= and =agent2= execute $Z$ simultaneously. =agent1= schedules $e_{1}$​-start and
-=agent2= instantaneously receives an observation of $e_{1}$​-start. $e_{1}$​-end arrives in $[15, 30]$
-later, which again, both agents observe simultaneously. Now =agent2= is free to act. It schedules
-$e_{2}$​-start, which =agent1= observes instantaneously. $e_{2}$​-end arrives $[22, 26]$ later and is
-observed simultaneously by both agents.
-
-# TODO check assumption of instantaneous execution
-Now, we enforce that =agent1= "owns" $e_{1}$ and is the only agent that can observe it directly.
-Likewise, =agent2= owns $e_{2}$. In order for an agent to learn about an episode they do not own,
-they must receive a communication from the agent who does. After =agent1= schedules $e_{1}$​-start,
-it must send a message to =agent2=. =agent2= receives said message, which it interprets as an
-observation of $e_{1}$​-start. If communications are instantaneous, the partial histories of both
-agents agree on the assignment of $e_{1}$​-start. Later $e_{1}$​-end is observed by =agent1=, who is
-then responsible for relaying a communication to =agent2= indicating that it is safe to assign
-$e_{1}$​-end. =agent2= is now free to schedule $e_{2}$​-start, which it does instantaneously. The same
-pattern of sending messages that events have been scheduled repeats and =agent1= learns that
-$e_{2}$​-start was schedule simultaneously with $e_{1}$​-end. After all events have been scheduled,
-the histories of =agent1= and =agent2= still agree on the times assigned to each event.
-
-We now show that adding delay to the communications between agents forces us to add
-/synchronization/ episodes to $S_{1}$ and $S_{2}$ to maintain event ownership. First, we must
-address the chained contingencies. Note that we have freedom in how we model the constraints of this
-scenario. The following example will motivate the need for a synchronization episode while remaining
-as close to the semantics of the original STNU as possible.
-
-From the perspective of =agent1=, $S_{1}$, we cannot escape the fact that there are two
-uncontrollable events in sequence - the end of $e_{1}$ and the start of $e_{2}$, if we try to
-separate the events with a synthetic requirement episode, $\sigma$, with a $[0, \infty]$ constraint,
-the semantics no longer respect the original scenario.
-
-$$
-\edge{Z}{e_{1}\text{-start}}{[0, 0]}
-\conedge{}{e_{1}\text{-end}}{[15, 30]}
-\edge{}{\sigma\text{-start}}{[0, 0]}
-\edge{}{\sigma\text{-end}}{[0, \infty]}
-\conedge{}{e_{2}\text{-start}}{[0, 0]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-The delay scheduler will choose to schedule $\sigma$​-end simultaneously with $\sigma$​-start, also
-leading to $e_{2}$​-start being immediately scheduled. However, $e_{2}$ is not under =agent1='s
-control, and thus it has no authority to schedule $e_{2}$​-start. Instead, our synthetic constraint
-also needs to be contingent.
-
-$$
-\edge{Z}{e_{1}\text{-start}}{[0, 0]}
-\conedge{}{e_{1}\text{-end}}{[15, 30]}
-\edge{}{\sigma\text{-start}}{[0, 0]}
-\conedge{}{\sigma\text{-end}}{[0, \infty]}
-\edge{}{e_{2}\text{-start}}{[0, 0]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-Now, the issue is that $S_{1}$ is uncontrollable due to
-$\conedge{\sigma\texttt{-start}}{\sigma\texttt{-end}}{[0, \infty]}$. We know the =agent2= will
-receive $e_{1}$​-end somewhere in $\gammabar'(e_{1}\texttt{-end})$, where the $\gammabar'$ function
-represents observation delay in $S_{2}$. =agent2= will then immediately schedule $e_{2}$​-start.
-Finally, $S_{1}$ becomes
-
-$$
-\edge{Z}{e_{1}\text{-start}}{[0, 0]}
-\conedge{}{e_{1}\text{-end}}{[15, 30]}
-\edge{}{\sigma\text{-start}}{[0, 0]}
-\conedge{}{\sigma\text{-end}}{[\gammabar'^-(e_{1}\texttt{-start}), \gammabar'^-(e_{1}\texttt{-end})]}
-\edge{}{e_{2}\text{-start}}{[0, 0]}
-\conedge{}{e_{2}\text{-end}}{[22, 26]}
-$$
-
-In practice, an agent may choose to schedule other events while waiting for $\sigma$​-end to arrive.
-
-In $S_{2}$, we may choose to give =agent2= the same synchronization episode without changing the
-execution semantics. We know that $e_{1}$​-end will be observed somewhere in
-$\gammabar'(e_{1}\texttt{-end})$. When $e_{1}$​-end arrives, we are guaranteed to have waited
-somewhere in the lower and upper bounds $\sigma$. Assuming =agent2= knows that $e_{1}$​-end and
-$\sigma$​-end semantically represent the same point in time, $\sigma$​-end can be safely scheduled as
-soon as $e_{1}$​-end arrives.
-
-# where, according to the way RMPL is compiled to STNUs (see Appendix [[appendix:rmpl]]), $[l, u]$ may
-# take on either $[0, 0]$ or $[0, \infty]$ bounds. Regardless, =robot-drilling:start= is a
-# controllable event, meaning the astronaut is allowed to choose when to schedule it. The envisioned
-# scenario does not allow the astronaut to decide when the robot is allowed to start drilling. Hence,
-# we added an uncontrollable =sync= episode to ensure that the astronaut must wait to receive
-# =robot-drilling:start= from the robot. The robot also has a =sync= episode, which ensures that both
-# agents agree on the naming of events. Finally, the last salient feature of =sync= to highlight is
-# that bounds of =sync= match the bounds of the observation delay for =human-downlink-science=
-# according to the robot. This correlation ensures that the robot can schedule =sync:end= immediately
-# upon observing =human-downlink-science:end= because any resolution of observation delay of
-# =human-downlink-science:end= also satisfies the constraint between =sync:start= and =sync:end=.
-
-Synchronization episodes allow inter-agent constraints with observation delay to be modeled without
-impacting the ordering of events. They are used to separate control programs in the hardware
-demonstration in Section [[sec:hw-demo]].
-
-
-*** Action Model
-<<sec:rmpl-agents>>
-
-This section is included to expand on the features of RMPL, though note that none of these features
-are required for controlling distributed agents, and were not a part of the experiments for this
-research.
-
-If we wanted to specify agents in a multi-agent control program, or if we wanted to take vehicle
-dynamics into account, RMPL gives us a means for using the Common Lisp Object System (CLOS) for
-defining agents, agent dynamics, and the control programs agents may execute.
-
-An example RMPL control program with an agent is provided in Listing [[code:glider-simple]] for
-completeness sake from the domain of underwater robotics.
-
-#+name: code:glider-simple
-#+caption: A snippet of an RMPL script that defines an agent and classical planning predicates and effects of a control program.
-#+begin_src lisp
-;; This code is a snippet from a file in the thesis code repo found at:
-;;      kirk-v2/examples/glider/script.rmpl
-
-(defclass glider ()
-  ((id
-    :initarg :id
-    :finalp t
-    :type integer
-    :reader id
-    :documentation
-    "The ID of this glider.")
-   (deployed-p
-    :initform nil
-    :type boolean
-    :accessor deployed-p
-    :documentaiton
-    "A boolean stating if the glider is deployed at any point in time.")
-   (destination
-    :initform nil
-    :type (member nil "start" "end" "science-1" "science-2")
-    :accessor destination
-    :documentation
-    "The location to which the glider is currently heading, or NIL if it is not
-    in transit.")
-   (location
-    :initarg :location
-    :initform "start"
-    :type (member nil "start" "end" "science-1" "science-2")
-    :accessor location
-    :documentation
-    "The location where the glider is currently located, or NIL if it is not at
-    a location (in transit).")))
-
-(define-control-program move (glider to)
-  (declare (primitive)
-           (requires (and
-                      (over :all (= (destination glider) to))))
-           (effect (and
-                    (at :start (= (destination glider) to))
-                    (at :start (= (location glider) nil))
-                    (at :end (= (destination glider) nil))
-                    (at :end (= (location glider) to))))
-           (duration (simple :lower-bound 10 :upper-bound 20))))
-#+end_src
-
-In Listing [[code:glider-simple]], =glider= refers to a low-powered autonomous underwater vehicle that
-prefers to traverse by following ocean currents using a buoyancy engine.[fn:: The Slocum Glider is
-an example: [[https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/][https://www.whoi.edu/what-we-do/explore/underwater-vehicles/auvs/slocum-glider/.]]] We see
-that we model a =glider= agent and its properties using standard CLOS. The =move= control program
-then takes a =glider= and a =location= as arguments. The =(requires ...)= form is equivalent to the
-preconditions of a durative action in a PDDL 2.1 [cite:@Fox2003] domain. Likewise, the =(effect
-...)= form is equivalent to PDDL effects. Finally, as we saw before, the durative action also
-includes a temporal constraint in its =(duration ...)= form.
-
-Kirk is able to take RMPL as input to perform classical planning, though further discussion of it
-falls outside the scope of this thesis.
-
-
+See Appendix [[appendix:rmpl]] for further discussion of RMPL.

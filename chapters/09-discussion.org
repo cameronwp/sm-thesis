@@ -15,23 +15,70 @@ Scheduler.
 We describe Optimistic Rescheduling below and present the full contingent event
 observation algorithm.
 
-* Conclusion and Future Work
+* Future Work and Conclusion
 <<ch:discussion>>
 
-** Optimistic Rescheduling
-In Appendix [[appendix:optimistic-rescheduling]], we extend our approach to scheduling variable-delay
-STNUs by introducing an optional procedure that addresses a shortcoming in the semantics of
-scheduling a variable-delay STNU. The shortcoming takes the form of potentially unnecessary wait
-times that are added after receiving contingent event assignments, extending the makespan of
-procedures. We present a generate-and-test algorithm to partially mitigate said shortcomings.
+We highlight two areas for future work.
 
-*** Possible Improvements
-<<sec:discussion-optimistic-rescheduling>>
+** Expanding the Execution Space of the Delay Scheduler
 
-What if we looked for conflicts? Could we possibly search for a time to dispatch early in the
-buffered execution space?
+The execution decisions produced by the delay scheduler are dependent on the strategy for checking
+VDC as presented in Chapter [[ch:modeling-tn]]. While the delay scheduler has been shown to be
+effective, there is room for improvement. The delay scheduler presented in this thesis does not use
+the entirety of the execution space available to it. To demonstrate how execution space is limited,
+consider the following example.
 
-Smarter rewriting STNU. Could we update the existing d-graph directly and check it for SRNCs? maybe?
+$$
+\conedge{A}{B}{[1, 3]} \edge{}{C}{[5, 9]}
+$$
+
+Let $\gammabar(B) = [3, 8]$. After applying Lemmas [[lemma:main-tightening]] and
+[[lemma:applied-execution]], its fixed-delay equivalent representation is,
+
+$$
+\conedge{A'}{B'}{[6, 9]} \edge{}{C'}{[4, 6]}
+$$
+
+where $\gamma(B) = 0$. According to the semantics of the original variable-delay STNU, $B$ may
+arrive as early as $t = 4$. If so, the delay scheduler will compare the observation to the
+fixed-delay equivalent representation, forcing it to buffer $B'$ to $t = 6$. $C'$ will be scheduled
+no earlier than $4$ time units later (the lower bound of $\edge{B'}{C'}{[4, 6]}$) at $t = 10$.
+
+However, if we were able to schedule the original variable-delay STNU directly, we could come to a
+different scheduling decision. If $B$ arrives at $t = 4$, we know it must be the case that $B$ was
+assigned at $t = 1$ and $\gammabar(B)$ resolved to a delay of $3$. We can then schedule $C$ $5$ time
+units after $1$ (the lower bound of $\edge{B}{C}{[5, 9]}$) at $t = 6$.
+
+Clearly then, there is room for improvement in our execution strategy. I can imagine two avenues for
+future work. The first would be identifying a dispatchable form for variable-delay STNUs that fully
+encompasses their entire execution semantics. A dispatchable form that includes all resolutions of
+observation uncertainty would potentially allow us to schedule variable-delay STNUs directly, as
+opposed to the dance we do by observing resolutions of uncertainty from the full variable-delay
+STNU, but scheduling the limited fixed-delay equivalent. The second avenue would be to perform what
+we have be framing as /Optimistic Rescheduling/. We began work on Optimistic Rescheduling for this
+thesis. We have a partial implementation of it in Delay Kirk, though there are some caveats. First,
+it is largely untested and we have not shown it is sound and complete, hence why it was not included
+in this thesis. Second, it is seemingly inefficient and may inhibit a scheduler from performing its
+duties in larger STNUs.
+
+We present our work on Optimistic Rescheduling so far in Appendix [[appendix:optimistic-rescheduling]].
+At a high level, the algorithm works roughly as follows.
+
+1. Given an early observation of an uncontrollable event, $x_{c}$, at time $t$, rewrite the
+   variable-delay STNU to narrow the temporal constraint and observation delay of $x_{c}$ to the
+   range that would allow an observation at time $t$.
+2. Check VDC of the rewritten variable-delay STNU. If uncontrollable, abort.
+3. Build a dispatchable form from the fixed-delay equivalent STNU.
+4. Loop through all observed events earlier than $t$ and perform the same observations in the same
+   order against the new dispatchable form.
+5. Observe $x_{c}$ at time $t$ in the new dispatchable form.
+
+As shown in Appendix [[appendix:optimistic-rescheduling]], the total time to schedule all events is
+$O(\cfrac{1}{2} N^{2} (N + 1) \log N)$ in the worst case due to step 4.
+
+Ideally, we would not need to reschedule past events to change future constraints. Future work could
+entail defining a procedure for tightening the current dispatchable form directly instead of
+rescheduling the entire run from scratch.
 
 ** Coordination
 <<sec:mastnus>>
@@ -62,13 +109,13 @@ making HR a poor fit for our problem domain.
 # TODO make more formal? does this paragraph even make sense? prob need something more specific at
 # the end
 Both MASTNUs and HR assume communications between agents are either instantaneous or impossible,
-i.e. with an infinite delay. As we will see in Section [[sec:vdc]], our formalism for variable
-observation delay allows a /spectrum/ of communication delay. While we felt it was possible to
-shoehorn uncertain observation delay into MASTNUs or HR, we felt both were a poor choice because of
-their pre-existing expectations with respect to communication. In combination with our focus on
-online scheduling, we decided to forgo extending either formalism to account for observation delay.
-Instead our planning process simply consists of manually writing variable-delay STNUs with
-intra-agent and inter-agent temporal constraints by hand.
+i.e. with an infinite delay. As we saw in Section [[sec:vdc]], our formalism for variable observation
+delay allows a /spectrum/ of communication delay. While we felt it was possible to shoehorn
+uncertain observation delay into MASTNUs or HR, we felt both were a poor choice because of their
+pre-existing expectations with respect to communication. In combination with our focus on online
+scheduling, we decided to forgo extending either formalism to account for observation delay. Instead
+our planning process simply consists of manually writing variable-delay STNUs with intra-agent and
+inter-agent temporal constraints by hand.
 
 We believe it may be possible for MASTNUs or HR to be expanded to include variable observation
 delay, though we leave that problem for future research.
@@ -87,3 +134,24 @@ agents have gone dark (i.e. can no longer communicate). This communication model
 the explicitly modeled communications of the VDC formalism. Furthermore, the VDC formalism allows us
 to model that agents never receive communications, negating the requirement for distributed
 consensus.
+
+** Conclusion
+In summary, we contributed the following to temporal reasoning research.
+
++ A Valid Execution Strategy for Temporal Networks with Uncertain Observations :: Past work on the
+  study of temporal networks with variable observation delay provided a sound and complete method
+  for proving the controllability given a set of constraints and uncertain observation delay
+  [cite:@Bhargava2018]. We contributed an execution strategy that builds off the controllability
+  checker and is valid for all resolutions of uncertainty realized during execution.
++ A Delay Scheduler :: Past work in temporal reasoning has provided a sound and complete online
+  algorithm for dispatching controllable events given all other event assignments up to the current
+  time [cite:@Hunsberger2016]. We contribute an extension to online scheduling that implements the
+  execution strategy for uncertain observations.
++ An Online Dispatcher for Dispatching Events to Hardware :: State of the art schedulers are limited
+  in that they output execution decisions, which act like instructions as to when to act rather than
+  actions themselves [cite:@Hunsberger2016]. We contributed a dispatching algorithm for enacting
+  execution decisions on robotic hardware in the face of uncertain observations.
++ Distributed, Multi-Agent Coordination through Uncertain Communications :: We contributed a
+  coordination algorithm that allows multiple agents, each using the scheduling and dispatching
+  contributions described above, to share knowledge of event observations. The result is a
+  multi-agent scheduling procedure for environments with uncertain communication.
