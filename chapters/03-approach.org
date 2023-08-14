@@ -391,21 +391,22 @@ be used in a multi-agent context.
 #+label: lemma:approach-all-controllable
 #+latex: \begin{lemma}
 #+latex: \label{lemma:approach-all-controllable}
-For $a$ delay schedulers, if each $S_{a}$ and $\gammabar_{a}$ received by each delay scheduler $a
-\in A$ is controllable and accurately models the world, then all networked delay schedulers may
-produce valid RTEDs.
+For $a \in A$ delay schedulers, if each $S_{a}$ and $\gammabar_{a}$ is controllable and accurately
+models the world, then all networked delay schedulers may produce valid RTEDs.
 #+latex: \end{lemma}
 
 #+latex: \begin{proof}
 If $S_{a}$ is controllable for a single delay scheduler, then there must exist a set of RTEDs that
 allows all constraints to be satisfied for all resolutions of uncertainty in the uncontrollable
-constraints and observation delay. If it were not the case that any $S_{a}$ and $\gammabar_{a}$
-accurately models the world, then the uncontrollable inter-agent constraints of $S_{a}$ and
-$\gammabar_{a}$ would not strictly encompass all possible outcomes of uncertainty during scheduling.
-This would mean that, during scheduling, there may be a resolution of uncertainty that does not
-allow a valid RTED to be produced, which is inconsistent with a controllable $S_{a}$. Thus if each
-$S$ is controllable and accurate for all delay schedulers, then all delay schedulers may produce
-valid RTEDs.
+constraints and observation delay. If $S_{a}$ and $\gammabar_{a}$ are accurate, we are guaranteed
+that the resolution of uncertain constraints during scheduling will respect the bounds of $S_{a}$
+and $\gammabar_{a}$. If it were not the case that $S_{a}$ or $\gammabar_{a}$ accurately models the
+world, then the uncontrollable inter-agent constraints of $S_{a}$ and $\gammabar_{a}$ would not
+strictly encompass all possible outcomes of uncertainty during scheduling. This would mean that,
+during scheduling, there may be a resolution of uncertainty that does not allow a valid RTED to be
+produced, which is inconsistent with a controllable and accurate $S_{a}$. Thus if each $S$ is
+controllable and accurate for all delay schedulers, then all delay schedulers may produce valid
+RTEDs.
 #+latex: \end{proof}
 
 We now show that the delay scheduler will produce valid RTEDs in a single-agent context.
@@ -440,8 +441,9 @@ events must be assigned in order to produce a valid RTED, then scheduling would 
 information that cannot be learned, meaning $S$ would not be controllable.
 #+latex: \end{proof}
 
-For the next lemma, it is important to highlight that RTEDs may not depend on information about
-future events.
+For the next lemma, note that RTEDs are not the same as event assignments. An RTED must be used by
+an exogenous system, e.g. digital assistant, to perform an action. We assume that the exogenous
+system can observe the actions it takes.
 
 #+label: lemma:all-events-are-observed
 #+latex: \begin{lemma}
@@ -454,10 +456,8 @@ There are two parts to this proof. First, the delay scheduler loops without paus
 executable events have been scheduled, meaning that the conditional on line
 $\ref{line:event-observed}$ will be reached for all events that can have an impact on RTEDs.
 
-Second, RTEDs are not the same as event assignments. As will be shown in Definition [[def:rted-op]], the
-execution time of an RTED must be in the future. We are not allowed to assign an event to a future
-time, thus the events in an RTED cannot be immediately scheduled. We observe when executable events
-are scheduled in the future.
+Second, an RTED must be translated into observable action by an exogenous system, hence it is not an
+event observation.
 #+latex: \end{proof}
 
 #+label: lemma:observe-then-rted

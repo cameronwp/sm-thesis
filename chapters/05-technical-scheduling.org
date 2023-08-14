@@ -345,7 +345,7 @@ for STNUs with observation delay in Section [[sec:delay-scheduling]].
 An STNU, $S$, that exhibits dynamic controllability can be /scheduled/ dynamically (or /online/). At
 a high-level, dynamic scheduling is the process of mapping the history of event assignments to the
 execution time of future free events. We will build off of the scheduling work by Hunsberger
-[cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ online procedure, FAST-EX, for
+[cite:@Hunsberger2013;@Hunsberger2016], which describes an $O(N^{3})$ procedure, FAST-EX, for
 dynamic scheduling of STNUs. We chose FAST-EX because, to the best of our knowledge, this is the
 fastest dynamic scheduling algorithm in the literature today. At its core is the notion of
 /Real-Time Execution Decisions/ (RTEDs), which map a time to a set of requirement events to be

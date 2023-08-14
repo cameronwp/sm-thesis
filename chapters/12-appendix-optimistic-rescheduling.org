@@ -38,16 +38,16 @@ that $C'$ is assigned to a later time of $t = 8$.
 From a human mission manager perspective, this wait appears to be a waste. Time is money. And in the
 case of planetary exploration, time is safety. If a NASA flight controller were to ask why your
 software is telling astronauts on Moon to just stand there doing nothing, responding that your
-algorithm /does not know/ if it is safe to act, would be unacceptable. Therefore, we contribute a
-generate-and-test approach that looks for opportunities to avoid buffering when contingent events
-arrive before their expected windows in the fixed-delay STNU. The goal of this method is to dispatch
-future events earlier if possible.
+algorithm /does not know/ if it is safe to act, would be unacceptable. Therefore, we contribute an
+approach that looks for opportunities to avoid buffering when contingent events arrive before their
+expected windows in the fixed-delay STNU. The goal of this method is to dispatch future actions
+earlier if possible.
 
 # We can see that the full execution space for $C$ is $[1, 7] + [5, 9] = [6, 16]$.
 
 # TODO include a diagram used in group meeting that highlights the gaps at either end of the VDC->FDC translation
 
-At its core, optimistic rescheduling consists of copying the original variable-delay STNU then
+At its core, Optimistic Rescheduling consists of copying the original variable-delay STNU then
 rewriting it to reflect the resolution of uncertainty so far. Key to rewriting the variable-delay
 STNU is narrowing the constraint and observation delay to match what was observed. We then
 re-perform controllability checks. If controllable, we have a new schedule that removes the need to
@@ -272,13 +272,10 @@ $\gammabar(x_{c}) \in [1, 2]$ that would allow an observation at $t = 3$.
 \end{algorithm}
 #+end_export
 
-The complexity of Algorithm [[alg:optimistic-rescheduling]] is dominated by the loop over
-=updateSchedule=. Each call to =updateSchedule= is $O(N^{3})$ in the number of events.
-
-In the worst case, each of the $N$ events could trigger Optimistic Rescheduling. We know that the
-total time to schedule one event scales with $O(N \log N)$. Scaling all events goes as $O(N^{2} \log
-N)$. If we had to schedule the next to last event too, the performance would be $O(N^{2} \log N +
-(N - 1) N \log N)$. The last two events being rescheduled would have the performance of $O(NN
-\log N + (N - 1) N \log N) + (N - 2) N \log N)$, and so on for all $N$ events. We know that
-$\sum_{n=0}^{N} N - n = \cfrac{1}{2} N (N + 1)$, giving us $O(N^{2} (N + 1) \log N)$ total runtime
-to schedule (and reschedule) all events.
+In the worst case, each of the $N$ events could trigger Optimistic Rescheduling. From FAST-EX we
+know that the total time to schedule one event scales with $O(N \log N)$ [cite:@Hunsberger2016].
+Scaling all events goes as $O(N N \log N)$. If we had to schedule the next to last event too, the
+performance would be $O(N N \log N + (N - 1) N \log N)$. The last two events being rescheduled would
+have the performance of $O(N N \log N + (N - 1) N \log N) + (N - 2) N \log N)$, and so on for all
+$N$ events. We know that $\sum_{n=0}^{N} N - n = \frac{1}{2} N (N + 1)$, giving us $O(N^{2} (N + 1)
+\log N)$ total runtime to schedule (and reschedule) all events.

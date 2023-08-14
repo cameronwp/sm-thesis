@@ -902,12 +902,12 @@ algorithms, showing that variable-delay controllability gives us a level of mode
 that cannot be captured by approximations that use delay controllability alone. We do so by
 constructing examples of variable-delay STNUs for realistic multi-agent coordination scenarios that
 are taken from the domain of planetary exploration, inspired by the real decision-making processes
-during Apollo EVAs and modern day EVA operations research. First, we briefly describe the
-operational environment, relevant actors, and decisions in EVAs. We then provide a selection of
-STNUs that reflect the activities and temporal constraints of planetary exploration. Using these
-building blocks, we make a case for the expressivity of VDC in modeling uncertain communication,
-then generate larger STNUs to demonstrate the soundness of variable-delay controllability
-checking.[fn:: The implementation of the experiments herein can be found at
+during Apollo and Artemis EVA science. First, we briefly describe the operational environment,
+relevant actors, and decisions during science operations. We then provide a selection of STNUs that
+reflect the activities and temporal constraints of planetary exploration. Using these building
+blocks, we make a case for the expressivity of VDC in modeling uncertain communication, then
+generate larger STNUs to demonstrate the soundness of variable-delay controllability checking.[fn::
+The implementation of the experiments herein can be found at
 [[https://gitlab.com/mit-mers/delay-stnu-benchmarks][[https://gitlab.com/mit-mers/delay-stnu-benchmarks]]].]
 
 #+label: fig:sbt-stnu

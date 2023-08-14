@@ -166,21 +166,15 @@ delay. The result is a multi-agent execution architecture that is greater than t
 
 * Introduction
 
-# ABSTRACT
-# As space exploration accelerates and the number of robots and humans working in extreme
-# environments grows with it, we must enact autonomous multi-agent coordination in order to safely
-# operate in environments that are inherently hostile to communication.
-
 The United States, Europe, private companies, and new space agencies around the world are
-collectively urging humanity further into the cosmos with a sense of urgency that has not been seen
-since Apollo. We are witness to the great forces of political will, economics, and technological
-prowess launching our foothold beyond low Earth orbit and into planetary colonization. From every
-perspective, the scale of space exploration is staggering. It will take relentless effort from
-untold numbers of people, and our robotic partners, to usher humanity into the era where
-interplanetary travel and living off-world are commonplace. In every envisioned scenario for deep
-space exploration, there is a need to coordinate between agents, whether human or robotic, who must
-find a way to safely work together in the face of the communication challenges inherent to extreme
-environments.
+collectively racing to orbit, the Moon, and Mars with a zeal that has not been seen since Apollo. We
+are witness to the great forces of political will, economics, and technological prowess launching
+our foothold beyond low Earth orbit and into planetary colonization. From every perspective, the
+scale of space exploration is staggering. It will take relentless effort from untold numbers of
+people, and our robotic partners, to usher humanity into the era where interplanetary travel and
+living off-world are commonplace. In every envisioned scenario for deep space exploration, there is
+a need to coordinate between agents, whether human or robotic, who must find a way to safely work
+together in the face of the communication challenges inherent to extreme environments.
 
 There is good reason to design a system for coordination around the notion of uncertain
 communication. We take for granted that communication is easy in our civilized corners of the
@@ -190,17 +184,19 @@ far from a given in the frontiers. Consider low Earth orbit. The largest artific
 International Space Station (ISS), has been in orbit since 1998. Despite that, it still loses
 communication with the ground regularly. Satellites with much less robust infrastructure lose
 contact with the ground even more often. When astronauts set foot on the South Pole of the Moon soon
-as part of the Artemis program,[fn:: https://www.nasa.gov/specials/artemis/] they will find
-uncertain satellite coverage and the need to contend against local topology that is unforgiving to
-radio signals [cite:@Coan2020a]. Any robots working near a habitat, or any astronauts collecting
-samples nearby, may rely on complicated systems of relays that can provide, at best, unpredictable
-communications with nearby /in situ/ agents, let alone Mission Control on Earth. Communications may
-be delayed due to passing through multiple relays and the speed of light. Or communications may drop
-out altogether when astronauts step behind a large boulder between them and the closest relay.
+as part of the Artemis program, they will find uncertain satellite coverage and the need to contend
+against local topology that is unforgiving to radio signals [cite:@Coan2020a]. Any robots working
+near a habitat, or any astronauts collecting samples nearby, may rely on complicated systems of
+relays that can provide, at best, unpredictable communications with nearby /in situ/ agents, let
+alone Mission Control on Earth. Communications may be delayed due to passing through multiple relays
+and the speed of light. Or communications may drop out altogether when astronauts step behind a
+large boulder between them and the closest relay.
 
 This thesis will address on-the-fly task coordination under limited communication using human
-spaceflight, specifically spacewalks, as a motivating example. We provide more background here
-before outlining the rest of this thesis.
+spaceflight, specifically spacewalks, as a motivating example. Our aim is to define a tactical,
+moment-by-moment scheduling system for teams of explorers in extreme environments where
+communication is not guaranteed. We provide more background here before outlining the rest of this
+thesis.
 
 The Artemis astronauts will continue a longstanding tradition in the U.S. space program of
 performing Extravehicular Activities (EVAs) [cite:@McBarron1994]. Like the Apollo astronauts of the
@@ -224,12 +220,13 @@ E.g. [[https://github.com/nasa/maestro]]] for tracking a crew's progress on an E
 rely on verbal communications with MCC, as well as written notes kept on their suits (e.g. Figures
 [[fig:bean]] and [[fig:whitson]]), to perform the right actions at the right times. It is not a stretch to
 imagine that future spacewalkers will don new spacesuits that feature digital assistants designed to
-walk them through procedures. Astronauts may interact with digital assistants through heads up
-displays, over voice, or on wrist mounted screens. If communications with MCC are challenged, then
-behind a digital assistant will need to be a system capable of providing the same timely advice that
-MCC provides today. To do so, it will need to reason over all the actions in an EVA timeline, while
-taking into account the current state of what has been done and what needs to be done, in order to
-help the crew decide when actions should be performed. We call such a system a /scheduler/.
+walk them through procedures. Astronauts may interact with digital assistants through
+heads-up-displays, over voice, or on wrist mounted screens. If communications with MCC are
+challenged, then behind a digital assistant will need to be a system capable of providing the same
+timely advice that MCC provides today. To do so, it will need to reason over all the actions in an
+EVA timeline, while taking into account the current state of what has been done and what needs to be
+done, in order to help the crew decide when actions should be performed. We call such a system a
+/scheduler/.
 
 #+label: fig:bean
 #+attr_latex: :width 0.8\textwidth
@@ -260,84 +257,31 @@ envision that future digital assistants must facilitate similar collaboration. T
 will have their own assistant, each running a scheduler that can reason over timing constraints
 between their actions and the actions of their peers.
 
-# ABSTRACT
-# To the best of our knowledge, there are no autonomous executives capable of coordinating with
-# other agents while independently reasoning over communication delay to decide when to act.
-
 The gap in the current state of the art is that, to the best of our knowledge, there is no such
 scheduler that is capable of reasoning over uncertain communication and observation delay. Existing
-schedulers assume instantaneous communications, which is unreasonable on the lunar surface, or
-indeed, any extreme environment. Furthermore, state of the art schedulers do not provide
-collaborative capabilities that allow multiple agents to work together, especially in the presence
-of uncertain communication. This thesis leverages and contributes to temporal reasoning research to
-implement such a scheduler for multi-agent (MA) collaboration with uncertain communication, which we
-refer to as a /delay scheduler/.
-
-# Thus, the envisioned scheduler is one that works for collaborative, distributed agents in the
-# presence of uncertain communication.
-
-# ABSTRACT
-# A key gap that must be addressed is a single-agent executive capable of deciding when to act given
-# communication delay, which can the form the basis for a multi-agent execution context.
-
-# An end-to-end approach would allow a human mission planner to construct a plan for all agents in the
-# mission, separate actions for each agent, and then task agents to coordinate during the mission
-# despite observation delay. An important stepping stone to the envisioned multi-agent planning and
-# execution scenario is defining a single-agent executive that can decide when to act when the
-# information it receives, i.e. observations or communications, has uncertain delay. Such a
-# single-agent executive is useful in its own right, and can then form the basis for end-to-end
-# multi-agent planning and coordination.
-
-# ABSTRACT
-# Existing research has provided insights into temporal reasoning, namely modeling observation delay
-# and scheduling actions with temporal constraints, but there is both a need for deciding when to
-# schedule events when there is uncertain observation delay, and a need to robustly coordinate
-# between agents.
-
-
-# Scheduling actions in the face of uncertainty is a challenge due to the compounding uncertainties
-# of uncontrollable exogenous events, unknown observation delay, and uncertain communication between
-# agents.
-
-
-
-
-# TODO this EVA stuff here feels out of place
-# A real EVA timeline consists of more than six hours of events with constraints between them
-# [cite:@McBarron1994]. For any realistic mission, we can expect hundreds of events, with multiple
-# agents /in situ/ and on the ground. Human reasoning over temporal constraints is possible,
-# This example demonstrates the type of online temporal reasoning over multiple sources of uncertainty
-# required from the perspective of a single agent (=alpha= in this case). We could extend decision
-# making to a multi-agent context by alternating our perspective to =beta=, who might then need to
-# wait for =alpha= to send a message before its next action. With more constraints, compounding
-# sources of uncertainty, and more agents cooperating, the decision as to when to act becomes
-# increasingly difficult.
-
-# This thesis proposes to address the following high-level gaps that are required in order to define a
-# single-agent task scheduling executive that can participate in a multi-agent context.
-
-# ABSTRACT
-# This thesis puts forth a series of contributions that culminates in a robust single-agent
-# executive demonstrated to run on real hardware with the ability to coordinate in a multi-agent
-# context despite observation delay. We show that single agent online scheduler exhibits the
-# expected performance characteristics, and demonstrate multi-agent execution with uncertain
-# communication in the context of a simulated astronaut and robotic asset collaborating with
-# communication delay.
-
-# 2. Extending existing task scheduling algorithms to implement said execution strategy.
+schedulers assume instantaneous communications (e.g. [cite:@Hunsberger2016]), which is unreasonable
+on the lunar surface, or indeed, any extreme environment. Furthermore, state of the art schedulers
+do not provide collaborative capabilities that allow multiple agents to work together, especially in
+the presence of uncertain communication. This thesis leverages and contributes to temporal reasoning
+research to implement such a scheduler for multi-agent (MA) collaboration with uncertain
+communication, which we refer to as a /delay scheduler/.
 
 For the remainder of the introduction, we present a short summary of each chapter.
 
 ** Problem Statement
 
 A delay scheduler can be used in the case of both one agent (e.g. a single astronaut or a robot)
-working individually, as well as when multiple agents are collaborating. We start by defining the
+working individually, as well as when a team of agents are collaborating. We start by defining the
 problem statement for the single-agent case, before identifying the features that are necessary for
 the MA case.
 
 We use tools from temporal reasoning, namely temporal networks [cite:@Dechter1991], to model EVA
-timelines as constraints (relationships) between a finite set of events. Some events are under an
-agent's control, while others are not. Some events may have associated uncertain observation delay.
+timelines as time constraints (relationships) between a set of events. Some events are under an
+agent's control, like deciding when an astronaut decides to start walking to a science station.Other
+events are not controlled, such as the exact time when the astronaut arrives at a science station.
+Some events may not be learned until an unknown later time, i.e. they have uncertain observation
+delay. An example would be when an unfortunate configuration of satellites causes messages from MCC
+to arrive a minute late.
 
 At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$. When an
 event has been recorded at $t$, we say that it has been /assigned/. If there is no associated
@@ -346,36 +290,37 @@ is associated observation delay, then it is possible that assignment times are e
 respective observations.
 
 We want a /Real-Time Execution Decision/ (RTED), which consists of unexecuted events and when they
-should be performed. Each RTED consists of a set of unexecuted events to be scheduled at a future time.
+should be performed. Each RTED consists of a set of unexecuted events to be scheduled at a future
+time. A digital assistant might use an RTED to display a notification informing an astronaut that
+they should, say, finish taking photographs in two minutes.
 
 Our problem statement for the delay scheduler is as follows. For some time $t$ during scheduling,
 the delay scheduler should take a temporal network, observation delay, observations thus far, and
 assignments so far as input. It should output an RTED.
 
-We expand the previous problem statement to the multi-agent case by adding the notion of agents.
-Each agent has their own delay scheduler. As such, each delay scheduler receives a temporal network.
-A subset of all events in their temporal network will be received from their peers in the form of
-communications. From the perspective of an agent, their peers simply need to be aware of what events
-have been assigned. Events that an agent receives from peers are no different than observations.
+Each member of a team of collaborative explorers would naturally rely on their own delay scheduler,
+each with their own temporal network. Like an astronaut waiting for their buddy to finish a task
+before they both move on, some constraints will depend on events that are performed by someone else.
+Events that an agent receives from peers are no different than observations. Figure [[fig:eva-timeline]]
+shows a three-agent EVA timeline consisting of the Canadarm and two astronauts. As can be seen,
+there are actions each agent will perform independently, but there are constraints that dictate
+agents must also synchronize their actions. Hence, there are constraints each agent must respect
+that depend on events performed by others.
 
-To be clear, each agent needs their own temporal network. In the EVA domain, we see the same
-separation in Figure [[fig:eva-timeline]] where each agent in the EVA has its own set of actions to
-perform. While some actions are aligned between agents, there is no assumption that all agents are
-working against the same events with the same constraints.
-
-Thus, the multi-agent addition to the problem statement follows. Given event assignments and a set
-of peers, all assignments made at $t$ should be immediately communicated to all peers.
+We expand the problem statement with the following inputs and output. In order to perform
+multi-agent scheduling, each agent should take a set of peers and event observations as input, and
+output a broadcast that sends event assignments to all peers.
 
 ** Approach
 
 The architecture of the delay scheduler is designed around the notion of taking everything we know
-about set of temporal constraints and when events have been assigned and distilling it down to a
-single RTED. There are three key processes in the delay scheduler.
+about a set of temporal constraints and when events have been assigned and distilling it down to a
+single RTED. There are four key processes in the delay scheduler.
 
 1. an offline process that initializes the scheduler with a given model, including the temporal network
    and observation uncertainty,
-2. an online process that updates the scheduler with event assignments,
-3. an online process that broadcasts event assignments with peers, and
+2. an online process that updates the scheduler with event observations,
+3. an online process that broadcasts event assignments to peers, and
 4. an online process that queries for RTEDs.
 
 #+label: fig:intro-ma-schedulers
@@ -396,8 +341,8 @@ During scheduling, schedulers receive observations of events. For a given agent,
 come from three sources: actions $a$ has sensed but not controlled ("I traversed difficult terrain
 and reached the installation location at $t = 5$"), actions $a$ has performed ("I put the tripod
 down at $t = 6$"), and actions that have been communicated to $a$ ("It is $t = 15$ and my peer told
-me their confirmation arrived"). Figure [[fig:intro-ma-schedulers]] shows observations coming from
-outside the two schedulers while communications are passed between them.
+me they arrived at the science station"). Figure [[fig:intro-ma-schedulers]] shows observations coming
+from outside the two schedulers while communications are passed between them.
 
 As scheduling progress, a digital assistant will want to ask the scheduler for guidance as to when
 to act. We represent the delay scheduler's output as an RTED, which can also be seen in Figure
@@ -405,7 +350,7 @@ to act. We represent the delay scheduler's output as an RTED, which can also be 
 
 #+label: fig:intro-interfaces
 #+attr_latex: :width 0.7\textwidth
-#+caption: The four interfaces of a delay scheduler. The first is for initialization, the second is for schedule updates, the third is for broadcasting, and the fourth is for generating RTEDs. The dispatchable form is ultimately the source of truth for when events should be scheduled.
+#+caption: The four interfaces of a delay scheduler. The first is for initialization, the second is for schedule updates, the third is for broadcasting, and the fourth is for generating RTEDs. The dispatchable form is ultimately the source of truth for when events should be scheduled. Scheduling and broadcasting are shown in the same box because broadcasts are triggered by event observations.
 file:../images/approach-interfaces.png
 
 With three distinct processes involved in single-agent scheduling (subprocesses 1, 2, and 4), we
@@ -418,16 +363,17 @@ simplification. The dispatchable form is the key data structure that make schedu
 an implementation of a scheduler will store forms of data other than the dispatchable form when
 events are recorded.
 
-Importantly, the second interface in Figure [[fig:intro-interfaces]], recording, takes both
-observations and communications as input. A key idea for the delay dispatcher is that communications
-from agents are no different than event observations. Peer schedulers communicate when they have
-assigned events, which then received as observations. We shall see that equating communications and
-observations allows us to define a single-agent delay scheduler that can be seamlessly integrated in
-a multi-agent context.
+The key distinction between a delay scheduler and existing schedulers is that we do not assume
+perfect knowledge of event assignments. Instead, we reason over uncertain observation delay when
+observations of events are received and when we generate RTEDs.
 
-To enable communications between agents, delay schedulers are networked such that there is a
-communication pathway between all agents. We do not assume every agent can communicate with ever
-peer, rather when communications are received, they are relayed to all known peers.
+The second interface in Figure [[fig:intro-interfaces]], recording, takes both observations and
+communications as input. A key idea for the delay dispatcher is that communications from agents are
+no different than event observations. Peer schedulers communicate when they have assigned events,
+which then also received as observations. The result of equating communications and observations is
+that a single-agent delay scheduler that can be seamlessly integrated in a multi-agent context
+simply by being networked with peers. We do not assume every agent can communicate with ever peer.
+Rather when communications are received, event assignments are relayed to all known peers.
 
 ** Modeling Temporal Constraints with Uncertain Observations
 
@@ -480,6 +426,9 @@ aspect of checking controllability is that we must the temporal network to one w
 that is equivalent with respect to controllability. It is this less uncertain form of the temporal
 network that we then schedule.
 
+We demonstrate the utility of our chosen modeling framework for uncertain observations through a
+series of comparisons with other approaches to modeling uncertainty.
+
 # TODO what experiments?
 
 ** Scheduling Events Despite Uncertain Observations
@@ -490,20 +439,22 @@ network that accurately models the world.
 Other researchers have presented single-agent scheduling algorithms for temporal networks with
 uncontrollable events [cite:@Hunsberger2013;@Hunsberger2016;], the fastest being FAST-EX
 [cite:@Hunsberger2016]. An underlying assumption of existing schedulers is that events are observed
-instantaneously, that is $\obs(x_{c}) = \assign(x_{c})$ for some uncontrollable event $x_{c}$.
-Events with uncertain observations are incompatible with this assumption, necessitating a change to
-the way observations are recorded. The delay scheduler is a modified version of FAST-EX.
+instantaneously. Events with uncertain observations are incompatible with this assumption,
+necessitating a change to the way observations are recorded. The delay scheduler is a modified
+version of FAST-EX.
 
+# TODO noops are introduced in the dispatcher chapter!
+# TODO this should be more high level about what it means to make an RTED and scheduling
 In fact, there are broadly two key differences between a delay scheduler and a scheduler that
 implements FAST-EX. First, we must account for observation delay when events are observed. For
 instance, if we know an observation at time $t$ was delayed by $\gamma$ time units, the assigned
-time is then $t - \gamma$. Second, we introduce a new variable to RTEDs, a /no-operation/, or
-=no-op=, boolean. Some events in an RTED may be =no-op= for reasons explained below.
+time is then $t - \gamma$. Second, we introduce a new variable to RTEDs, a /no-operation/, or no-op,
+boolean. Some events in an RTED may be no-op for the reason explained below.
 
 When we transform the original temporal network with uncertain observations to one with less
 uncertainty, we artificially shrink some of the constraints in the original temporal network. Some
 uncontrollable events may arrive earlier or later than expected. We address these situations with
-/buffering/ and /imagining/ uncontrollable events. We use the =no-op= addition to RTEDs to simplify
+/buffering/ and /imagining/ uncontrollable events. We use the no-op addition to RTEDs to simplify
 the handling of events that must be buffered or imagined.
 
 #+label: fig:intro-runtime-scheduling
@@ -563,10 +514,11 @@ update the heads-up-display in the crew's helmet. For a robot, the driver might 
 message [cite:@ros].
 
 Observations are passed to the scheduler through the dispatcher. We do so because in our
-architecture the dispatcher, not the scheduler, has access to a clock. The dispatcher takes the
-responsibility of comparing RTEDs to the clock time and deciding when to act. Likewise, when events
-are observed, the dispatcher tells the scheduler when they were observed. This change has the
-cumulative effect of giving the dispatcher responsibility for interacting with the environment.
+architecture the dispatcher, not the scheduler, has access to a clock (hence the clock emoji in
+Figure [[fig:intro-dispatching-architecture]]). The dispatcher takes the responsibility of comparing
+RTEDs to the clock time and deciding when to act. Likewise, when events are observed, the dispatcher
+tells the scheduler when they were observed. This change has the cumulative effect of giving the
+dispatcher responsibility for interacting with the environment.
 
 A key distinction between a dispatcher for instantaneous observations and the delay dispatcher is
 that not all observed events are scheduled immediately. It is the case that some observations must
@@ -579,7 +531,7 @@ actually waiting until the correct clock time to record the time in the schedule
 file:../images/tick-total-runtime.png
 
 We evaluate the dispatcher's interface that loops and compares the clock time to an RTED to decide
-when to act. For this tests, we use the same randomly generated temporal networks as were used when
+when to act. For these tests, we use the same randomly generated temporal networks as were used when
 evaluating the scheduler. Figure [[fig:intro-tick-runtime]] shows the total runtime for all calls to the
 dispatcher while scheduling all events in a temporal network. The Dijkstra updates that are
 performed when recording events dominates the runtime performance. Given every event is recorded
@@ -617,11 +569,10 @@ descriptions of the scenarios used for testing distributed collaboration and coo
 uncertain communication, will be provided in Chapter [[ch:problem-statement]]. Our approach to
 addressing the problem statement will be outlined in Chapter [[ch:approach]]. Chapter [[ch:modeling-tn]]
 will provide the first technical contributions of this thesis, first by addressing the issue of
-modeling observation delay, then by providing a procedure that can be used to guarantee that
-temporal constraints with observation delay are satisfiable. Chapter [[ch:delay-scheduling]] expands
-existing algorithms for deciding when to act given the resolution of constraints. There, we
-contribute a novel strategy for deciding when to act given observation delay. In Chapter
-[[ch:technical-executive]], we formalize the components of task scheduling executive that can be
+modeling observation delay, then by providing a procedure that can be used to check that temporal
+constraints with observation delay are satisfiable. Chapter [[ch:delay-scheduling]] contributes a delay
+scheduler, a novel strategy for deciding when to act given observation delay. In Chapter
+[[ch:technical-executive]], we position the delay scheduler in a high-level task executive that can be
 deployed to real hardware. Chapter [[ch:technical-coordination]] finally contributes a multi-agent
 coordination architecture for environments with uncertain communication. The discussion in Chapter
 [[ch:discussion]] concludes this thesis by providing additional context for the decisions made during

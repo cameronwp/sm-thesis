@@ -37,15 +37,15 @@ consider uncertain communication. Examples include military operations and remot
 summarized below.
 
 Military operators are frequently in environments where communication is impossible or dangerous.
-Radioing from a staging area back to a command center may be impossible. Even communications between
-operators in a hostile environment may risk exposing them to an enemy. Despite communication
-concerns, there is an advantage for operations who can coordinate on a battlefield. A delay
-scheduler would allow military operators to decide when to act given uncertainty in their
-environment and communications.
+Radioing from a battlefield back to a command center may be impossible. Even communications between
+operators in a hostile environment may risk exposure to an enemy. Despite communication concerns,
+there is clearly an advantage for operators who can coordinate on a battlefield. A delay scheduler
+would allow military operators to decide when to act given uncertainty in their environment and
+communications.
 
 Remote science with robotic explorers features many of the same communication and observation
 constraints that are found in human spaceflight. The upcoming set of NASA Commercial Lunar Payload
-Systems (CLPS) [cite:@Daines_2019] rovers will be collecting samples and exploring the lunar
+Systems (CLPS) [cite:@Daines_2019] missions will be collecting samples and exploring the lunar
 surface. While a CLPS rover is a single agent in and of itself, it is important to recognize that
 both flight controllers and the scientists on the ground need to pass information between each other
 and the rover to make the mission successful. From a scheduling perspective, CLPS mission execution
@@ -57,14 +57,13 @@ like CFDP [cite:@CFDP], and issues with topological interference on the lunar su
 Consider a subset of activities a rover might perform in a science station, or a small area where
 multiple samples are collected. Within a tightly constrained window at each science station
 (measured on the order of hours), a rover may collect core samples from multiple sites. Drill sites
-within the science station might be pre-planned, however, it is possible that some later sites can
+within the science station might be pre-planned, however, it is possible that some later sites could
 be changed by scientists based on the data collected so far. If that is the case, scientists would
-have a limited time window after the first samples arrive to affect where later samples are
-collected. A delay scheduler would allow the scientists to identify the last possible moment to
-suggest a new drill site for the end of the science station, hence giving them as much time as
-possible to analyze the data they receive and debate what other site might be most valuable. Without
-taking communication delay into account, scientists may debate too long and miss an opportunity to
-impact drill sites.
+have a limited time window after the first samples arrive to change where later samples are
+collected. Without taking communication delay into account, scientists may debate too long and miss
+an opportunity to impact drill sites. A delay scheduler would allow the scientists to identify the
+last possible moment to suggest a new drill site for the end of the science station. This would give
+scientists as much time as possible to analyze the data and have an impact on the mission.
 
 We now provide an example using EVAs to motivate the need for uncertain observations.
 
@@ -97,17 +96,17 @@ installing a single satellite dish is well defined. The procedure involves, say,
 tripod into the lunar regolith, putting a dish on top, bolting the dish in, attaching a few wires,
 and waiting to get confirmation from ground that the dish is operational. Sometimes the tripod is
 easy to burrow into the regolith, other times it takes a few tries. Sometimes the confirmation comes
-quickly, other times it takes time. Some dishes are to be placed close to one another, yet others
+quickly, other times it comes later. Some dishes are to be placed close to one another, yet others
 should be far apart and across difficult to traverse terrain. Once one dish is done, the astronaut
 can move on to the next. All the while, the astronaut's life support system is slowly draining its
-consumable resources (e.g. oxygen and battery). Ground wants one dish tested at a time, so the
-astronaut must wait for the confirmation before proceeding. But the astronaut also knows the
-confirmation will come /eventually/. They can continue to the next dish before receiving the
-confirmation if they are confident that doing so still guarantees that the next installation will
-not happen before the ground is ready. Another way of looking at it is that the astronaut knows
-ground confirmed the installation, but the communication saying as much was delayed. The challenge
-then is to wait as little time as necessary before moving on to the next dish. To decide when to
-act, the astronaut relies on advice from the delay scheduler built in to their digital assistant.
+consumable resources. Ground wants one dish tested at a time, so the astronaut must wait for the
+confirmation before proceeding. But the astronaut also knows the confirmation will come
+/eventually/. They can continue to the next dish before receiving the confirmation if they are
+confident that doing so still guarantees that the next installation will not happen before ground is
+ready. Another perspective is that the astronaut knows ground must have confirmed the installation,
+but the communication saying so was delayed. The challenge then is to wait as little time as
+necessary before moving on to the next dish. To decide when to act, the astronaut relies on advice
+from the delay scheduler built in to their digital assistant.
 
 ** Problem Statement Definitions
 
@@ -119,30 +118,33 @@ between when an event occurs and when it is observed. Once the astronaut starts 
 second input, which is the time when events are observed. Taken together, we are tasked with finding
 an output of deciding which future events should be executed at what time.
 
+We define notation below in order to make our problem statement more explicit. We will provide full
+definitions in Chapter [[ch:modeling-tn]].
+
 We use temporal networks [cite:@Dechter1991] to model EVA timelines as temporal constraints between
-a finite set of events. Some events may have associated uncertain observation delay. Let a temporal
-network be represented by $S$, which is a tuple of events $X$ and constraints $R$, $\langle X, R
-\rangle$. Constraints take the form of set-bounded intervals between two events. Some events in a
-temporal network may be associated with an uncertain observation delay $\gammabar$.
+a finite set of events. Let a temporal network be represented by $S$, which is a tuple of events $X$
+and constraints $R$, $\langle X, R \rangle$. Events $x \in X$ may be controllable or uncontrollable.
+Constraints take the form of set-bounded intervals between two events. Some events in a temporal
+network may be associated with an uncertain observation delay $\gammabar$.
 
-At some time $t$ during an EVA, we have a set of events that were /observed/ before $t$, $\obs(x <
-t)$. When an event has been recorded at a given time $t$, we say that it has been /assigned/. Both
-observations and assignments are mappings from an event to a time in $\mathbb{R}$.
-
-The set of events that were assigned a time before $t$ is $\assign(x < t)$. If there is no
-associated observation delay with an event $x_{c}$, then $\obs(x_{c}) = \assign(x_{c})$. If there is
+At some time $t$ during an EVA, we have a set of events, $x \in X$ that were /observed/ before $t$,
+$\obs(x \in X) < t$. $x$ may be controllable or uncontrollable. When an event has been recorded at a
+given time $t$, we say that it has been /assigned/, $\assign(x) = t$. Both observations and
+assignments are mappings from an event to a time in $\mathbb{R}^{\geq 0}$. The set of events that
+were assigned a time before $t$ is $\assign(x \in X) < t$. If there is no associated observation
+delay with an uncontrollable event $x_{c}$, then $\obs(x_{c}) = \assign(x_{c})$. If there is
 associated observation delay, then it is possible that $\obs(x_{c}) < \assign(x_{c})$.
 
 We want a /Real-Time Execution Decision/ (RTED), which consists of unexecuted events and when they
 should be performed. Each RTED is a tuple of a set of unexecuted events, $x_{u} \subseteq X$ and
-future time, $t'$, $\langle x_{u}, t' \rangle$.
+future time, $t'$: $\langle x_{u}, t' \rangle$.
 
 Our specific problem statement for the delay scheduler is as follows.
 
 #+latex: \begin{defn}
 *Single-Agent Delay Scheduler*
 
-The delay scheduler should take triple $\langle S, \gammabar, \obs(x < t) \rangle$ of the offline
+The delay scheduler should take triple $\langle S, \gammabar, \obs(x \in X) \leq t \rangle$ of the offline
 (before scheduling) and online (during scheduling) components of scheduling as input. It must output
 an RTED $\langle x_{u}, t' \rangle$.
 #+latex: \end{defn}
@@ -160,12 +162,12 @@ constraints.
 
 We expand the previous problem statement to the multi-agent case by adding the notion of agents,
 $A$, each with their own delay scheduler. Each delay scheduler has their own $S_{a}$ with a subset
-of events, $x \subset X$, they expect to receive from their peers in the form of observations or
-communications. While some actions are aligned between agents, there is no assumption that all
-agents are working against the same events with the same constraints. From the perspective of an
-agent, $a \in A$, at time $t$, their peers simply need to be aware of what events $a$ has assigned
-up to $t$, $\assign_{a}(x \leq t)$. Events that the peers of $a$ communicate to $a$ are no different
-than observations of the environment that $a$ makes.
+of events, $x \subset X$, they expect to receive from their peers in the form of observations. While
+some actions are aligned between agents, there is no assumption that all agents are working against
+the same events with the same constraints. From the perspective of an agent, $a \in A$, at time $t$,
+their peers simply need to be aware of what events $a$ has assigned up to $t$, $\assign_{a}(x \in X)
+\leq t)$. Events that the peers of $a$ communicate to $a$ are treated the same as observations of
+uncontrollable events in the environment that $a$ makes.
 
 We must define a problem statement for how delay schedulers should coordinate in a multi-agent
 context.
@@ -173,9 +175,10 @@ context.
 #+latex: \begin{defn}
 *Multi-Agent Event Communications*
 
-Given online input of tuple $\langle \assign(x_{t}), A$, agent $a$ should output all assignments
-$\assign_{a}(x_{t})$ in the form of a broadcast to all other agents, $A - \{a\}$.
+Given online input of tuple $\langle \obs(x_{t}), A \rangle$, agent $a$ should output all
+assignments $\assign_{a}(x_{t})$ that are recorded in the form of a broadcast to all other agents,
+$A - \{a\}$.
 #+latex: \end{defn}
 
-In other words, event assignments should be broadcasted to all peers as soon as an assignment is
-made.
+In other words, event assignments should be broadcasted to all peers as soon as the assignments are
+made. Communications should be received as event observations.
